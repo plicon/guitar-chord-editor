@@ -42,6 +42,15 @@ export const ChordDiagramComponent = ({
 
   const hasFingerData = chord.fingerLabels && chord.fingerLabels.length > 0;
 
+  // Print mode uses hardcoded light colors for PDF/preview
+  const colors = printMode ? {
+    foreground: "#111827", // gray-900
+    muted: "#6b7280", // gray-500
+    fret: "#44403c", // warm gray for frets
+    string: "#57534e", // warm gray for strings
+    dot: "#92400e", // amber-700 for finger dots
+  } : null;
+
   return (
     <div
       className={cn(
@@ -60,8 +69,11 @@ export const ChordDiagramComponent = ({
     >
       {/* Chord Name */}
       <span
-        className="font-semibold text-foreground mb-1"
-        style={{ fontSize: config.fontSize }}
+        className={cn("font-semibold mb-1", !printMode && "text-foreground")}
+        style={{ 
+          fontSize: config.fontSize,
+          ...(printMode && { color: colors?.foreground })
+        }}
       >
         {chord.name || (showPlaceholder ? "" : "")}
       </span>
@@ -93,13 +105,15 @@ export const ChordDiagramComponent = ({
                 y={startY}
                 width={stringSpacing * 5}
                 height={nutHeight}
-                className="fill-chord-fret"
+                className={!printMode ? "fill-chord-fret" : undefined}
+                fill={printMode ? colors?.fret : undefined}
               />
             ) : (
               <text
                 x={startX - 8}
                 y={startY + fretSpacing * 0.7}
-                className="fill-muted-foreground"
+                className={!printMode ? "fill-muted-foreground" : undefined}
+                fill={printMode ? colors?.muted : undefined}
                 fontSize={config.fingerSize}
                 textAnchor="middle"
               >
@@ -115,7 +129,8 @@ export const ChordDiagramComponent = ({
                 y1={startY + (chord.startFret === 1 ? nutHeight : 0)}
                 x2={startX + i * stringSpacing}
                 y2={startY + fretSpacing * chord.frets}
-                className="stroke-chord-string"
+                className={!printMode ? "stroke-chord-string" : undefined}
+                stroke={printMode ? colors?.string : undefined}
                 strokeWidth={1}
               />
             ))}
@@ -128,7 +143,8 @@ export const ChordDiagramComponent = ({
                 y1={startY + i * fretSpacing + (chord.startFret === 1 && i === 0 ? nutHeight : 0)}
                 x2={startX + stringSpacing * 5}
                 y2={startY + i * fretSpacing + (chord.startFret === 1 && i === 0 ? nutHeight : 0)}
-                className="stroke-chord-fret"
+                className={!printMode ? "stroke-chord-fret" : undefined}
+                stroke={printMode ? colors?.fret : undefined}
                 strokeWidth={i === 0 && chord.startFret === 1 ? 0 : 1}
               />
             ))}
@@ -142,7 +158,8 @@ export const ChordDiagramComponent = ({
                 width={(barre.fromString - barre.toString) * stringSpacing + 8}
                 height={12}
                 rx={6}
-                className="fill-chord-dot"
+                className={!printMode ? "fill-chord-dot" : undefined}
+                fill={printMode ? colors?.dot : undefined}
               />
             ))}
 
@@ -153,7 +170,8 @@ export const ChordDiagramComponent = ({
                 cx={startX + (6 - finger.string) * stringSpacing}
                 cy={startY + (finger.fret - 0.5) * fretSpacing}
                 r={stringSpacing / 3}
-                className="fill-chord-dot"
+                className={!printMode ? "fill-chord-dot" : undefined}
+                fill={printMode ? colors?.dot : undefined}
               />
             ))}
 
@@ -163,7 +181,8 @@ export const ChordDiagramComponent = ({
                 key={`muted-${string}`}
                 x={startX + (6 - string) * stringSpacing}
                 y={startY - 8}
-                className="fill-muted-foreground font-bold"
+                className={!printMode ? "fill-muted-foreground font-bold" : "font-bold"}
+                fill={printMode ? colors?.muted : undefined}
                 fontSize={config.fingerSize + 2}
                 textAnchor="middle"
               >
@@ -178,7 +197,8 @@ export const ChordDiagramComponent = ({
                 cx={startX + (6 - string) * stringSpacing}
                 cy={startY - 12}
                 r={config.fingerSize / 2.5}
-                className="stroke-muted-foreground fill-none"
+                className={!printMode ? "stroke-muted-foreground fill-none" : "fill-none"}
+                stroke={printMode ? colors?.muted : undefined}
                 strokeWidth={1.5}
               />
             ))}
@@ -194,7 +214,8 @@ export const ChordDiagramComponent = ({
                       key={`label-${string}`}
                       x={startX + (6 - string) * stringSpacing}
                       y={startY + fretSpacing * chord.frets + 15}
-                      className="fill-foreground font-medium"
+                      className={!printMode ? "fill-foreground font-medium" : "font-medium"}
+                      fill={printMode ? colors?.foreground : undefined}
                       fontSize={config.fingerSize}
                       textAnchor="middle"
                     >
