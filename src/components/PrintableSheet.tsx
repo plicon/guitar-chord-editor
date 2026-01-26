@@ -71,17 +71,17 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                           <div
                             key={slotIndex}
                             className="flex flex-col items-center justify-center relative"
-                            style={{ width: 16, height: 64 }}
+                            style={{ width: 16, height: 110 }}
                           >
-                            <span className={`absolute top-0 text-[8px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
+                            <span className={`absolute top-0 text-[9px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
                               {beatLabel}
                             </span>
                             <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
                             {beat.stroke === "up" && (
-                              <ArrowUp className="text-gray-800 absolute" style={{ top: "10%", width: 14, height: 48 }} />
+                              <ArrowUp className="text-gray-800 absolute" style={{ top: 12, width: 14, height: 42 }} />
                             )}
                             {beat.stroke === "down" && (
-                              <ArrowDown className="text-gray-800 absolute" style={{ top: "50%", width: 14, height: 48 }} />
+                              <ArrowDown className="text-gray-800 absolute" style={{ bottom: 8, width: 14, height: 42 }} />
                             )}
                             {beat.noteValue === "half" && beat.stroke && (
                               <div className="absolute bottom-1 w-2 h-[2px] bg-gray-800" />
