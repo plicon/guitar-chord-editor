@@ -14,10 +14,22 @@ import {
 } from "@/components/ui/dialog";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { ChordDiagramComponent } from "@/components/ChordDiagram";
 
 const createRow = (startId: number, chordsPerRow: number): ChordDiagram[] => 
   Array.from({ length: chordsPerRow }, (_, i) => 
-    createEmptyChord(`chord-${startId + i}`)
+    createEmptyChord(`chord-${Date.now()}-${startId + i}`)
   );
 
 const Index = () => {
@@ -29,7 +41,16 @@ const Index = () => {
     chordIndex: number;
   } | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [activeChord, setActiveChord] = useState<ChordDiagram | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleChordsPerRowChange = (newCount: number) => {
     if (newCount < 1 || newCount > 5) return;
@@ -40,7 +61,7 @@ const Index = () => {
       if (row.length < newCount) {
         // Add more chords
         return [...row, ...Array.from({ length: newCount - row.length }, (_, i) => 
-          createEmptyChord(`chord-${baseId + row.length + i}`)
+          createEmptyChord(`chord-${Date.now()}-${baseId + row.length + i}`)
         )];
       } else if (row.length > newCount) {
         // Remove excess chords
@@ -73,6 +94,88 @@ const Index = () => {
       newRows[editingChord.rowIndex][editingChord.chordIndex] = chord;
       setRows(newRows);
     }
+  };
+
+  // Find which row and index a chord belongs to
+  const findChordPosition = (chordId: string): { rowIndex: number; chordIndex: number } | null => {
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const chordIndex = rows[rowIndex].findIndex((c) => c.id === chordId);
+      if (chordIndex !== -1) {
+        return { rowIndex, chordIndex };
+      }
+    }
+    return null;
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const position = findChordPosition(active.id as string);
+    if (position) {
+      setActiveChord(rows[position.rowIndex][position.chordIndex]);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    if (activeId === overId) return;
+
+    const activePos = findChordPosition(activeId);
+    let overPos = findChordPosition(overId);
+
+    // Check if over is a row (for dropping at the end of a row)
+    if (!overPos && overId.startsWith("row-")) {
+      const targetRowIndex = parseInt(overId.replace("row-", ""));
+      if (activePos && targetRowIndex !== activePos.rowIndex) {
+        // Move to end of target row
+        overPos = { rowIndex: targetRowIndex, chordIndex: rows[targetRowIndex].length };
+      }
+    }
+
+    if (!activePos || !overPos) return;
+
+    // If same row, reorder within row
+    if (activePos.rowIndex === overPos.rowIndex) {
+      const newRows = [...rows];
+      const row = [...newRows[activePos.rowIndex]];
+      const [movedChord] = row.splice(activePos.chordIndex, 1);
+      row.splice(overPos.chordIndex, 0, movedChord);
+      newRows[activePos.rowIndex] = row;
+      setRows(newRows);
+    } else {
+      // Move between rows
+      const newRows = [...rows];
+      const sourceRow = [...newRows[activePos.rowIndex]];
+      const targetRow = [...newRows[overPos.rowIndex]];
+
+      // Remove from source
+      const [movedChord] = sourceRow.splice(activePos.chordIndex, 1);
+      
+      // Add placeholder to source row to maintain count
+      sourceRow.push(createEmptyChord(`chord-${Date.now()}-placeholder`));
+
+      // Insert into target (replace an empty chord if possible)
+      const emptyIndex = targetRow.findIndex((c) => !isChordEdited(c));
+      if (emptyIndex !== -1) {
+        targetRow[emptyIndex] = movedChord;
+      } else {
+        // Insert at position and remove last
+        targetRow.splice(overPos.chordIndex, 0, movedChord);
+        targetRow.pop();
+      }
+
+      newRows[activePos.rowIndex] = sourceRow;
+      newRows[overPos.rowIndex] = targetRow;
+      setRows(newRows);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveChord(null);
   };
 
   const handleDownloadPDF = async () => {
@@ -140,23 +243,45 @@ const Index = () => {
                 Chord Diagrams
               </h2>
               <span className="text-sm text-muted-foreground">
-                Click on a chord to edit
+                Drag to reorder • Click to edit
               </span>
             </div>
 
-            <div className="space-y-4">
-              {rows.map((row, rowIndex) => (
-                <ChordRow
-                  key={rowIndex}
-                  chords={row}
-                  onChordClick={(chordIndex) =>
-                    handleChordClick(rowIndex, chordIndex)
-                  }
-                  onRemove={() => removeRow(rowIndex)}
-                  showRemove={rows.length > 1}
-                />
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="space-y-4">
+                {rows.map((row, rowIndex) => (
+                  <ChordRow
+                    key={rowIndex}
+                    chords={row}
+                    rowIndex={rowIndex}
+                    onChordClick={(chordIndex) =>
+                      handleChordClick(rowIndex, chordIndex)
+                    }
+                    onRemove={() => removeRow(rowIndex)}
+                    showRemove={rows.length > 1}
+                  />
+                ))}
+              </div>
+              
+              <DragOverlay>
+                {activeChord ? (
+                  <div className="opacity-90 scale-105">
+                    <ChordDiagramComponent
+                      chord={activeChord}
+                      size="md"
+                      showPlaceholder={true}
+                      printMode={false}
+                    />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
 
             {/* Chords per row control */}
             <div className="flex items-center justify-center gap-4 pt-2">
