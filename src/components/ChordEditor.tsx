@@ -368,6 +368,12 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               placeholder="e.g., Am, G, C7"
               className="text-lg font-semibold"
               autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-lpignore="true"
+              aria-autocomplete="list"
             />
             
             {/* Suggestions Dropdown */}
