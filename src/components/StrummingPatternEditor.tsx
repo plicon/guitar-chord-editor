@@ -112,7 +112,7 @@ export const StrummingPatternEditor = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4].map((n) => (
+                  {[1, 2].map((n) => (
                     <SelectItem key={n} value={n.toString()}>
                       {n}
                     </SelectItem>
