@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
-        name: "Guitar Chord Creator",
-        short_name: "Chord Creator",
+        name: "Fretkit - Guitar Chord Creator",
+        short_name: "Fretkit",
         description: "Create beautiful, printable guitar chord diagrams",
         theme_color: "#0891b2",
         background_color: "#f0f5f9",
@@ -31,18 +31,18 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         icons: [
           {
-            src: "pwa-192x192.png",
-            sizes: "192x192",
+            src: "ms-icon-150x150.png",
+            sizes: "150x150",
             type: "image/png",
           },
           {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
+            src: "ms-icon-310x310.png",
+            sizes: "310x310",
             type: "image/png",
           },
           {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
+            src: "ms-icon-310x310.png",
+            sizes: "310x310",
             type: "image/png",
             purpose: "maskable",
           },

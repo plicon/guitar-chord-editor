@@ -43,10 +43,10 @@ Application settings are centralized in `src/config/appConfig.ts`:
 ```typescript
 export const APP_CONFIG = {
   // App name displayed in watermark
-  appName: "Guitar Chord Creator",
+  appName: "Fretkit",
   
   // URL displayed at the bottom right of each row in printable output
-  rowUrl: "chordcreator.app",
+  rowUrl: "https://fretkit.io",
   
   // Toggle visibility of watermark and URL
   showWatermark: true,

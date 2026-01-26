@@ -73,9 +73,12 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         {/* Title and Strumming Pattern */}
         <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {title || "Chord Chart"}
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
+              <h1 className="text-4xl font-bold text-gray-900">
+                {title || "Chord Chart"}
+              </h1>
+            </div>
             {description && description.trim() && (
               <p className="text-sm text-gray-600 mt-1">{description}</p>
             )}

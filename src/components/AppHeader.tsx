@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp, Music } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
 
 interface AppHeaderProps {
   onNew: () => void;
@@ -27,9 +27,9 @@ export const AppHeader = ({
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Music className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">
-              Guitar Chord Creator
+            <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
+            <h1 className="text-4xl font-bold text-foreground">
+              Fretkit - Guitar Chord Creator
             </h1>
           </div>
           <div className="flex items-center gap-2">

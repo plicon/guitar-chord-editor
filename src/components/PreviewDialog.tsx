@@ -44,11 +44,11 @@ export const PreviewDialog = forwardRef<HTMLDivElement, PreviewDialogProps>(
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
             >
               Close
             </Button>
-            <Button onClick={onDownloadPDF} className="bg-primary text-primary-foreground">
+            <Button onClick={onDownloadPDF} className="bg-blue-600 text-white hover:bg-blue-700">
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
