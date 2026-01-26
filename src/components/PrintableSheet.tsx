@@ -43,31 +43,36 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                 <div key={barIndex} className="flex items-center">
                   <div className="flex items-center border border-gray-200 rounded px-1">
                     {strummingPattern.beats
-                      .slice(barIndex * strummingPattern.beatsPerBar, (barIndex + 1) * strummingPattern.beatsPerBar)
-                      .map((beat, beatIndex) => (
-                        <div
-                          key={beatIndex}
-                          className="flex flex-col items-center justify-center relative"
-                          style={{ width: 20, height: 36 }}
-                        >
-                          <span className="absolute top-0 text-[8px] text-gray-500">
-                            {beatIndex + 1}
-                          </span>
-                          <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
-                          {beat.stroke === "up" && (
-                            <ArrowUp size={12} className="text-gray-800 absolute" style={{ top: "20%" }} />
-                          )}
-                          {beat.stroke === "down" && (
-                            <ArrowDown size={12} className="text-gray-800 absolute" style={{ top: "55%" }} />
-                          )}
-                          {beat.noteValue === "half" && beat.stroke && (
-                            <div className="absolute bottom-0 w-2 h-[1px] bg-gray-800" />
-                          )}
-                        </div>
-                      ))}
+                      .slice(barIndex * 8, (barIndex + 1) * 8)
+                      .map((beat, slotIndex) => {
+                        const isOffBeat = beat.beatType === "off";
+                        const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
+                        
+                        return (
+                          <div
+                            key={slotIndex}
+                            className="flex flex-col items-center justify-center relative"
+                            style={{ width: 16, height: 32 }}
+                          >
+                            <span className={`absolute top-0 text-[7px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
+                              {beatLabel}
+                            </span>
+                            <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
+                            {beat.stroke === "up" && (
+                              <ArrowUp className="text-gray-800 absolute" style={{ top: "15%", width: 10, height: 12 }} />
+                            )}
+                            {beat.stroke === "down" && (
+                              <ArrowDown className="text-gray-800 absolute" style={{ top: "55%", width: 10, height: 12 }} />
+                            )}
+                            {beat.noteValue === "half" && beat.stroke && (
+                              <div className="absolute bottom-0 w-2 h-[1px] bg-gray-800" />
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                   {barIndex < strummingPattern.bars - 1 && (
-                    <div className="w-[2px] h-6 bg-gray-400 mx-1" />
+                    <div className="w-[2px] h-5 bg-gray-400 mx-1" />
                   )}
                 </div>
               ))}
