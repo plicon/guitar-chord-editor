@@ -3,6 +3,7 @@ import { StorageProvider, StorageConfig, S3Config } from "./types";
 import { LocalStorageProvider } from "./localStorageProvider";
 import { S3StorageProvider } from "./s3StorageProvider";
 import { APP_CONFIG } from "@/config/appConfig";
+import { validateChartJson } from "./chartSchema";
 
 export type { StorageProvider, StorageConfig, S3Config };
 
@@ -51,16 +52,15 @@ export const exportChartToJson = (chart: ChordChart): string => {
 };
 
 export const importChartFromJson = (json: string): ChordChart => {
-  const chart = JSON.parse(json) as ChordChart;
-  
-  // Validate required fields
-  if (!chart.id || !chart.rows) {
-    throw new Error("Invalid chart format");
-  }
+  // Validate JSON structure and data types using Zod schema
+  const validatedChart = validateChartJson(json);
   
   // Generate new ID to avoid conflicts
-  chart.id = `chart-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-  chart.updatedAt = new Date().toISOString();
+  const chart: ChordChart = {
+    ...validatedChart,
+    id: `chart-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    updatedAt: new Date().toISOString(),
+  };
   
   return chart;
 };
