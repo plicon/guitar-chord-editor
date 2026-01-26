@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { ChordDiagram, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordDiagramComponent } from "./ChordDiagram";
-import { ArrowUp, ArrowDown } from "lucide-react";
+
 
 interface PrintableSheetProps {
   title: string;
@@ -54,47 +54,74 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
             {title || "Chord Chart"}
           </h1>
 
-          {/* Strumming Pattern for Print */}
+          {/* Strumming Pattern for Print - Musical Staff Style */}
           {showStrumming && (
-            <div className="flex items-center gap-1 border border-gray-300 rounded px-2 py-1">
-              <span className="text-xs text-gray-600 mr-2">Strumming:</span>
-              {Array.from({ length: strummingPattern.bars }).map((_, barIndex) => (
-                <div key={barIndex} className="flex items-center">
-                  <div className="flex items-center border border-gray-200 rounded px-1">
-                    {strummingPattern.beats
-                      .slice(barIndex * 8, (barIndex + 1) * 8)
-                      .map((beat, slotIndex) => {
-                        const isOffBeat = beat.beatType === "off";
-                        const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
-                        
-                        return (
-                          <div
-                            key={slotIndex}
-                            className="flex flex-col items-center justify-center relative"
-                            style={{ width: 16, height: 110 }}
-                          >
-                            <span className={`absolute top-0 text-[9px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
-                              {beatLabel}
-                            </span>
-                            <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
-                            {beat.stroke === "up" && (
-                              <ArrowUp className="text-gray-800 absolute" style={{ top: 12, width: 14, height: 42 }} />
-                            )}
-                            {beat.stroke === "down" && (
-                              <ArrowDown className="text-gray-800 absolute" style={{ bottom: 8, width: 14, height: 42 }} />
-                            )}
-                            {beat.noteValue === "half" && beat.stroke && (
-                              <div className="absolute bottom-1 w-2 h-[2px] bg-gray-800" />
-                            )}
-                          </div>
-                        );
-                      })}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-gray-500 uppercase tracking-wide">Strumming Pattern</span>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: strummingPattern.bars }).map((_, barIndex) => (
+                  <div key={barIndex} className="flex items-center">
+                    <div className="relative bg-gray-50 rounded border border-gray-200">
+                      {/* Staff lines */}
+                      <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 16, paddingBottom: 8 }}>
+                        {[0, 1, 2, 3, 4].map((line) => (
+                          <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 8 : 0 }} />
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center relative" style={{ height: 80 }}>
+                        {strummingPattern.beats
+                          .slice(barIndex * 8, (barIndex + 1) * 8)
+                          .map((beat, slotIndex) => {
+                            const isOffBeat = beat.beatType === "off";
+                            const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
+                            
+                            return (
+                              <div
+                                key={slotIndex}
+                                className="flex flex-col items-center justify-center relative"
+                                style={{ width: 18, height: 80 }}
+                              >
+                                <span className={`absolute top-0 text-[8px] font-medium ${isOffBeat ? "text-gray-400" : "text-gray-600"}`}>
+                                  {beatLabel}
+                                </span>
+                                
+                                {/* Filled up arrow */}
+                                {beat.stroke === "up" && (
+                                  <svg 
+                                    className="absolute" 
+                                    style={{ top: 14, width: 12, height: 28 }}
+                                    viewBox="0 0 12 28" 
+                                    fill="currentColor"
+                                  >
+                                    <path d="M6 0L12 10H7V28H5V10H0L6 0Z" className="fill-gray-800" />
+                                  </svg>
+                                )}
+                                
+                                {/* Filled down arrow */}
+                                {beat.stroke === "down" && (
+                                  <svg 
+                                    className="absolute" 
+                                    style={{ bottom: 6, width: 12, height: 28 }}
+                                    viewBox="0 0 12 28" 
+                                    fill="currentColor"
+                                  >
+                                    <path d="M6 28L0 18H5V0H7V18H12L6 28Z" className="fill-gray-800" />
+                                  </svg>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                    
+                    {/* Bar separator */}
+                    {barIndex < strummingPattern.bars - 1 && (
+                      <div className="w-[3px] h-12 bg-gray-600 mx-2 rounded-full" />
+                    )}
                   </div>
-                  {barIndex < strummingPattern.bars - 1 && (
-                    <div className="w-[2px] h-10 bg-gray-400 mx-1" />
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
