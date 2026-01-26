@@ -51,17 +51,19 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         style={{ fontFamily: "system-ui, sans-serif" }}
       >
         {/* Watermark */}
-        <div 
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{ zIndex: 0 }}
-        >
-          <span 
-            className="text-gray-200 font-bold transform -rotate-45 select-none"
-            style={{ fontSize: '120px', opacity: 0.15 }}
+        {APP_CONFIG.showWatermark && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ zIndex: 0 }}
           >
-            {APP_CONFIG.appName}
-          </span>
-        </div>
+            <span 
+              className="text-gray-200 font-bold transform -rotate-45 select-none"
+              style={{ fontSize: '120px', opacity: 0.15 }}
+            >
+              {APP_CONFIG.appName}
+            </span>
+          </div>
+        )}
         {/* Title and Strumming Pattern */}
         <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
@@ -180,9 +182,11 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                   ))}
                 </div>
                 {/* Row URL */}
-                <div className="flex justify-end mt-1">
-                  <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
-                </div>
+                {APP_CONFIG.showRowUrl && (
+                  <div className="flex justify-end mt-1">
+                    <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
+                  </div>
+                )}
               </div>
             );
           })}

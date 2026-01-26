@@ -7,4 +7,8 @@ export const APP_CONFIG = {
   
   // URL displayed at the bottom right of each row in the printable output
   rowUrl: "chordcreator.app",
+  
+  // Toggle visibility of watermark and URL
+  showWatermark: true,
+  showRowUrl: true,
 } as const;
