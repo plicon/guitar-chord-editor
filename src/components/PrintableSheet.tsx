@@ -78,10 +78,10 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                             </span>
                             <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
                             {beat.stroke === "up" && (
-                              <ArrowUp className="text-gray-800 absolute" style={{ top: "15%", width: 12, height: 24 }} />
+                              <ArrowUp className="text-gray-800 absolute" style={{ top: "10%", width: 14, height: 48 }} />
                             )}
                             {beat.stroke === "down" && (
-                              <ArrowDown className="text-gray-800 absolute" style={{ top: "55%", width: 12, height: 24 }} />
+                              <ArrowDown className="text-gray-800 absolute" style={{ top: "50%", width: 14, height: 48 }} />
                             )}
                             {beat.noteValue === "half" && beat.stroke && (
                               <div className="absolute bottom-1 w-2 h-[2px] bg-gray-800" />
