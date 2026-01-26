@@ -1,28 +1,17 @@
-// Chromatic scale notes with multiple notation formats
+// Chromatic scale notes
 const baseNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const;
 
-// Sharp and flat variations (both ASCII and proper symbols)
-const sharpNotes = [
-  { note: 'C#', alt: 'C♯' },
-  { note: 'D#', alt: 'D♯' },
-  { note: 'F#', alt: 'F♯' },
-  { note: 'G#', alt: 'G♯' },
-  { note: 'A#', alt: 'A♯' },
-];
+// Sharp notes with proper Unicode symbol only
+const sharpNotes = ['C♯', 'D♯', 'F♯', 'G♯', 'A♯'];
 
-const flatNotes = [
-  { note: 'Db', alt: 'D♭' },
-  { note: 'Eb', alt: 'E♭' },
-  { note: 'Gb', alt: 'G♭' },
-  { note: 'Ab', alt: 'A♭' },
-  { note: 'Bb', alt: 'B♭' },
-];
+// Flat notes with proper Unicode symbol only
+const flatNotes = ['D♭', 'E♭', 'G♭', 'A♭', 'B♭'];
 
-// All root notes including enharmonic equivalents
+// All root notes (no duplicates - using proper symbols only)
 const allRootNotes = [
   ...baseNotes,
-  ...sharpNotes.flatMap(s => [s.note, s.alt]),
-  ...flatNotes.flatMap(f => [f.note, f.alt]),
+  ...sharpNotes,
+  ...flatNotes,
 ];
 
 // Chord types with both shorthand and full names for minor
@@ -59,15 +48,17 @@ allRootNotes.forEach(note => {
   });
 });
 
-// Remove duplicates
-const uniqueChords = [...new Set(allChordSuggestions)];
-
 // Normalize input for matching (handles various flat/sharp representations)
 const normalizeForSearch = (str: string): string => {
   return str
     .toLowerCase()
-    .replace(/♯/g, '#')
-    .replace(/♭/g, 'b')
+    // Normalize sharps: # → ♯
+    .replace(/#/g, '♯')
+    // Normalize flats: b after a letter → ♭ (but not words like "minor")
+    .replace(/([a-g])b(?![a-z])/gi, '$1♭')
+    // Also handle explicit flat text
+    .replace(/flat/gi, '♭')
+    .replace(/sharp/gi, '♯')
     .replace(/\s+/g, ' ')
     .trim();
 };
@@ -79,7 +70,7 @@ export const filterChordSuggestions = (input: string): string[] => {
   const normalizedInput = normalizeForSearch(input);
   
   // Find matches - prioritize exact prefix matches
-  const matches = uniqueChords.filter(chord => {
+  const matches = allChordSuggestions.filter(chord => {
     const normalizedChord = normalizeForSearch(chord);
     return normalizedChord.startsWith(normalizedInput);
   });
