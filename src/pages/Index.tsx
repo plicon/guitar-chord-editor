@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordRow } from "@/components/ChordRow";
@@ -259,10 +260,12 @@ const Index = () => {
               <label className="text-sm font-medium text-foreground">
                 Description / Notes <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
-              <Input
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add notes, tuning info, or instructions..."
+                rows={3}
+                className="resize-none"
               />
               <Button
                 variant="outline"
