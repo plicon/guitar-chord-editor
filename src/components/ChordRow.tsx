@@ -2,6 +2,7 @@ import { ChordDiagram } from "@/types/chord";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { SortableChord } from "./SortableChord";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import {
   SortableContext,
@@ -12,6 +13,8 @@ import { useDroppable } from "@dnd-kit/core";
 interface ChordRowProps {
   chords: ChordDiagram[];
   rowIndex: number;
+  subtitle?: string;
+  onSubtitleChange?: (value: string) => void;
   onChordClick: (index: number) => void;
   onRemove: () => void;
   showRemove?: boolean;
@@ -21,6 +24,8 @@ interface ChordRowProps {
 export const ChordRow = ({
   chords,
   rowIndex,
+  subtitle = "",
+  onSubtitleChange,
   onChordClick,
   onRemove,
   showRemove = false,
@@ -59,7 +64,15 @@ export const ChordRow = ({
   }
 
   return (
-    <div className="relative group" ref={setNodeRef}>
+    <div className="relative group space-y-2" ref={setNodeRef}>
+      {/* Subtitle Input */}
+      <Input
+        value={subtitle}
+        onChange={(e) => onSubtitleChange?.(e.target.value)}
+        placeholder="Add a comment for this row (optional)..."
+        className="text-sm h-8 bg-transparent border-dashed"
+      />
+      
       <SortableContext
         items={chords.map((c) => c.id)}
         strategy={horizontalListSortingStrategy}
@@ -79,7 +92,7 @@ export const ChordRow = ({
         <Button
           variant="destructive"
           size="icon"
-          className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+          className="absolute -right-2 top-8 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
           onClick={onRemove}
         >
           <Trash2 className="w-4 h-4" />

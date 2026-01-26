@@ -39,6 +39,7 @@ const Index = () => {
   const [title, setTitle] = useState("My Chord Chart");
   const [chordsPerRow, setChordsPerRow] = useState(4);
   const [rows, setRows] = useState<ChordDiagram[][]>([createRow(0, 4)]);
+  const [rowSubtitles, setRowSubtitles] = useState<string[]>([""]);
   const [editingChord, setEditingChord] = useState<{
     rowIndex: number;
     chordIndex: number;
@@ -80,13 +81,21 @@ const Index = () => {
     if (rows.length < 5) {
       const nextId = rows.length * 5;
       setRows([...rows, createRow(nextId, chordsPerRow)]);
+      setRowSubtitles([...rowSubtitles, ""]);
     }
   };
 
   const removeRow = (index: number) => {
     if (rows.length > 1) {
       setRows(rows.filter((_, i) => i !== index));
+      setRowSubtitles(rowSubtitles.filter((_, i) => i !== index));
     }
+  };
+
+  const handleRowSubtitleChange = (index: number, value: string) => {
+    const newSubtitles = [...rowSubtitles];
+    newSubtitles[index] = value;
+    setRowSubtitles(newSubtitles);
   };
 
   const handleChordClick = (rowIndex: number, chordIndex: number) => {
@@ -294,6 +303,8 @@ const Index = () => {
                     key={rowIndex}
                     chords={row}
                     rowIndex={rowIndex}
+                    subtitle={rowSubtitles[rowIndex] || ""}
+                    onSubtitleChange={(value) => handleRowSubtitleChange(rowIndex, value)}
                     onChordClick={(chordIndex) =>
                       handleChordClick(rowIndex, chordIndex)
                     }
@@ -396,7 +407,7 @@ const Index = () => {
             <DialogTitle>Print Preview</DialogTitle>
           </DialogHeader>
           <div className="border rounded-lg overflow-hidden">
-            <PrintableSheet ref={printRef} title={title} rows={rows} strummingPattern={strummingPattern} />
+            <PrintableSheet ref={printRef} title={title} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
@@ -424,7 +435,7 @@ const Index = () => {
 
       {/* Hidden printable content */}
       <div className="fixed left-[-9999px] top-0">
-        <PrintableSheet ref={printRef} title={title} rows={rows} strummingPattern={strummingPattern} />
+        <PrintableSheet ref={printRef} title={title} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
       </div>
     </div>
   );
