@@ -14,29 +14,33 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
       .map((row) => row.filter(isChordEdited))
       .filter((row) => row.length > 0);
 
+    // Calculate appropriate size based on max chords in a row
+    const maxChordsInRow = Math.max(...editedRows.map(row => row.length), 0);
+    const diagramSize = maxChordsInRow >= 5 ? "md" : "lg";
+
     return (
       <div
         ref={ref}
-        className="bg-white p-8 min-h-[297mm] w-[210mm] mx-auto print:m-0 print:p-8"
+        className="bg-white p-4 min-h-[297mm] w-[210mm] mx-auto print:m-0 print:p-4"
         style={{ fontFamily: "system-ui, sans-serif" }}
       >
         {/* Title */}
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
           {title || "Chord Chart"}
         </h1>
 
         {/* Chord Rows */}
-        <div className="space-y-8">
+        <div className="space-y-4">
           {editedRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              className="flex justify-center gap-8 flex-wrap"
+              className="flex justify-center gap-3 flex-wrap"
             >
               {row.map((chord) => (
                 <ChordDiagramComponent
                   key={chord.id}
                   chord={chord}
-                  size="lg"
+                  size={diagramSize}
                   showPlaceholder={false}
                   printMode={true}
                 />
