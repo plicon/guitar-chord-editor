@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ChordDiagram, FingerPosition, Barre, FingerLabel } from "@/types/chord";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
+import { filterChordSuggestions } from "@/data/chordSuggestions";
 
 interface ChordEditorProps {
   chord: ChordDiagram;
@@ -26,13 +27,75 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   });
   const [dragStart, setDragStart] = useState<{ string: number; fret: number } | null>(null);
   const [dragCurrent, setDragCurrent] = useState<{ string: number; fret: number } | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   
   const stringSpacing = 30;
   const fretSpacing = 35;
   const startX = 40;
   const startY = 50;
   const nutHeight = 5;
+
+  // Update suggestions when chord name changes
+  useEffect(() => {
+    const filtered = filterChordSuggestions(editedChord.name);
+    setSuggestions(filtered);
+    setSelectedIndex(0);
+    setShowSuggestions(filtered.length > 0 && editedChord.name.length > 0);
+  }, [editedChord.name]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleNameChange = (value: string) => {
+    setEditedChord({ ...editedChord, name: value });
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setEditedChord({ ...editedChord, name: suggestion });
+    setShowSuggestions(false);
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev + 1) % suggestions.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        handleSuggestionClick(suggestions[selectedIndex]);
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        break;
+    }
+  };
 
   const handleStringTopClick = (string: number) => {
     const isMuted = editedChord.mutedStrings.includes(string);
@@ -221,18 +284,48 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Chord Name Input */}
-          <div className="space-y-2">
+          {/* Chord Name Input with Autocomplete */}
+          <div className="space-y-2 relative">
             <Label htmlFor="chordName">Chord Name</Label>
             <Input
+              ref={inputRef}
               id="chordName"
               value={editedChord.name}
-              onChange={(e) =>
-                setEditedChord({ ...editedChord, name: e.target.value })
-              }
+              onChange={(e) => handleNameChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (suggestions.length > 0 && editedChord.name.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
               placeholder="e.g., Am, G, C7"
               className="text-lg font-semibold"
+              autoComplete="off"
             />
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div 
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    className={cn(
+                      "w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors",
+                      index === selectedIndex && "bg-accent text-accent-foreground"
+                    )}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                  >
+                    <span className="font-semibold">{suggestion.charAt(0)}</span>
+                    <span>{suggestion.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Start Fret Selector */}
