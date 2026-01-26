@@ -54,19 +54,19 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         {APP_CONFIG.showWatermark && (
           <div 
             className="absolute inset-0 flex items-center justify-center pointer-events-none print:flex overflow-hidden"
-            style={{ zIndex: 0 }}
+            style={{ zIndex: 9999 }}
           >
             <span 
               className="text-gray-400 select-none whitespace-nowrap"
               style={{ 
                 fontFamily: "'Permanent Marker', cursive",
-                fontSize: '160px',
+                fontSize: '100px',
                 opacity: 0.2,
-                transform: 'rotate(-35deg) scale(1.5)',
+                transform: 'rotate(-55deg) scale(1.9)',
                 letterSpacing: '0.05em'
               }}
             >
-              {APP_CONFIG.appName}
+              {APP_CONFIG.watermarkText || APP_CONFIG.appName}
             </span>
           </div>
         )}

@@ -48,10 +48,11 @@ export const APP_CONFIG = {
   appName: "FretKit - Guitar Chord Creator",
   
   // URL displayed at the bottom right of each row in the printable output
-  rowUrl: "fretkit.io",
+  rowUrl: "Created with https://fretkit.io",
   
   // Toggle visibility of watermark and URL
   showWatermark: true,
+  watermarkText: "FRETKIT.io",
   showRowUrl: true,
 
   // Storage configuration
