@@ -30,9 +30,7 @@ A web application for creating, editing, and printing guitar chord charts with c
   - [GitHub Actions](#github-actions)
   - [GitLab CI/CD](#gitlab-cicd)
 - [Deployment](#deployment)
-  - [Docker](#docker-deployment)
   - [Cloudflare Pages](#cloudflare-pages)
-  - [AWS S3 + CloudFront](#aws-s3--cloudfront)
   - [Azure Static Web Apps](#azure-static-web-apps)
   - [Self-hosted (Nginx)](#self-hosted-nginx)
 
@@ -374,144 +372,6 @@ The project includes a comprehensive CI pipeline in `.github/workflows/ci.yml` t
 - Automatically runs on all pull requests
 - Build artifacts are uploaded and retained for 7 days
 
-### GitLab CI/CD
-
-To integrate tests with GitLab CI/CD, create a `.gitlab-ci.yml` file in the project root:
-
-```yaml
-# .gitlab-ci.yml
-stages:
-  - validate
-  - test
-  - build
-  - security
-
-variables:
-  NODE_VERSION: "20"
-
-# Cache node_modules between jobs
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
-
-# Install dependencies (shared setup)
-.node_setup: &node_setup
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - npm ci --prefer-offline
-
-# ============ VALIDATE STAGE ============
-lint:
-  <<: *node_setup
-  stage: validate
-  script:
-    - npm run lint
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-typecheck:
-  <<: *node_setup
-  stage: validate
-  script:
-    - npx tsc --noEmit
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# ============ TEST STAGE ============
-unit_tests:
-  <<: *node_setup
-  stage: test
-  script:
-    - npm test -- --run --reporter=verbose
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-  artifacts:
-    when: always
-    reports:
-      junit: junit.xml
-    paths:
-      - coverage/
-    expire_in: 7 days
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-test_coverage:
-  <<: *node_setup
-  stage: test
-  script:
-    - npm test -- --coverage --reporter=junit --outputFile=junit.xml
-  coverage: '/Statements\s*:\s*(\d+\.?\d*)%/'
-  artifacts:
-    when: always
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage/cobertura-coverage.xml
-    paths:
-      - coverage/
-    expire_in: 30 days
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# ============ BUILD STAGE ============
-build:
-  <<: *node_setup
-  stage: build
-  needs:
-    - lint
-    - typecheck
-    - unit_tests
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 7 days
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# ============ SECURITY STAGE ============
-dependency_scan:
-  <<: *node_setup
-  stage: security
-  script:
-    - npm audit --audit-level=moderate || true
-  allow_failure: true
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# GitLab SAST (if using GitLab Ultimate)
-include:
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
-```
-
-**GitLab CI Features:**
-
-| Feature | Description |
-|---------|-------------|
-| **Parallel Jobs** | Lint and typecheck run in parallel for faster feedback |
-| **Test Coverage** | Coverage percentage displayed in MR widgets |
-| **JUnit Reports** | Test results visible in GitLab MR interface |
-| **Cobertura Coverage** | Line-by-line coverage in MR diff view |
-| **Caching** | `node_modules` cached between jobs |
-| **Artifacts** | Build output and coverage reports retained |
-
-**Enabling Coverage in GitLab:**
-
-1. Go to **Settings → CI/CD → General pipelines**
-2. Set coverage regex: `Statements\s*:\s*(\d+\.?\d*)%`
-3. Coverage badge will appear in README and MRs
-
-**Merge Request Integration:**
-
-- Test results appear in the MR "Tests" tab
-- Coverage diff shows in code review
-- Pipeline must pass before merge (configure in branch protection)
 
 ---
 
@@ -529,99 +389,83 @@ This creates a `dist/` folder with optimized static files.
 
 ---
 
-### Docker Deployment
-
-#### Option 1: Using the provided Dockerfile
-
-Create a `Dockerfile` in the project root:
-
-```dockerfile
-# Build stage
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-Create `nginx.conf`:
-
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
-
-    # SPA routing - serve index.html for all routes
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
-#### Build and run:
-
-```bash
-# Build the Docker image
-docker build -t guitar-chord-creator .
-
-# Run the container
-docker run -p 8080:80 guitar-chord-creator
-```
-
-#### Option 2: Using Docker Compose
-
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "8080:80"
-    restart: unless-stopped
-```
-
-Run with:
-
-```bash
-docker-compose up -d
-```
-
----
-
 ### Cloudflare Pages
 
-1. Push your code to GitHub
-2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → Pages → Create a project
-3. Connect your GitHub repository
+#### Option 1: Deploy via Cloudflare Dashboard (Recommended)
+
+1. Push your code to GitHub or GitLab
+2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
+3. Select your repository
 4. Configure build settings:
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-   - **Node.js version:** `20`
-5. Click **Deploy**
+   - **Root directory:** `/` (or leave empty)
+5. Add environment variables (if using S3 storage):
+   - Click **Add variable** for each:
+     - `VITE_STORAGE_PROVIDER` = `s3`
+     - `VITE_S3_ENDPOINT` = `your-endpoint`
+     - `VITE_S3_BUCKET` = `your-bucket`
+     - `VITE_S3_REGION` = `us-east-1`
+     - `VITE_S3_ACCESS_KEY_ID` = `your-key`
+     - `VITE_S3_SECRET_ACCESS_KEY` = `your-secret`
+6. Click **Save and Deploy**
 
-Cloudflare will automatically deploy on every push to your main branch.
+**Important:** For SPA routing to work, add a `_redirects` file to your `public/` folder:
+
+```bash
+# Create public/_redirects file
+echo "/*    /index.html   200" > public/_redirects
+```
+
+This ensures all routes are handled by the React Router instead of returning 404s.
+
+#### Option 2: Deploy via Wrangler CLI
+
+```bash
+# Install Wrangler
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Build the project
+npm run build
+
+# Deploy
+wrangler pages deploy dist --project-name=guitar-chord-creator
+
+# Set environment variables (if using S3)
+wrangler pages secret put VITE_S3_ACCESS_KEY_ID --project-name=guitar-chord-creator
+wrangler pages secret put VITE_S3_SECRET_ACCESS_KEY --project-name=guitar-chord-creator
+```
+
+#### Custom Domain Setup
+
+1. Go to your Pages project → **Custom domains**
+2. Click **Set up a custom domain**
+3. Enter your domain (e.g., `chordcreator.app`)
+4. Cloudflare will automatically configure DNS and SSL
+
+**Deployment triggers:**
+- Automatic deployment on every push to production branch
+- Preview deployments for all pull requests
+- Instant rollbacks to previous deployments
+
+#### Troubleshooting: Bun Lockfile Error
+
+If you see `"Outdated lockfile version"` or `"lockfile is frozen"` errors:
+
+**Solution:** Force Cloudflare to use npm instead of Bun by adding an environment variable:
+- Go to your Pages project → **Settings** → **Environment variables**
+- Add variable: `NPM_FLAGS` = `--version`
+- Redeploy
+
+Alternatively, remove `bun.lockb` from your repository and commit only `package-lock.json`:
+```bash
+git rm bun.lockb
+git commit -m "Remove bun.lockb to use npm in CI/CD"
+git push
+```
 
 ---
 
@@ -691,69 +535,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SOURCE_DIR: 'dist'
-```
-
----
-
-### Azure Static Web Apps
-
-1. Push your code to GitHub
-2. Go to Azure Portal → Create Static Web App
-3. Connect your GitHub repository
-4. Configure:
-   - **Build preset:** Vite
-   - **App location:** `/`
-   - **Output location:** `dist`
-5. Azure will create a GitHub Action automatically
-
----
-
-### Self-hosted (Nginx)
-
-#### Step 1: Build the application
-
-```bash
-npm run build
-```
-
-#### Step 2: Copy to server
-
-```bash
-scp -r dist/* user@your-server:/var/www/chord-app/
-```
-
-#### Step 3: Configure Nginx
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /var/www/chord-app;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
-
-    # SPA routing
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
-#### Step 4: Enable HTTPS with Let's Encrypt
-
-```bash
-sudo certbot --nginx -d your-domain.com
 ```
 
 ---
