@@ -18,9 +18,17 @@ export const ChordRow = ({
   showRemove = false,
   printMode = false,
 }: ChordRowProps) => {
+  const gridCols = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+    5: "grid-cols-5",
+  }[chords.length] || "grid-cols-4";
+
   return (
     <div className="relative group">
-      <div className="grid grid-cols-4 gap-4 p-4 bg-card rounded-lg border border-border">
+      <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
         {chords.map((chord, index) => (
           <ChordDiagramComponent
             key={chord.id}

@@ -5,7 +5,7 @@ import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { ChordRow } from "@/components/ChordRow";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
-import { Plus, Download, Eye, Music } from "lucide-react";
+import { Plus, Download, Eye, Music, Minus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,16 +15,15 @@ import {
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const createRow = (startId: number): ChordDiagram[] => [
-  createEmptyChord(`chord-${startId}`),
-  createEmptyChord(`chord-${startId + 1}`),
-  createEmptyChord(`chord-${startId + 2}`),
-  createEmptyChord(`chord-${startId + 3}`),
-];
+const createRow = (startId: number, chordsPerRow: number): ChordDiagram[] => 
+  Array.from({ length: chordsPerRow }, (_, i) => 
+    createEmptyChord(`chord-${startId + i}`)
+  );
 
 const Index = () => {
   const [title, setTitle] = useState("My Chord Chart");
-  const [rows, setRows] = useState<ChordDiagram[][]>([createRow(0)]);
+  const [chordsPerRow, setChordsPerRow] = useState(4);
+  const [rows, setRows] = useState<ChordDiagram[][]>([createRow(0, 4)]);
   const [editingChord, setEditingChord] = useState<{
     rowIndex: number;
     chordIndex: number;
@@ -32,10 +31,29 @@ const Index = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
+  const handleChordsPerRowChange = (newCount: number) => {
+    if (newCount < 1 || newCount > 5) return;
+    setChordsPerRow(newCount);
+    // Adjust existing rows to match new count
+    setRows(rows.map((row, rowIndex) => {
+      const baseId = rowIndex * 5;
+      if (row.length < newCount) {
+        // Add more chords
+        return [...row, ...Array.from({ length: newCount - row.length }, (_, i) => 
+          createEmptyChord(`chord-${baseId + row.length + i}`)
+        )];
+      } else if (row.length > newCount) {
+        // Remove excess chords
+        return row.slice(0, newCount);
+      }
+      return row;
+    }));
+  };
+
   const addRow = () => {
-    if (rows.length < 3) {
-      const nextId = rows.length * 4;
-      setRows([...rows, createRow(nextId)]);
+    if (rows.length < 5) {
+      const nextId = rows.length * 5;
+      setRows([...rows, createRow(nextId, chordsPerRow)]);
     }
   };
 
@@ -140,14 +158,40 @@ const Index = () => {
               ))}
             </div>
 
-            {rows.length < 3 && (
+            {/* Chords per row control */}
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <span className="text-sm text-muted-foreground">Chords per row:</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleChordsPerRowChange(chordsPerRow - 1)}
+                  disabled={chordsPerRow <= 1}
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <span className="w-6 text-center font-medium">{chordsPerRow}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleChordsPerRowChange(chordsPerRow + 1)}
+                  disabled={chordsPerRow >= 5}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {rows.length < 5 && (
               <Button
                 variant="outline"
                 onClick={addRow}
                 className="w-full border-dashed"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Row ({rows.length}/3)
+                Add Row ({rows.length}/5)
               </Button>
             )}
           </div>
