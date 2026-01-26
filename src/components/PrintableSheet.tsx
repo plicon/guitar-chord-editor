@@ -13,13 +13,31 @@ interface PrintableSheetProps {
 
 export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
   ({ title, rows, rowSubtitles = [], strummingPattern }, ref) => {
-    // Filter to only include edited chords
-    const editedRows = rows
-      .map((row) => row.filter(isChordEdited))
-      .filter((row) => row.length > 0);
+    // Process rows to keep structure but filter completely empty rows
+    // Keep empty chords between filled ones
+    const processedRows = rows.map((row, rowIndex) => {
+      const hasAnyEdited = row.some(isChordEdited);
+      if (!hasAnyEdited) return null;
+      
+      // Find first and last edited chord indices
+      let firstEditedIndex = -1;
+      let lastEditedIndex = -1;
+      row.forEach((chord, index) => {
+        if (isChordEdited(chord)) {
+          if (firstEditedIndex === -1) firstEditedIndex = index;
+          lastEditedIndex = index;
+        }
+      });
+      
+      // Return only chords from first to last edited (keeping empties in between)
+      return {
+        chords: row.slice(firstEditedIndex, lastEditedIndex + 1),
+        originalIndex: rowIndex,
+      };
+    }).filter(Boolean) as { chords: ChordDiagram[]; originalIndex: number }[];
 
     // Calculate appropriate size based on max chords in a row
-    const maxChordsInRow = Math.max(...editedRows.map(row => row.length), 0);
+    const maxChordsInRow = Math.max(...processedRows.map(r => r.chords.length), 0);
     const diagramSize = maxChordsInRow >= 5 ? "md" : "lg";
 
     const showStrumming = hasStrummingContent(strummingPattern) && strummingPattern;
@@ -32,7 +50,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
       >
         {/* Title and Strumming Pattern */}
         <div className={`mb-6 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
-          <h1 className={`text-2xl font-bold text-gray-900 ${showStrumming ? "text-left" : "text-center"}`}>
+          <h1 className={`text-2xl font-bold text-gray-900 ${showStrumming ? "text-left" : "text-left"}`}>
             {title || "Chord Chart"}
           </h1>
 
@@ -83,28 +101,24 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
 
         {/* Chord Rows */}
         <div className="space-y-4">
-          {editedRows.map((row, rowIndex) => {
-            // Find the original row index to get the correct subtitle
-            const originalRowIndex = rows.findIndex(
-              (originalRow) => originalRow.some((chord) => row.some((editedChord) => editedChord.id === chord.id))
-            );
-            const subtitle = rowSubtitles[originalRowIndex];
+          {processedRows.map(({ chords, originalIndex }, idx) => {
+            const subtitle = rowSubtitles[originalIndex];
             
             return (
-              <div key={rowIndex} className="space-y-1">
+              <div key={idx} className="space-y-1">
                 {/* Row Subtitle */}
                 {subtitle && subtitle.trim() && (
                   <p className="text-sm text-gray-600 font-medium px-1">
                     {subtitle}
                   </p>
                 )}
-                <div className="flex justify-center gap-3 flex-wrap">
-                  {row.map((chord) => (
+                <div className="flex justify-start gap-3 flex-wrap">
+                  {chords.map((chord) => (
                     <ChordDiagramComponent
                       key={chord.id}
                       chord={chord}
                       size={diagramSize}
-                      showPlaceholder={false}
+                      showPlaceholder={!isChordEdited(chord)}
                       printMode={true}
                     />
                   ))}
@@ -114,7 +128,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
           })}
         </div>
 
-        {editedRows.length === 0 && (
+        {processedRows.length === 0 && (
           <p className="text-center text-gray-500 mt-20">
             No chords have been added yet.
           </p>

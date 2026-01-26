@@ -364,21 +364,29 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                 ref={suggestionsRef}
                 className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto"
               >
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    className={cn(
-                      "w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors",
-                      index === selectedIndex && "bg-accent text-accent-foreground"
-                    )}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                  >
-                    <span className="font-semibold">{suggestion.charAt(0)}</span>
-                    <span>{suggestion.slice(1)}</span>
-                  </button>
-                ))}
+                {suggestions.map((suggestion, index) => {
+                  const hasPreset = !!getChordPreset(suggestion);
+                  return (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      className={cn(
+                        "w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between",
+                        index === selectedIndex && "bg-accent text-accent-foreground"
+                      )}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                    >
+                      <span>
+                        <span className="font-semibold">{suggestion.charAt(0)}</span>
+                        <span>{suggestion.slice(1)}</span>
+                      </span>
+                      {!hasPreset && (
+                        <span className="text-xs text-muted-foreground">(no preset)</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
