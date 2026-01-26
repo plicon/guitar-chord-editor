@@ -17,6 +17,7 @@ import {
 import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { strummingPresets, applyPresetToBeats } from "@/data/strummingPresets";
 
 interface StrummingPatternEditorProps {
   pattern: StrummingPattern | null;
@@ -58,6 +59,17 @@ export const StrummingPatternEditor = ({
       bars: newBars,
       beats: newBeats,
     });
+  };
+
+  const handlePresetChange = (presetName: string) => {
+    const preset = strummingPresets.find((p) => p.name === presetName);
+    if (preset) {
+      const newBeats = applyPresetToBeats(preset, editedPattern.bars);
+      setEditedPattern({
+        ...editedPattern,
+        beats: newBeats,
+      });
+    }
   };
 
   const handleBeatClick = (beatIndex: number, clickPosition: "up" | "down") => {
@@ -121,6 +133,21 @@ export const StrummingPatternEditor = ({
               </Select>
             </div>
 
+            <div className="flex items-center gap-2">
+              <Label>Presets:</Label>
+              <Select onValueChange={handlePresetChange}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Select pattern" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  {strummingPresets.map((preset) => (
+                    <SelectItem key={preset.name} value={preset.name}>
+                      {preset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <Button variant="outline" size="sm" onClick={handleClear}>
               Clear All
