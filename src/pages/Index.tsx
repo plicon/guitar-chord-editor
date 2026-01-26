@@ -546,20 +546,20 @@ const Index = () => {
         />
       )}
 
-      {/* Preview Dialog */}
+      {/* Preview Dialog - Always light mode */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto bg-white text-gray-900 border-gray-200">
           <DialogHeader>
-            <DialogTitle>Print Preview</DialogTitle>
+            <DialogTitle className="text-gray-900">Print Preview</DialogTitle>
           </DialogHeader>
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
             <PrintableSheet ref={printRef} title={title} description={description} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)} className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
               Close
             </Button>
-            <Button onClick={handleDownloadPDF}>
+            <Button onClick={handleDownloadPDF} className="bg-primary text-primary-foreground">
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
