@@ -2,10 +2,13 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
+import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordRow } from "@/components/ChordRow";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
-import { Plus, Download, Eye, Music, Minus } from "lucide-react";
+import { StrummingPatternEditor } from "@/components/StrummingPatternEditor";
+import { StrummingPatternDisplay } from "@/components/StrummingPatternDisplay";
+import { Plus, Download, Eye, Music, Minus, ListMusic, Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +45,8 @@ const Index = () => {
   } | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [activeChord, setActiveChord] = useState<ChordDiagram | null>(null);
+  const [strummingPattern, setStrummingPattern] = useState<StrummingPattern | null>(null);
+  const [strummingEditorOpen, setStrummingEditorOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -223,17 +228,46 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Title Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Chart Title
-            </label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter chart title..."
-              className="text-xl font-semibold"
-            />
+          {/* Title and Strumming Pattern Section */}
+          <div className="space-y-4">
+            <div className="flex items-end gap-4">
+              <div className="flex-1 space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Chart Title
+                </label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter chart title..."
+                  className="text-xl font-semibold"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setStrummingEditorOpen(true)}
+              >
+                <ListMusic className="w-4 h-4 mr-2" />
+                {strummingPattern ? "Edit Pattern" : "Add Strumming Pattern"}
+              </Button>
+            </div>
+
+            {/* Strumming Pattern Display */}
+            {hasStrummingContent(strummingPattern) && strummingPattern && (
+              <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Strumming:
+                </span>
+                <StrummingPatternDisplay pattern={strummingPattern} />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 ml-auto"
+                  onClick={() => setStrummingEditorOpen(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Chord Rows */}
@@ -362,7 +396,7 @@ const Index = () => {
             <DialogTitle>Print Preview</DialogTitle>
           </DialogHeader>
           <div className="border rounded-lg overflow-hidden">
-            <PrintableSheet ref={printRef} title={title} rows={rows} />
+            <PrintableSheet ref={printRef} title={title} rows={rows} strummingPattern={strummingPattern} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
@@ -376,9 +410,21 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Strumming Pattern Editor */}
+      <StrummingPatternEditor
+        pattern={strummingPattern}
+        open={strummingEditorOpen}
+        onClose={() => setStrummingEditorOpen(false)}
+        onSave={setStrummingPattern}
+        onDelete={() => {
+          setStrummingPattern(null);
+          setStrummingEditorOpen(false);
+        }}
+      />
+
       {/* Hidden printable content */}
       <div className="fixed left-[-9999px] top-0">
-        <PrintableSheet ref={printRef} title={title} rows={rows} />
+        <PrintableSheet ref={printRef} title={title} rows={rows} strummingPattern={strummingPattern} />
       </div>
     </div>
   );
