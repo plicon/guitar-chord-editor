@@ -111,6 +111,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const handleSuggestionClick = (suggestion: string) => {
     setJustSelected(true);
     setShowSuggestions(false);
+    setSuggestions([]); // Clear suggestions to prevent reopening
     const preset = getChordPreset(suggestion);
     if (preset) {
       // Always apply the preset fingering when selecting from dropdown
@@ -127,7 +128,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     } else {
       setEditedChord({ ...editedChord, name: suggestion });
     }
-    inputRef.current?.focus();
+    // Don't refocus - this was causing the dropdown to reopen
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
