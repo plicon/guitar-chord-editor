@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chord: {
+          empty: "hsl(var(--chord-empty))",
+          fret: "hsl(var(--chord-fret))",
+          dot: "hsl(var(--chord-dot))",
+          string: "hsl(var(--chord-string))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
