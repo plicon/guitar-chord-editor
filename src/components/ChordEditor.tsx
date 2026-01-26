@@ -33,6 +33,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [autoFillPresets, setAutoFillPresets] = useState(false);
+  const [justSelected, setJustSelected] = useState(false);
 
   const handleAutoFillToggle = (checked: boolean) => {
     setAutoFillPresets(checked);
@@ -76,11 +77,15 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   // Update suggestions when chord name changes
   useEffect(() => {
+    if (justSelected) {
+      setJustSelected(false);
+      return;
+    }
     const filtered = filterChordSuggestions(editedChord.name);
     setSuggestions(filtered);
     setSelectedIndex(0);
     setShowSuggestions(filtered.length > 0 && editedChord.name.length > 0);
-  }, [editedChord.name]);
+  }, [editedChord.name, justSelected]);
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -104,6 +109,8 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    setJustSelected(true);
+    setShowSuggestions(false);
     const preset = getChordPreset(suggestion);
     if (preset) {
       // Always apply the preset fingering when selecting from dropdown
@@ -120,7 +127,6 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     } else {
       setEditedChord({ ...editedChord, name: suggestion });
     }
-    setShowSuggestions(false);
     inputRef.current?.focus();
   };
 
