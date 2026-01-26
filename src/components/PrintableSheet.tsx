@@ -108,9 +108,11 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
               <div key={idx} className="space-y-1">
                 {/* Row Subtitle */}
                 {subtitle && subtitle.trim() && (
-                  <p className="text-sm text-gray-600 font-medium px-1">
-                    {subtitle}
-                  </p>
+                  <div className="bg-gray-100 rounded px-3 py-1.5 mb-1">
+                    <p className="text-sm text-gray-700 font-medium">
+                      {subtitle}
+                    </p>
+                  </div>
                 )}
                 <div className="flex justify-start gap-3 flex-wrap">
                   {chords.map((chord) => (
