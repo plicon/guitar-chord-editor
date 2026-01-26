@@ -45,7 +45,7 @@ export function useIsTouchDevice() {
       setIsTouch(
         "ontouchstart" in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore - msMaxTouchPoints is deprecated but still used by some browsers
+        // @ts-expect-error - msMaxTouchPoints is deprecated but still used by some browsers
         navigator.msMaxTouchPoints > 0
       );
     };
@@ -62,7 +62,7 @@ export function useIsStandalone() {
     // Check if running as installed PWA
     const isStandalonePWA = 
       window.matchMedia("(display-mode: standalone)").matches ||
-      // @ts-ignore - navigator.standalone is iOS-specific
+      // @ts-expect-error - navigator.standalone is iOS-specific
       window.navigator.standalone === true;
     
     setIsStandalone(isStandalonePWA);
