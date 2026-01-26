@@ -33,7 +33,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [autoFillPresets, setAutoFillPresets] = useState(true);
-  const [justSelected, setJustSelected] = useState(false);
+  const justSelectedRef = useRef(false);
 
   const handleAutoFillToggle = (checked: boolean) => {
     setAutoFillPresets(checked);
@@ -77,15 +77,15 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   // Update suggestions when chord name changes
   useEffect(() => {
-    if (justSelected) {
-      setJustSelected(false);
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
       return;
     }
     const filtered = filterChordSuggestions(editedChord.name);
     setSuggestions(filtered);
     setSelectedIndex(0);
     setShowSuggestions(filtered.length > 0 && editedChord.name.length > 0);
-  }, [editedChord.name, justSelected]);
+  }, [editedChord.name]);
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -109,7 +109,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setJustSelected(true);
+    justSelectedRef.current = true;
     setShowSuggestions(false);
     setSuggestions([]); // Clear suggestions to prevent reopening
     const preset = getChordPreset(suggestion);
