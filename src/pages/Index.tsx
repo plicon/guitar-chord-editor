@@ -23,7 +23,6 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
   DndContext,
-  DragEndEvent,
   DragOverEvent,
   DragStartEvent,
   DragOverlay,
@@ -290,7 +289,7 @@ const Index = () => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = () => {
     setActiveChord(null);
   };
 
