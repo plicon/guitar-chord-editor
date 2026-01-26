@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -109,6 +110,9 @@ export const StrummingPatternEditor = ({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Strumming Pattern Editor</DialogTitle>
+          <DialogDescription className="sr-only">
+            Create and edit strumming patterns with up and down strokes
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
