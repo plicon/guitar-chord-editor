@@ -1,18 +1,26 @@
 import { ChordDiagram } from "@/types/chord";
 import { ChordDiagramComponent } from "./ChordDiagram";
+import { SortableChord } from "./SortableChord";
+import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { Button } from "./ui/button";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 
 interface ChordRowProps {
   chords: ChordDiagram[];
+  rowIndex: number;
   onChordClick: (index: number) => void;
-  onRemove?: () => void;
+  onRemove: () => void;
   showRemove?: boolean;
   printMode?: boolean;
 }
 
 export const ChordRow = ({
   chords,
+  rowIndex,
   onChordClick,
   onRemove,
   showRemove = false,
@@ -26,21 +34,48 @@ export const ChordRow = ({
     5: "grid-cols-5",
   }[chords.length] || "grid-cols-4";
 
-  return (
-    <div className="relative group">
-      <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
-        {chords.map((chord, index) => (
-          <ChordDiagramComponent
-            key={chord.id}
-            chord={chord}
-            onClick={() => onChordClick(index)}
-            size="md"
-            showPlaceholder={!printMode}
-            printMode={printMode}
-          />
-        ))}
+  const { setNodeRef } = useDroppable({
+    id: `row-${rowIndex}`,
+    data: { rowIndex },
+  });
+
+  if (printMode) {
+    return (
+      <div className="relative group">
+        <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
+          {chords.map((chord, index) => (
+            <ChordDiagramComponent
+              key={chord.id}
+              chord={chord}
+              onClick={() => onChordClick(index)}
+              size="md"
+              showPlaceholder={false}
+              printMode={true}
+            />
+          ))}
+        </div>
       </div>
-      {showRemove && !printMode && (
+    );
+  }
+
+  return (
+    <div className="relative group" ref={setNodeRef}>
+      <SortableContext
+        items={chords.map((c) => c.id)}
+        strategy={horizontalListSortingStrategy}
+      >
+        <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
+          {chords.map((chord, index) => (
+            <SortableChord
+              key={chord.id}
+              chord={chord}
+              onClick={() => onChordClick(index)}
+              printMode={printMode}
+            />
+          ))}
+        </div>
+      </SortableContext>
+      {showRemove && (
         <Button
           variant="destructive"
           size="icon"
