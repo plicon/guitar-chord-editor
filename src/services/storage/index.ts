@@ -59,7 +59,7 @@ export const importChartFromJson = (json: string): ChordChart => {
   }
   
   // Generate new ID to avoid conflicts
-  chart.id = `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  chart.id = `chart-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
   chart.updatedAt = new Date().toISOString();
   
   return chart;
