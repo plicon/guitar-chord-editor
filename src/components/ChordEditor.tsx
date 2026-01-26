@@ -32,7 +32,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [autoFillPresets, setAutoFillPresets] = useState(false);
+  const [autoFillPresets, setAutoFillPresets] = useState(true);
   const [justSelected, setJustSelected] = useState(false);
 
   const handleAutoFillToggle = (checked: boolean) => {
