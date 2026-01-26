@@ -57,7 +57,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         >
           <span 
             className="text-gray-200 font-bold transform -rotate-45 select-none"
-            style={{ fontSize: '48px', opacity: 0.3 }}
+            style={{ fontSize: '120px', opacity: 0.15 }}
           >
             {APP_CONFIG.appName}
           </span>
