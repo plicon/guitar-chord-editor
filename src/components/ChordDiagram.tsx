@@ -208,7 +208,7 @@ export const ChordDiagramComponent = ({
               <>
                 {[1, 2, 3, 4, 5, 6].map((string) => {
                   const fingerLabel = getFingerLabel(string);
-                  if (!fingerLabel) return null;
+                  if (fingerLabel === undefined) return null;
                   return (
                     <text
                       key={`label-${string}`}
@@ -219,7 +219,7 @@ export const ChordDiagramComponent = ({
                       fontSize={config.fingerSize}
                       textAnchor="middle"
                     >
-                      {fingerLabel}
+                      {fingerLabel === 0 ? "T" : fingerLabel}
                     </text>
                   );
                 })}

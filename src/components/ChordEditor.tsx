@@ -267,13 +267,13 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     const existing = editedChord.fingerLabels.find((f) => f.string === string);
     
     if (!existing) {
-      // Add finger 1
+      // Start cycle: none -> 1
       setEditedChord({
         ...editedChord,
         fingerLabels: [...editedChord.fingerLabels, { string, finger: 1 }],
       });
-    } else if (existing.finger < 4) {
-      // Increment finger (1 -> 2 -> 3 -> 4)
+    } else if (existing.finger >= 1 && existing.finger < 4) {
+      // Continue cycle: 1 -> 2 -> 3 -> 4
       setEditedChord({
         ...editedChord,
         fingerLabels: editedChord.fingerLabels.map((f) =>
@@ -281,7 +281,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         ),
       });
     } else if (existing.finger === 4) {
-      // Switch to thumb (0 = T)
+      // Continue cycle: 4 -> T (0)
       setEditedChord({
         ...editedChord,
         fingerLabels: editedChord.fingerLabels.map((f) =>
@@ -289,7 +289,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         ),
       });
     } else {
-      // Remove finger label (after T)
+      // Complete cycle: T -> none (remove)
       setEditedChord({
         ...editedChord,
         fingerLabels: editedChord.fingerLabels.filter((f) => f.string !== string),
