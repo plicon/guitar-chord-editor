@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { ChordDiagram, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordDiagramComponent } from "./ChordDiagram";
+import { APP_CONFIG } from "@/config/appConfig";
 
 
 interface PrintableSheetProps {
@@ -46,9 +47,21 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
     return (
       <div
         ref={ref}
-        className="bg-white p-4 min-h-[297mm] w-[210mm] mx-auto print:m-0 print:p-4"
+        className="bg-white p-4 min-h-[297mm] w-[210mm] mx-auto print:m-0 print:p-4 relative"
         style={{ fontFamily: "system-ui, sans-serif" }}
       >
+        {/* Watermark */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ zIndex: 0 }}
+        >
+          <span 
+            className="text-gray-200 font-bold transform -rotate-45 select-none"
+            style={{ fontSize: '48px', opacity: 0.3 }}
+          >
+            {APP_CONFIG.appName}
+          </span>
+        </div>
         {/* Title and Strumming Pattern */}
         <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
@@ -146,7 +159,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
             const subtitle = rowSubtitles[originalIndex];
             
             return (
-              <div key={idx} className="space-y-1">
+              <div key={idx} className="space-y-1 relative" style={{ zIndex: 1 }}>
                 {/* Row Subtitle */}
                 {subtitle && subtitle.trim() && (
                   <div className="bg-gray-100 rounded px-3 py-1.5 mb-1">
@@ -165,6 +178,10 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                       printMode={true}
                     />
                   ))}
+                </div>
+                {/* Row URL */}
+                <div className="flex justify-end mt-1">
+                  <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
                 </div>
               </div>
             );
