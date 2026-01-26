@@ -6,13 +6,14 @@ import { ChordDiagramComponent } from "./ChordDiagram";
 
 interface PrintableSheetProps {
   title: string;
+  description?: string;
   rows: ChordDiagram[][];
   rowSubtitles?: string[];
   strummingPattern?: StrummingPattern | null;
 }
 
 export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
-  ({ title, rows, rowSubtitles = [], strummingPattern }, ref) => {
+  ({ title, description, rows, rowSubtitles = [], strummingPattern }, ref) => {
     // Process rows to keep structure but filter completely empty rows
     // Keep empty chords between filled ones
     const processedRows = rows.map((row, rowIndex) => {
@@ -49,10 +50,15 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         style={{ fontFamily: "system-ui, sans-serif" }}
       >
         {/* Title and Strumming Pattern */}
-        <div className={`mb-6 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
-          <h1 className={`text-2xl font-bold text-gray-900 ${showStrumming ? "text-left" : "text-left"}`}>
-            {title || "Chord Chart"}
-          </h1>
+        <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {title || "Chord Chart"}
+            </h1>
+            {description && description.trim() && (
+              <p className="text-sm text-gray-600 mt-1">{description}</p>
+            )}
+          </div>
 
           {/* Strumming Pattern for Print - Musical Staff Style */}
           {showStrumming && (
