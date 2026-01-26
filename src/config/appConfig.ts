@@ -8,6 +8,41 @@ export interface StorageConfig {
   s3?: S3Config;
 }
 
+// Helper to safely get storage configuration from environment variables
+const getStorageConfig = (): StorageConfig => {
+  const provider = (import.meta.env.VITE_STORAGE_PROVIDER || "local") as "local" | "s3";
+  
+  if (provider === "s3") {
+    const endpoint = import.meta.env.VITE_S3_ENDPOINT;
+    const bucket = import.meta.env.VITE_S3_BUCKET;
+    const region = import.meta.env.VITE_S3_REGION;
+    const accessKeyId = import.meta.env.VITE_S3_ACCESS_KEY_ID;
+    const secretAccessKey = import.meta.env.VITE_S3_SECRET_ACCESS_KEY;
+    
+    // Validate required S3 credentials are present
+    if (!endpoint || !bucket || !region || !accessKeyId || !secretAccessKey) {
+      console.warn(
+        "S3 storage selected but missing required environment variables. Falling back to localStorage."
+      );
+      return { provider: "local" };
+    }
+    
+    return {
+      provider: "s3",
+      s3: {
+        endpoint,
+        bucket,
+        region,
+        accessKeyId,
+        secretAccessKey,
+        prefix: import.meta.env.VITE_S3_PREFIX || "chord-charts",
+      },
+    };
+  }
+  
+  return { provider: "local" };
+};
+
 export const APP_CONFIG = {
   // App name displayed in watermark
   appName: "Guitar Chord Creator",
@@ -20,19 +55,6 @@ export const APP_CONFIG = {
   showRowUrl: true,
 
   // Storage configuration
-  // Options: "local" (browser localStorage) or "s3" (S3-compatible storage)
-  storage: {
-    provider: "local" as const,
-    
-    // S3-compatible storage configuration (AWS S3, Azure Blob, MinIO, etc.)
-    // Uncomment and configure these settings to use cloud storage
-    // s3: {
-    //   endpoint: "https://s3.amazonaws.com", // or MinIO/Azure endpoint
-    //   bucket: "my-chord-charts",
-    //   region: "us-east-1",
-    //   accessKeyId: "YOUR_ACCESS_KEY",
-    //   secretAccessKey: "YOUR_SECRET_KEY",
-    //   prefix: "chord-charts", // optional folder prefix
-    // },
-  } as StorageConfig,
+  // Configured via environment variables (see .env.example)
+  storage: getStorageConfig(),
 } as const;
