@@ -539,7 +539,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                   x1={startX + i * stringSpacing}
                   y1={startY + (editedChord.startFret === 1 ? nutHeight : 0)}
                   x2={startX + i * stringSpacing}
-                  y2={startY + fretSpacing * 6}
+                  y2={startY + fretSpacing * 5}
                   className="stroke-chord-string"
                   strokeWidth={1.5}
                 />
