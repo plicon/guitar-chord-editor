@@ -12,6 +12,7 @@ A web application for creating, editing, and printing guitar chord charts with c
 - 📱 Responsive design for desktop and mobile
 - 📲 **PWA Support** - Install as native app on iOS/Android
 - 👆 **Touch Optimized** - 44px tap targets, gesture support, haptic-ready
+- 🧪 **Comprehensive Test Suite** - 66+ automated tests with coverage reporting
 
 ---
 
@@ -21,6 +22,13 @@ A web application for creating, editing, and printing guitar chord charts with c
 - [Project Structure](#project-structure)
 - [Development](#development)
 - [Testing](#testing)
+  - [Running Tests](#running-tests)
+  - [Test Coverage](#test-coverage)
+  - [Manual Testing](#manual-testing)
+  - [Test Architecture](#test-architecture)
+- [CI/CD Integration](#cicd-integration)
+  - [GitHub Actions](#github-actions)
+  - [GitLab CI/CD](#gitlab-cicd)
 - [Deployment](#deployment)
   - [Docker](#docker-deployment)
   - [Cloudflare Pages](#cloudflare-pages)
@@ -100,9 +108,13 @@ To use cloud storage instead of browser localStorage:
 ├── src/
 │   ├── components/             # React components
 │   │   ├── ui/                 # shadcn/ui base components
+│   │   ├── AppHeader.tsx       # Application header with actions
+│   │   ├── ChartMetadataSection.tsx  # Title, description, strumming
 │   │   ├── ChordDiagram.tsx    # Individual chord diagram renderer
 │   │   ├── ChordEditor.tsx     # Main chord editing interface
+│   │   ├── ChordGridSection.tsx # Chord grid with drag-and-drop
 │   │   ├── ChordRow.tsx        # Row of chord diagrams
+│   │   ├── PreviewDialog.tsx   # Print preview modal
 │   │   ├── PrintableSheet.tsx  # Print-optimized layout
 │   │   ├── SavedChartsDialog.tsx # Load/manage saved charts
 │   │   ├── SortableChord.tsx   # Drag-and-drop chord wrapper
@@ -118,11 +130,18 @@ To use cloud storage instead of browser localStorage:
 │   │   └── strummingPresets.ts # Predefined strumming patterns
 │   ├── hooks/
 │   │   ├── use-mobile.tsx      # Mobile detection hook
-│   │   └── use-toast.ts        # Toast notification hook
+│   │   ├── use-toast.ts        # Toast notification hook
+│   │   ├── useChartState.ts    # Chart state management hook
+│   │   ├── useChartState.test.ts # Chart state tests (21 tests)
+│   │   ├── useChordDragAndDrop.ts    # Drag-and-drop logic hook
+│   │   ├── useChordDragAndDrop.test.ts # Drag-and-drop tests (13 tests)
+│   │   ├── usePdfExport.ts     # PDF export hook
+│   │   └── usePdfExport.test.ts # PDF export tests (8 tests)
 │   ├── lib/
 │   │   └── utils.ts            # Utility functions (cn, etc.)
 │   ├── pages/
 │   │   ├── Index.tsx           # Main application page
+│   │   ├── Index.test.tsx      # Integration tests (23 tests)
 │   │   └── NotFound.tsx        # 404 page
 │   ├── services/
 │   │   └── storage/            # Storage abstraction layer
@@ -183,31 +202,138 @@ The app will be available at `http://localhost:8080`
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run unit tests |
+| `npm test -- --coverage` | Run tests with coverage report |
 
 ---
 
 ## Testing
 
-This project uses [Vitest](https://vitest.dev/) with React Testing Library.
+This project uses [Vitest](https://vitest.dev/) with React Testing Library for comprehensive testing.
+
+### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests once
 npm test
 
-# Run tests in watch mode
+# Run tests in watch mode (for development)
 npm test -- --watch
 
-# Run tests with coverage
-npm test -- --coverage
+# Run a specific test file
+npm test -- src/hooks/useChartState.test.ts
+
+# Run tests matching a pattern
+npm test -- --grep "drag and drop"
 ```
 
-### Writing Tests
+### Test Coverage
 
-Place test files alongside components with `.test.tsx` or `.spec.tsx` extension:
+```bash
+# Generate coverage report
+npm test -- --coverage
+
+# Current coverage summary (66 tests):
+# - Statements: 44.49%
+# - Branches: 57.89%
+# - Functions: 28%
+# - Lines: 44.49%
+```
+
+**Well-covered modules:**
+| Module | Coverage | Tests |
+|--------|----------|-------|
+| `useChartState.ts` | 64.59% | 21 tests |
+| `useChordDragAndDrop.ts` | 96.05% | 13 tests |
+| `usePdfExport.ts` | 100% | 8 tests |
+| `Index.tsx` | 86.33% | 23 tests |
+| Type definitions | 96%+ | - |
+
+### Manual Testing
+
+#### Basic Functionality Checklist
+
+1. **Chord Creation**
+   - [ ] Click an empty chord slot to open the editor
+   - [ ] Enter a chord name (e.g., "Am", "G7")
+   - [ ] Add finger positions by clicking on the fretboard
+   - [ ] Toggle muted (X) and open (O) strings
+   - [ ] Use chord presets from the dropdown
+   - [ ] Save the chord and verify it appears in the grid
+
+2. **Chord Management**
+   - [ ] Drag and drop chords to reorder within a row
+   - [ ] Drag chords between different rows
+   - [ ] Add a new row using "Add Row" button
+   - [ ] Remove a row (hover to reveal delete button)
+   - [ ] Change chords per row (2-5 range)
+
+3. **Strumming Patterns**
+   - [ ] Click "Add Strumming Pattern" to open editor
+   - [ ] Add up/down strokes on beats and off-beats
+   - [ ] Use preset patterns
+   - [ ] Verify pattern displays in header and print preview
+
+4. **Chart Metadata**
+   - [ ] Enter a chart title
+   - [ ] Add description/notes
+   - [ ] Add row subtitles for sections (Verse, Chorus, etc.)
+
+5. **Save & Load**
+   - [ ] Save a chart (verify toast notification)
+   - [ ] Open saved charts dialog
+   - [ ] Load a previously saved chart
+   - [ ] Delete a saved chart
+
+6. **Export & Import**
+   - [ ] Export chart as JSON file
+   - [ ] Import a JSON file
+   - [ ] Download as PDF
+   - [ ] Preview print layout
+
+7. **Theme & Responsive**
+   - [ ] Toggle dark/light theme
+   - [ ] Test on mobile viewport (responsive layout)
+   - [ ] Verify touch interactions work on mobile
+
+8. **PDF Output Verification**
+   - [ ] Watermark appears diagonally
+   - [ ] Row URLs display at bottom-right
+   - [ ] Chord diagrams render correctly
+   - [ ] Strumming pattern displays in header
+   - [ ] Subtitles have gray background
+
+### Test Architecture
+
+The test suite is organized into three layers:
+
+```
+┌─────────────────────────────────────────────┐
+│          Integration Tests                   │
+│     (src/pages/Index.test.tsx)              │
+│  - Full page rendering with all components   │
+│  - User interaction workflows               │
+│  - Component communication                   │
+└─────────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────────┐
+│           Hook Unit Tests                    │
+│  - useChartState.test.ts (state management)  │
+│  - useChordDragAndDrop.test.ts (DnD logic)  │
+│  - usePdfExport.test.ts (PDF generation)    │
+└─────────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────────┐
+│           Utility Tests                      │
+│     (src/test/example.test.ts)              │
+│  - Basic test setup verification            │
+└─────────────────────────────────────────────┘
+```
+
+**Writing New Tests:**
 
 ```typescript
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MyComponent } from "./MyComponent";
 
 describe("MyComponent", () => {
@@ -215,8 +341,177 @@ describe("MyComponent", () => {
     render(<MyComponent />);
     expect(screen.getByText("Expected text")).toBeInTheDocument();
   });
+
+  it("handles user interaction", async () => {
+    render(<MyComponent />);
+    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+    expect(await screen.findByText("Success")).toBeInTheDocument();
+  });
 });
 ```
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions
+
+The project includes a comprehensive CI pipeline in `.github/workflows/ci.yml` that runs on every push and pull request:
+
+**Pipeline Jobs:**
+
+| Job | Description |
+|-----|-------------|
+| `lint` | ESLint + TypeScript type checking |
+| `test` | Vitest unit and integration tests |
+| `build` | Production build (depends on lint + test) |
+| `security` | npm audit + Snyk vulnerability scan |
+| `codeql` | GitHub CodeQL static analysis |
+| `dependency-review` | Dependency review for PRs |
+
+**Triggering the Pipeline:**
+- Automatically runs on push to `main`/`master`
+- Automatically runs on all pull requests
+- Build artifacts are uploaded and retained for 7 days
+
+### GitLab CI/CD
+
+To integrate tests with GitLab CI/CD, create a `.gitlab-ci.yml` file in the project root:
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - validate
+  - test
+  - build
+  - security
+
+variables:
+  NODE_VERSION: "20"
+
+# Cache node_modules between jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+# Install dependencies (shared setup)
+.node_setup: &node_setup
+  image: node:${NODE_VERSION}-alpine
+  before_script:
+    - npm ci --prefer-offline
+
+# ============ VALIDATE STAGE ============
+lint:
+  <<: *node_setup
+  stage: validate
+  script:
+    - npm run lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+typecheck:
+  <<: *node_setup
+  stage: validate
+  script:
+    - npx tsc --noEmit
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ============ TEST STAGE ============
+unit_tests:
+  <<: *node_setup
+  stage: test
+  script:
+    - npm test -- --run --reporter=verbose
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    when: always
+    reports:
+      junit: junit.xml
+    paths:
+      - coverage/
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test_coverage:
+  <<: *node_setup
+  stage: test
+  script:
+    - npm test -- --coverage --reporter=junit --outputFile=junit.xml
+  coverage: '/Statements\s*:\s*(\d+\.?\d*)%/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ============ BUILD STAGE ============
+build:
+  <<: *node_setup
+  stage: build
+  needs:
+    - lint
+    - typecheck
+    - unit_tests
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ============ SECURITY STAGE ============
+dependency_scan:
+  <<: *node_setup
+  stage: security
+  script:
+    - npm audit --audit-level=moderate || true
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# GitLab SAST (if using GitLab Ultimate)
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+```
+
+**GitLab CI Features:**
+
+| Feature | Description |
+|---------|-------------|
+| **Parallel Jobs** | Lint and typecheck run in parallel for faster feedback |
+| **Test Coverage** | Coverage percentage displayed in MR widgets |
+| **JUnit Reports** | Test results visible in GitLab MR interface |
+| **Cobertura Coverage** | Line-by-line coverage in MR diff view |
+| **Caching** | `node_modules` cached between jobs |
+| **Artifacts** | Build output and coverage reports retained |
+
+**Enabling Coverage in GitLab:**
+
+1. Go to **Settings → CI/CD → General pipelines**
+2. Set coverage regex: `Statements\s*:\s*(\d+\.?\d*)%`
+3. Coverage badge will appear in README and MRs
+
+**Merge Request Integration:**
+
+- Test results appear in the MR "Tests" tab
+- Coverage diff shows in code review
+- Pipeline must pass before merge (configure in branch protection)
 
 ---
 
@@ -473,6 +768,16 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Write tests for new functionality
+4. Ensure all tests pass (`npm test`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Pull Request Checklist
+
+- [ ] Tests pass locally (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] TypeScript compiles (`npx tsc --noEmit`)
+- [ ] New features have corresponding tests
+- [ ] Documentation updated if needed
