@@ -12,6 +12,7 @@ import { StrummingPatternEditor } from "@/components/StrummingPatternEditor";
 import { StrummingPatternDisplay } from "@/components/StrummingPatternDisplay";
 import { SavedChartsDialog } from "@/components/SavedChartsDialog";
 import { Plus, Download, Eye, Music, Minus, ListMusic, Pencil, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Dialog,
   DialogContent,
@@ -358,6 +359,7 @@ const Index = () => {
                 onChange={handleImportJson}
                 className="hidden"
               />
+              <ThemeToggle />
             </div>
           </div>
           <p className="text-muted-foreground mt-1">
