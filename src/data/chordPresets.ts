@@ -493,7 +493,17 @@ export const chordPresets: Record<string, ChordPreset> = {
   },
 };
 
-// Get preset for a chord name
+// Normalize chord name to ASCII for preset lookup
+const normalizeChordName = (name: string): string => {
+  return name
+    .replace(/♯/g, '#')
+    .replace(/♭/g, 'b')
+    .replace(/ minor/g, 'm')
+    .replace(/\s+/g, '');
+};
+
+// Get preset for a chord name (handles Unicode symbols and full names)
 export const getChordPreset = (name: string): ChordPreset | null => {
-  return chordPresets[name] || null;
+  const normalized = normalizeChordName(name);
+  return chordPresets[normalized] || null;
 };
