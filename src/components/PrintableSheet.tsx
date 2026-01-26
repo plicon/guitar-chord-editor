@@ -92,28 +92,36 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                                   {beatLabel}
                                 </span>
                                 
-                                {/* Filled up arrow */}
+                                {/* Filled up arrow - CSS based for html2canvas compatibility */}
                                 {beat.stroke === "up" && (
-                                  <svg 
-                                    className="absolute" 
-                                    style={{ top: 14, width: 12, height: 28 }}
-                                    viewBox="0 0 12 28" 
-                                    fill="currentColor"
-                                  >
-                                    <path d="M6 0L12 10H7V28H5V10H0L6 0Z" className="fill-gray-800" />
-                                  </svg>
+                                  <div className="absolute flex flex-col items-center" style={{ top: 14 }}>
+                                    <div 
+                                      style={{ 
+                                        width: 0, 
+                                        height: 0, 
+                                        borderLeft: '6px solid transparent',
+                                        borderRight: '6px solid transparent',
+                                        borderBottom: '10px solid #1f2937'
+                                      }} 
+                                    />
+                                    <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                                  </div>
                                 )}
                                 
-                                {/* Filled down arrow */}
+                                {/* Filled down arrow - CSS based for html2canvas compatibility */}
                                 {beat.stroke === "down" && (
-                                  <svg 
-                                    className="absolute" 
-                                    style={{ bottom: 6, width: 12, height: 28 }}
-                                    viewBox="0 0 12 28" 
-                                    fill="currentColor"
-                                  >
-                                    <path d="M6 28L0 18H5V0H7V18H12L6 28Z" className="fill-gray-800" />
-                                  </svg>
+                                  <div className="absolute flex flex-col items-center" style={{ bottom: 6 }}>
+                                    <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                                    <div 
+                                      style={{ 
+                                        width: 0, 
+                                        height: 0, 
+                                        borderLeft: '6px solid transparent',
+                                        borderRight: '6px solid transparent',
+                                        borderTop: '10px solid #1f2937'
+                                      }} 
+                                    />
+                                  </div>
                                 )}
                               </div>
                             );
