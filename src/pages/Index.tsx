@@ -1,15 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
+import { ChordChart, createChordChart } from "@/types/chordChart";
 import { ChordRow } from "@/components/ChordRow";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
 import { StrummingPatternEditor } from "@/components/StrummingPatternEditor";
 import { StrummingPatternDisplay } from "@/components/StrummingPatternDisplay";
-import { Plus, Download, Eye, Music, Minus, ListMusic, Pencil } from "lucide-react";
+import { SavedChartsDialog } from "@/components/SavedChartsDialog";
+import { Plus, Download, Eye, Music, Minus, ListMusic, Pencil, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,13 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { ChordDiagramComponent } from "@/components/ChordDiagram";
+import { 
+  saveChart, 
+  loadChart, 
+  downloadChartAsJson, 
+  importChartFromJson 
+} from "@/services/storage";
+import { toast } from "sonner";
 
 const createRow = (startId: number, chordsPerRow: number): ChordDiagram[] => 
   Array.from({ length: chordsPerRow }, (_, i) => 
@@ -37,6 +46,7 @@ const createRow = (startId: number, chordsPerRow: number): ChordDiagram[] =>
   );
 
 const Index = () => {
+  const [currentChartId, setCurrentChartId] = useState<string | null>(null);
   const [title, setTitle] = useState("My Chord Chart");
   const [description, setDescription] = useState("");
   const [chordsPerRow, setChordsPerRow] = useState(4);
@@ -50,7 +60,10 @@ const Index = () => {
   const [activeChord, setActiveChord] = useState<ChordDiagram | null>(null);
   const [strummingPattern, setStrummingPattern] = useState<StrummingPattern | null>(null);
   const [strummingEditorOpen, setStrummingEditorOpen] = useState(false);
+  const [savedChartsOpen, setSavedChartsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -60,19 +73,117 @@ const Index = () => {
     })
   );
 
+  // Create current chart object
+  const getCurrentChart = useCallback((): ChordChart => {
+    const chart = createChordChart(
+      title,
+      description,
+      chordsPerRow,
+      rows,
+      rowSubtitles,
+      strummingPattern
+    );
+    if (currentChartId) {
+      chart.id = currentChartId;
+    }
+    return chart;
+  }, [title, description, chordsPerRow, rows, rowSubtitles, strummingPattern, currentChartId]);
+
+  // Load chart into editor
+  const loadChartIntoEditor = useCallback((chart: ChordChart) => {
+    setCurrentChartId(chart.id);
+    setTitle(chart.title);
+    setDescription(chart.description);
+    setChordsPerRow(chart.chordsPerRow);
+    setRows(chart.rows);
+    setRowSubtitles(chart.rowSubtitles);
+    setStrummingPattern(chart.strummingPattern);
+  }, []);
+
+  // Handle save
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const chart = getCurrentChart();
+      await saveChart(chart);
+      setCurrentChartId(chart.id);
+      toast.success("Chart saved successfully!");
+    } catch (error) {
+      console.error("Failed to save chart:", error);
+      toast.error("Failed to save chart");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle load from saved charts
+  const handleLoadChart = async (id: string) => {
+    try {
+      const chart = await loadChart(id);
+      if (chart) {
+        loadChartIntoEditor(chart);
+        setSavedChartsOpen(false);
+        toast.success("Chart loaded successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to load chart:", error);
+      toast.error("Failed to load chart");
+    }
+  };
+
+  // Handle JSON export
+  const handleExportJson = () => {
+    const chart = getCurrentChart();
+    downloadChartAsJson(chart);
+    toast.success("Chart exported as JSON");
+  };
+
+  // Handle JSON import
+  const handleImportJson = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const json = e.target?.result as string;
+        const chart = importChartFromJson(json);
+        loadChartIntoEditor(chart);
+        await saveChart(chart);
+        toast.success("Chart imported successfully!");
+      } catch (error) {
+        console.error("Failed to import chart:", error);
+        toast.error("Failed to import chart. Invalid format.");
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset input so same file can be imported again
+    event.target.value = "";
+  };
+
+  // Handle new chart
+  const handleNewChart = () => {
+    setCurrentChartId(null);
+    setTitle("My Chord Chart");
+    setDescription("");
+    setChordsPerRow(4);
+    setRows([createRow(0, 4)]);
+    setRowSubtitles([""]);
+    setStrummingPattern(null);
+    toast.success("New chart created");
+  };
+
   const handleChordsPerRowChange = (newCount: number) => {
     if (newCount < 1 || newCount > 5) return;
     setChordsPerRow(newCount);
-    // Adjust existing rows to match new count
     setRows(rows.map((row, rowIndex) => {
       const baseId = rowIndex * 5;
       if (row.length < newCount) {
-        // Add more chords
         return [...row, ...Array.from({ length: newCount - row.length }, (_, i) => 
           createEmptyChord(`chord-${Date.now()}-${baseId + row.length + i}`)
         )];
       } else if (row.length > newCount) {
-        // Remove excess chords
         return row.slice(0, newCount);
       }
       return row;
@@ -112,7 +223,6 @@ const Index = () => {
     }
   };
 
-  // Find which row and index a chord belongs to
   const findChordPosition = (chordId: string): { rowIndex: number; chordIndex: number } | null => {
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const chordIndex = rows[rowIndex].findIndex((c) => c.id === chordId);
@@ -143,18 +253,15 @@ const Index = () => {
     const activePos = findChordPosition(activeId);
     let overPos = findChordPosition(overId);
 
-    // Check if over is a row (for dropping at the end of a row)
     if (!overPos && overId.startsWith("row-")) {
       const targetRowIndex = parseInt(overId.replace("row-", ""));
       if (activePos && targetRowIndex !== activePos.rowIndex) {
-        // Move to end of target row
         overPos = { rowIndex: targetRowIndex, chordIndex: rows[targetRowIndex].length };
       }
     }
 
     if (!activePos || !overPos) return;
 
-    // If same row, reorder within row
     if (activePos.rowIndex === overPos.rowIndex) {
       const newRows = [...rows];
       const row = [...newRows[activePos.rowIndex]];
@@ -163,23 +270,17 @@ const Index = () => {
       newRows[activePos.rowIndex] = row;
       setRows(newRows);
     } else {
-      // Move between rows
       const newRows = [...rows];
       const sourceRow = [...newRows[activePos.rowIndex]];
       const targetRow = [...newRows[overPos.rowIndex]];
 
-      // Remove from source
       const [movedChord] = sourceRow.splice(activePos.chordIndex, 1);
-      
-      // Add placeholder to source row to maintain count
       sourceRow.push(createEmptyChord(`chord-${Date.now()}-placeholder`));
 
-      // Insert into target (replace an empty chord if possible)
       const emptyIndex = targetRow.findIndex((c) => !isChordEdited(c));
       if (emptyIndex !== -1) {
         targetRow[emptyIndex] = movedChord;
       } else {
-        // Insert at position and remove last
         targetRow.splice(overPos.chordIndex, 0, movedChord);
         targetRow.pop();
       }
@@ -224,11 +325,42 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Music className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">
-              Guitar Chord Creator
-            </h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Music className="w-8 h-8 text-primary" />
+              <h1 className="text-2xl font-bold text-foreground">
+                Guitar Chord Creator
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleNewChart}>
+                <Plus className="w-4 h-4 mr-1" />
+                New
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setSavedChartsOpen(true)}>
+                <FolderOpen className="w-4 h-4 mr-1" />
+                Open
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
+                <Save className="w-4 h-4 mr-1" />
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportJson}>
+                <FileDown className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <FileUp className="w-4 h-4 mr-1" />
+                Import
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImportJson}
+                className="hidden"
+              />
+            </div>
           </div>
           <p className="text-muted-foreground mt-1">
             Create and print beautiful chord diagrams
@@ -447,6 +579,13 @@ const Index = () => {
           setStrummingPattern(null);
           setStrummingEditorOpen(false);
         }}
+      />
+
+      {/* Saved Charts Dialog */}
+      <SavedChartsDialog
+        open={savedChartsOpen}
+        onClose={() => setSavedChartsOpen(false)}
+        onLoad={handleLoadChart}
       />
 
       {/* Hidden printable content */}
