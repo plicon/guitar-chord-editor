@@ -29,6 +29,7 @@ const allRootNotes = [
 const chordTypes = [
   { short: '', full: '' }, // Major
   { short: 'm', full: ' minor' }, // Minor - both formats
+  { short: '5', full: '5' }, // Power chord
   { short: '7', full: '7' },
   { short: 'm7', full: ' minor 7' },
   { short: 'maj7', full: 'maj7' },
