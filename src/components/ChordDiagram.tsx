@@ -11,9 +11,9 @@ interface ChordDiagramProps {
 }
 
 const sizeConfig = {
-  sm: { width: 80, height: 100, fontSize: 10 },
-  md: { width: 120, height: 150, fontSize: 14 },
-  lg: { width: 160, height: 200, fontSize: 18 },
+  sm: { width: 80, height: 120, fontSize: 10, fingerSize: 8 },
+  md: { width: 120, height: 170, fontSize: 14, fingerSize: 10 },
+  lg: { width: 160, height: 220, fontSize: 18, fingerSize: 12 },
 };
 
 export const ChordDiagramComponent = ({
@@ -25,16 +25,22 @@ export const ChordDiagramComponent = ({
 }: ChordDiagramProps) => {
   const config = sizeConfig[size];
   const stringSpacing = config.width / 7;
-  const fretSpacing = (config.height - 30) / (chord.frets + 1);
+  const fretSpacing = (config.height - 50) / (chord.frets + 1);
   const nutHeight = 4;
   const startX = stringSpacing;
-  const startY = 25;
+  const startY = 30;
   
   const edited = isChordEdited(chord);
 
   if (!edited && !showPlaceholder) {
     return null;
   }
+
+  const getFingerLabel = (string: number) => {
+    return chord.fingerLabels?.find((f) => f.string === string)?.finger;
+  };
+
+  const hasFingerData = chord.fingerLabels && chord.fingerLabels.length > 0;
 
   return (
     <div
@@ -83,10 +89,10 @@ export const ChordDiagramComponent = ({
               />
             ) : (
               <text
-                x={startX - 10}
-                y={startY + fretSpacing}
+                x={startX - 8}
+                y={startY + fretSpacing * 0.7}
                 className="fill-muted-foreground"
-                fontSize={10}
+                fontSize={config.fingerSize}
                 textAnchor="middle"
               >
                 {chord.startFret}
@@ -148,9 +154,9 @@ export const ChordDiagramComponent = ({
               <text
                 key={`muted-${string}`}
                 x={startX + (6 - string) * stringSpacing}
-                y={startY - 5}
-                className="fill-muted-foreground"
-                fontSize={12}
+                y={startY - 8}
+                className="fill-muted-foreground font-bold"
+                fontSize={config.fingerSize + 2}
                 textAnchor="middle"
               >
                 ×
@@ -162,12 +168,34 @@ export const ChordDiagramComponent = ({
               <circle
                 key={`open-${string}`}
                 cx={startX + (6 - string) * stringSpacing}
-                cy={startY - 10}
-                r={4}
+                cy={startY - 12}
+                r={config.fingerSize / 2.5}
                 className="stroke-muted-foreground fill-none"
                 strokeWidth={1.5}
               />
             ))}
+
+            {/* Finger labels at bottom */}
+            {hasFingerData && (
+              <>
+                {[1, 2, 3, 4, 5, 6].map((string) => {
+                  const fingerLabel = getFingerLabel(string);
+                  if (!fingerLabel) return null;
+                  return (
+                    <text
+                      key={`label-${string}`}
+                      x={startX + (6 - string) * stringSpacing}
+                      y={startY + fretSpacing * chord.frets + 15}
+                      className="fill-foreground font-medium"
+                      fontSize={config.fingerSize}
+                      textAnchor="middle"
+                    >
+                      {fingerLabel}
+                    </text>
+                  );
+                })}
+              </>
+            )}
           </>
         ) : null}
       </svg>

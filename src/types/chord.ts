@@ -7,6 +7,7 @@ export interface ChordDiagram {
   barres: Barre[];
   mutedStrings: number[]; // String indices that are muted (X)
   openStrings: number[]; // String indices that are open (O)
+  fingerLabels: FingerLabel[]; // Finger numbers shown at bottom
 }
 
 export interface FingerPosition {
@@ -22,6 +23,11 @@ export interface Barre {
   finger?: number;
 }
 
+export interface FingerLabel {
+  string: number; // 1-6
+  finger: number; // 1-4 or 0 for thumb (T)
+}
+
 export const createEmptyChord = (id: string): ChordDiagram => ({
   id,
   name: "",
@@ -31,6 +37,7 @@ export const createEmptyChord = (id: string): ChordDiagram => ({
   barres: [],
   mutedStrings: [],
   openStrings: [],
+  fingerLabels: [],
 });
 
 export const isChordEdited = (chord: ChordDiagram): boolean => {

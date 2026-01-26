@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChordDiagram, FingerPosition } from "@/types/chord";
+import { ChordDiagram, FingerPosition, Barre, FingerLabel } from "@/types/chord";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
@@ -20,7 +20,13 @@ interface ChordEditorProps {
 }
 
 export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) => {
-  const [editedChord, setEditedChord] = useState<ChordDiagram>(chord);
+  const [editedChord, setEditedChord] = useState<ChordDiagram>({
+    ...chord,
+    fingerLabels: chord.fingerLabels || [],
+  });
+  const [dragStart, setDragStart] = useState<{ string: number; fret: number } | null>(null);
+  const [dragCurrent, setDragCurrent] = useState<{ string: number; fret: number } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   
   const stringSpacing = 30;
   const fretSpacing = 35;
@@ -32,48 +38,133 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     const isMuted = editedChord.mutedStrings.includes(string);
     const isOpen = editedChord.openStrings.includes(string);
 
-    if (isMuted) {
+    if (!isMuted && !isOpen) {
+      // Switch to muted
+      setEditedChord({
+        ...editedChord,
+        mutedStrings: [...editedChord.mutedStrings, string],
+      });
+    } else if (isMuted) {
       // Switch to open
       setEditedChord({
         ...editedChord,
         mutedStrings: editedChord.mutedStrings.filter((s) => s !== string),
         openStrings: [...editedChord.openStrings, string],
       });
-    } else if (isOpen) {
+    } else {
       // Switch to neither
       setEditedChord({
         ...editedChord,
         openStrings: editedChord.openStrings.filter((s) => s !== string),
       });
-    } else {
-      // Switch to muted
-      setEditedChord({
-        ...editedChord,
-        mutedStrings: [...editedChord.mutedStrings, string],
-      });
     }
   };
 
-  const handleFretClick = (string: number, fret: number) => {
-    const existingIndex = editedChord.fingers.findIndex(
-      (f) => f.string === string && f.fret === fret
-    );
+  const handleFretMouseDown = (string: number, fret: number) => {
+    setDragStart({ string, fret });
+    setDragCurrent({ string, fret });
+  };
 
-    if (existingIndex >= 0) {
-      // Remove existing finger
+  const handleFretMouseEnter = (string: number, fret: number) => {
+    if (dragStart && dragStart.fret === fret) {
+      setDragCurrent({ string, fret });
+    }
+  };
+
+  const handleFretMouseUp = (string: number, fret: number) => {
+    if (!dragStart) return;
+
+    if (dragStart.string === string && dragStart.fret === fret) {
+      // Single click - toggle finger position
+      const existingIndex = editedChord.fingers.findIndex(
+        (f) => f.string === string && f.fret === fret
+      );
+
+      if (existingIndex >= 0) {
+        setEditedChord({
+          ...editedChord,
+          fingers: editedChord.fingers.filter((_, i) => i !== existingIndex),
+        });
+      } else {
+        // Check if there's a barre at this position
+        const barreIndex = editedChord.barres.findIndex(
+          (b) => b.fret === fret && string >= b.toString && string <= b.fromString
+        );
+        
+        if (barreIndex >= 0) {
+          // Remove the barre
+          setEditedChord({
+            ...editedChord,
+            barres: editedChord.barres.filter((_, i) => i !== barreIndex),
+          });
+        } else {
+          // Add finger, remove any existing finger on this string
+          const newFingers = editedChord.fingers.filter((f) => f.string !== string);
+          const newFinger: FingerPosition = { string, fret };
+          setEditedChord({
+            ...editedChord,
+            fingers: [...newFingers, newFinger],
+            mutedStrings: editedChord.mutedStrings.filter((s) => s !== string),
+            openStrings: editedChord.openStrings.filter((s) => s !== string),
+          });
+        }
+      }
+    } else if (dragStart.fret === fret && dragStart.string !== string) {
+      // Drag completed - create barre
+      const fromString = Math.max(dragStart.string, string);
+      const toString = Math.min(dragStart.string, string);
+      
+      // Remove any existing barres on this fret
+      const newBarres = editedChord.barres.filter((b) => b.fret !== fret);
+      
+      // Remove any individual fingers in the barre range
+      const newFingers = editedChord.fingers.filter(
+        (f) => f.fret !== fret || f.string < toString || f.string > fromString
+      );
+      
+      const newBarre: Barre = { fret, fromString, toString };
+      
+      // Update muted/open strings
+      const affectedStrings = Array.from(
+        { length: fromString - toString + 1 },
+        (_, i) => toString + i
+      );
+      
       setEditedChord({
         ...editedChord,
-        fingers: editedChord.fingers.filter((_, i) => i !== existingIndex),
+        barres: [...newBarres, newBarre],
+        fingers: newFingers,
+        mutedStrings: editedChord.mutedStrings.filter((s) => !affectedStrings.includes(s)),
+        openStrings: editedChord.openStrings.filter((s) => !affectedStrings.includes(s)),
+      });
+    }
+
+    setDragStart(null);
+    setDragCurrent(null);
+  };
+
+  const handleFingerLabelClick = (string: number) => {
+    const existing = editedChord.fingerLabels.find((f) => f.string === string);
+    
+    if (!existing) {
+      // Add finger 1
+      setEditedChord({
+        ...editedChord,
+        fingerLabels: [...editedChord.fingerLabels, { string, finger: 1 }],
+      });
+    } else if (existing.finger < 4) {
+      // Increment finger
+      setEditedChord({
+        ...editedChord,
+        fingerLabels: editedChord.fingerLabels.map((f) =>
+          f.string === string ? { ...f, finger: f.finger + 1 } : f
+        ),
       });
     } else {
-      // Remove any existing finger on this string and add new one
-      const newFingers = editedChord.fingers.filter((f) => f.string !== string);
-      const newFinger: FingerPosition = { string, fret };
+      // Remove finger label
       setEditedChord({
         ...editedChord,
-        fingers: [...newFingers, newFinger],
-        mutedStrings: editedChord.mutedStrings.filter((s) => s !== string),
-        openStrings: editedChord.openStrings.filter((s) => s !== string),
+        fingerLabels: editedChord.fingerLabels.filter((f) => f.string !== string),
       });
     }
   };
@@ -91,12 +182,36 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       barres: [],
       mutedStrings: [],
       openStrings: [],
+      fingerLabels: [],
     });
   };
 
   const hasFingerAt = (string: number, fret: number) => {
     return editedChord.fingers.some((f) => f.string === string && f.fret === fret);
   };
+
+  const isInBarre = (string: number, fret: number) => {
+    return editedChord.barres.some(
+      (b) => b.fret === fret && string >= b.toString && string <= b.fromString
+    );
+  };
+
+  const getFingerLabel = (string: number) => {
+    return editedChord.fingerLabels.find((f) => f.string === string)?.finger;
+  };
+
+  // Calculate drag preview
+  const getDragPreview = () => {
+    if (!dragStart || !dragCurrent || dragStart.fret !== dragCurrent.fret) return null;
+    if (dragStart.string === dragCurrent.string) return null;
+    
+    const fromString = Math.max(dragStart.string, dragCurrent.string);
+    const toString = Math.min(dragStart.string, dragCurrent.string);
+    
+    return { fret: dragStart.fret, fromString, toString };
+  };
+
+  const dragPreview = getDragPreview();
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -139,20 +254,27 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
           {/* Interactive Fretboard */}
           <div className="flex justify-center py-4">
-            <svg width={220} height={220}>
-              {/* String labels */}
-              {["E", "A", "D", "G", "B", "e"].map((label, i) => (
-                <text
-                  key={`label-${i}`}
-                  x={startX + (5 - i) * stringSpacing}
-                  y={startY + fretSpacing * 4 + 20}
-                  className="fill-muted-foreground"
-                  fontSize={10}
-                  textAnchor="middle"
-                >
-                  {label}
-                </text>
-              ))}
+            <svg 
+              ref={svgRef} 
+              width={220} 
+              height={260}
+              onMouseLeave={() => {
+                if (dragStart) {
+                  setDragStart(null);
+                  setDragCurrent(null);
+                }
+              }}
+            >
+              {/* Muted/Open String Indicators - Top Section */}
+              <text
+                x={startX + stringSpacing * 2.5}
+                y={15}
+                className="fill-muted-foreground"
+                fontSize={10}
+                textAnchor="middle"
+              >
+                Click to toggle: × (muted) → ○ (open) → none
+              </text>
 
               {/* Clickable areas for muted/open */}
               {[1, 2, 3, 4, 5, 6].map((string) => {
@@ -164,18 +286,20 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                     onClick={() => handleStringTopClick(string)}
                     className="cursor-pointer"
                   >
-                    <circle
-                      cx={startX + (6 - string) * stringSpacing}
-                      cy={startY - 15}
-                      r={10}
-                      className="fill-transparent hover:fill-muted"
+                    <rect
+                      x={startX + (6 - string) * stringSpacing - 12}
+                      y={startY - 30}
+                      width={24}
+                      height={24}
+                      className="fill-transparent hover:fill-muted rounded"
+                      rx={4}
                     />
                     {isMuted && (
                       <text
                         x={startX + (6 - string) * stringSpacing}
-                        y={startY - 10}
-                        className="fill-destructive"
-                        fontSize={14}
+                        y={startY - 12}
+                        className="fill-destructive font-bold"
+                        fontSize={16}
                         textAnchor="middle"
                         pointerEvents="none"
                       >
@@ -185,10 +309,21 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                     {isOpen && (
                       <circle
                         cx={startX + (6 - string) * stringSpacing}
-                        cy={startY - 15}
-                        r={5}
+                        cy={startY - 18}
+                        r={6}
                         className="stroke-primary fill-none"
                         strokeWidth={2}
+                        pointerEvents="none"
+                      />
+                    )}
+                    {!isMuted && !isOpen && (
+                      <circle
+                        cx={startX + (6 - string) * stringSpacing}
+                        cy={startY - 18}
+                        r={6}
+                        className="stroke-muted fill-none"
+                        strokeWidth={1}
+                        strokeDasharray="2,2"
                         pointerEvents="none"
                       />
                     )}
@@ -246,35 +381,125 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                 />
               ))}
 
+              {/* Existing Barres */}
+              {editedChord.barres.map((barre, i) => (
+                <rect
+                  key={`barre-${i}`}
+                  x={startX + (6 - barre.fromString) * stringSpacing - 6}
+                  y={startY + (barre.fret - 0.5) * fretSpacing - 8}
+                  width={(barre.fromString - barre.toString) * stringSpacing + 12}
+                  height={16}
+                  rx={8}
+                  className="fill-chord-dot"
+                />
+              ))}
+
+              {/* Drag Preview Barre */}
+              {dragPreview && (
+                <rect
+                  x={startX + (6 - dragPreview.fromString) * stringSpacing - 6}
+                  y={startY + (dragPreview.fret - 0.5) * fretSpacing - 8}
+                  width={(dragPreview.fromString - dragPreview.toString) * stringSpacing + 12}
+                  height={16}
+                  rx={8}
+                  className="fill-chord-dot opacity-50"
+                />
+              )}
+
               {/* Clickable fret positions */}
               {[1, 2, 3, 4, 5, 6].map((string) =>
                 [1, 2, 3, 4].map((fret) => {
                   const hasFinger = hasFingerAt(string, fret);
+                  const inBarre = isInBarre(string, fret);
+                  const isDragStart = dragStart?.string === string && dragStart?.fret === fret;
+                  
                   return (
                     <g
                       key={`pos-${string}-${fret}`}
-                      onClick={() => handleFretClick(string, fret)}
-                      className="cursor-pointer"
+                      onMouseDown={() => handleFretMouseDown(string, fret)}
+                      onMouseEnter={() => handleFretMouseEnter(string, fret)}
+                      onMouseUp={() => handleFretMouseUp(string, fret)}
+                      className="cursor-pointer select-none"
                     >
                       <circle
                         cx={startX + (6 - string) * stringSpacing}
                         cy={startY + (fret - 0.5) * fretSpacing}
                         r={12}
                         className={cn(
-                          hasFinger ? "fill-chord-dot" : "fill-transparent hover:fill-muted"
+                          hasFinger || isDragStart
+                            ? "fill-chord-dot"
+                            : inBarre
+                            ? "fill-transparent"
+                            : "fill-transparent hover:fill-muted"
                         )}
                       />
                     </g>
                   );
                 })
               )}
+
+              {/* Finger Labels Section - Bottom */}
+              <line
+                x1={startX}
+                y1={startY + fretSpacing * 4 + 15}
+                x2={startX + stringSpacing * 5}
+                y2={startY + fretSpacing * 4 + 15}
+                className="stroke-border"
+                strokeWidth={1}
+              />
+              
+              <text
+                x={startX - 20}
+                y={startY + fretSpacing * 4 + 35}
+                className="fill-muted-foreground"
+                fontSize={10}
+                textAnchor="middle"
+              >
+                Finger
+              </text>
+
+              {[1, 2, 3, 4, 5, 6].map((string) => {
+                const fingerLabel = getFingerLabel(string);
+                return (
+                  <g
+                    key={`finger-${string}`}
+                    onClick={() => handleFingerLabelClick(string)}
+                    className="cursor-pointer"
+                  >
+                    <circle
+                      cx={startX + (6 - string) * stringSpacing}
+                      cy={startY + fretSpacing * 4 + 32}
+                      r={10}
+                      className={cn(
+                        fingerLabel ? "fill-primary" : "fill-transparent hover:fill-muted",
+                        "stroke-border"
+                      )}
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={startX + (6 - string) * stringSpacing}
+                      y={startY + fretSpacing * 4 + 36}
+                      className={cn(
+                        fingerLabel ? "fill-primary-foreground" : "fill-muted-foreground"
+                      )}
+                      fontSize={12}
+                      textAnchor="middle"
+                      pointerEvents="none"
+                    >
+                      {fingerLabel || "–"}
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
           </div>
 
           {/* Help text */}
-          <p className="text-sm text-muted-foreground text-center">
-            Click on frets to add/remove fingers. Click above strings to toggle muted (×) or open (○).
-          </p>
+          <div className="text-sm text-muted-foreground text-center space-y-1">
+            <p><strong>Click</strong> on frets to add/remove fingers</p>
+            <p><strong>Drag</strong> across strings on same fret for barre chords</p>
+            <p><strong>Bottom row:</strong> Click to set finger numbers (1-4)</p>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2 justify-end">
