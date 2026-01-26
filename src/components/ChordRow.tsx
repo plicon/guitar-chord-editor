@@ -83,7 +83,6 @@ export const ChordRow = ({
               key={chord.id}
               chord={chord}
               onClick={() => onChordClick(index)}
-              printMode={printMode}
             />
           ))}
         </div>
