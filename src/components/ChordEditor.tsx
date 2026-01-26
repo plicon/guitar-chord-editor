@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
 import { getChordPreset } from "@/data/chordPresets";
+import { Switch } from "@/components/ui/switch";
 
 interface ChordEditorProps {
   chord: ChordDiagram;
@@ -31,6 +32,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [autoFillPresets, setAutoFillPresets] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -71,19 +73,23 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    const preset = getChordPreset(suggestion);
-    if (preset) {
-      // Apply the preset fingering
-      setEditedChord({
-        ...editedChord,
-        name: suggestion,
-        startFret: preset.startFret,
-        fingers: preset.fingers,
-        barres: preset.barres,
-        mutedStrings: preset.mutedStrings,
-        openStrings: preset.openStrings,
-        fingerLabels: preset.fingerLabels,
-      });
+    if (autoFillPresets) {
+      const preset = getChordPreset(suggestion);
+      if (preset) {
+        // Apply the preset fingering
+        setEditedChord({
+          ...editedChord,
+          name: suggestion,
+          startFret: preset.startFret,
+          fingers: preset.fingers,
+          barres: preset.barres,
+          mutedStrings: preset.mutedStrings,
+          openStrings: preset.openStrings,
+          fingerLabels: preset.fingerLabels,
+        });
+      } else {
+        setEditedChord({ ...editedChord, name: suggestion });
+      }
     } else {
       setEditedChord({ ...editedChord, name: suggestion });
     }
@@ -342,6 +348,16 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Auto-fill Presets Toggle */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="autoFill" className="text-sm">Auto-fill chord fingerings</Label>
+            <Switch
+              id="autoFill"
+              checked={autoFillPresets}
+              onCheckedChange={setAutoFillPresets}
+            />
           </div>
 
           {/* Start Fret Selector */}
