@@ -7,11 +7,12 @@ import { ArrowUp, ArrowDown } from "lucide-react";
 interface PrintableSheetProps {
   title: string;
   rows: ChordDiagram[][];
+  rowSubtitles?: string[];
   strummingPattern?: StrummingPattern | null;
 }
 
 export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
-  ({ title, rows, strummingPattern }, ref) => {
+  ({ title, rows, rowSubtitles = [], strummingPattern }, ref) => {
     // Filter to only include edited chords
     const editedRows = rows
       .map((row) => row.filter(isChordEdited))
@@ -82,22 +83,35 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
 
         {/* Chord Rows */}
         <div className="space-y-4">
-          {editedRows.map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className="flex justify-center gap-3 flex-wrap"
-            >
-              {row.map((chord) => (
-                <ChordDiagramComponent
-                  key={chord.id}
-                  chord={chord}
-                  size={diagramSize}
-                  showPlaceholder={false}
-                  printMode={true}
-                />
-              ))}
-            </div>
-          ))}
+          {editedRows.map((row, rowIndex) => {
+            // Find the original row index to get the correct subtitle
+            const originalRowIndex = rows.findIndex(
+              (originalRow) => originalRow.some((chord) => row.some((editedChord) => editedChord.id === chord.id))
+            );
+            const subtitle = rowSubtitles[originalRowIndex];
+            
+            return (
+              <div key={rowIndex} className="space-y-1">
+                {/* Row Subtitle */}
+                {subtitle && subtitle.trim() && (
+                  <p className="text-sm text-gray-600 font-medium px-1">
+                    {subtitle}
+                  </p>
+                )}
+                <div className="flex justify-center gap-3 flex-wrap">
+                  {row.map((chord) => (
+                    <ChordDiagramComponent
+                      key={chord.id}
+                      chord={chord}
+                      size={diagramSize}
+                      showPlaceholder={false}
+                      printMode={true}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {editedRows.length === 0 && (
