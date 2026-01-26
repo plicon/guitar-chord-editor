@@ -104,23 +104,19 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    if (autoFillPresets) {
-      const preset = getChordPreset(suggestion);
-      if (preset) {
-        // Apply the preset fingering
-        setEditedChord({
-          ...editedChord,
-          name: suggestion,
-          startFret: preset.startFret,
-          fingers: preset.fingers,
-          barres: preset.barres,
-          mutedStrings: preset.mutedStrings,
-          openStrings: preset.openStrings,
-          fingerLabels: preset.fingerLabels,
-        });
-      } else {
-        setEditedChord({ ...editedChord, name: suggestion });
-      }
+    const preset = getChordPreset(suggestion);
+    if (preset) {
+      // Always apply the preset fingering when selecting from dropdown
+      setEditedChord({
+        ...editedChord,
+        name: suggestion,
+        startFret: preset.startFret,
+        fingers: preset.fingers,
+        barres: preset.barres,
+        mutedStrings: preset.mutedStrings,
+        openStrings: preset.openStrings,
+        fingerLabels: preset.fingerLabels,
+      });
     } else {
       setEditedChord({ ...editedChord, name: suggestion });
     }
