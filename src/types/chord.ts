@@ -31,7 +31,7 @@ export interface FingerLabel {
 export const createEmptyChord = (id: string): ChordDiagram => ({
   id,
   name: "",
-  frets: 6,
+  frets: 5,
   startFret: 1,
   fingers: [],
   barres: [],
