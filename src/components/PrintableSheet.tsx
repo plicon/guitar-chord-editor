@@ -50,15 +50,15 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         className="bg-white p-4 min-h-[297mm] w-[210mm] mx-auto print:m-0 print:p-4 relative"
         style={{ fontFamily: "system-ui, sans-serif" }}
       >
-        {/* Watermark */}
+        {/* Watermark - visible in preview and print */}
         {APP_CONFIG.showWatermark && (
           <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none print:flex"
             style={{ zIndex: 0 }}
           >
             <span 
-              className="text-gray-200 font-bold transform -rotate-45 select-none"
-              style={{ fontSize: '120px', opacity: 0.15 }}
+              className="text-gray-400 font-bold transform -rotate-45 select-none"
+              style={{ fontSize: '100px', opacity: 0.25 }}
             >
               {APP_CONFIG.appName}
             </span>
@@ -159,7 +159,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         <div className="space-y-4">
           {/* Separator if first row has no subtitle */}
           {processedRows.length > 0 && !rowSubtitles[processedRows[0]?.originalIndex]?.trim() && (
-            <div className="border-t-2 border-gray-200 pt-2" />
+            <div className="border-t-2 border-black pt-2" />
           )}
           {processedRows.map(({ chords, originalIndex }, idx) => {
             const subtitle = rowSubtitles[originalIndex];
