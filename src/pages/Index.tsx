@@ -191,11 +191,9 @@ const Index = () => {
   };
 
   const addRow = () => {
-    if (rows.length < 5) {
-      const nextId = rows.length * 5;
-      setRows([...rows, createRow(nextId, chordsPerRow)]);
-      setRowSubtitles([...rowSubtitles, ""]);
-    }
+    const nextId = rows.length * 5;
+    setRows([...rows, createRow(nextId, chordsPerRow)]);
+    setRowSubtitles([...rowSubtitles, ""]);
   };
 
   const removeRow = (index: number) => {
@@ -502,16 +500,14 @@ const Index = () => {
               </div>
             </div>
 
-            {rows.length < 5 && (
-              <Button
-                variant="outline"
-                onClick={addRow}
-                className="w-full border-dashed"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Row ({rows.length}/5)
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={addRow}
+              className="w-full border-dashed"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Row
+            </Button>
           </div>
 
           {/* Action Buttons */}
