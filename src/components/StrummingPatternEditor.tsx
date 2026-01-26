@@ -14,10 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StrummingPattern, StrumBeat, createEmptyPattern, NoteValue, BeatType } from "@/types/strumming";
+import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Toggle } from "@/components/ui/toggle";
 
 interface StrummingPatternEditorProps {
   pattern: StrummingPattern | null;
@@ -37,8 +36,6 @@ export const StrummingPatternEditor = ({
   const [editedPattern, setEditedPattern] = useState<StrummingPattern>(
     pattern || createEmptyPattern(1)
   );
-  const [selectedNoteValue, setSelectedNoteValue] = useState<NoteValue>("full");
-
   useEffect(() => {
     if (open) {
       setEditedPattern(pattern || createEmptyPattern(1));
@@ -72,12 +69,11 @@ export const StrummingPatternEditor = ({
       (clickPosition === "up" && currentBeat.stroke === "up") ||
       (clickPosition === "down" && currentBeat.stroke === "down")
     ) {
-      newBeats[beatIndex] = { ...currentBeat, stroke: null, noteValue: selectedNoteValue };
+      newBeats[beatIndex] = { ...currentBeat, stroke: null };
     } else {
       newBeats[beatIndex] = {
         ...currentBeat,
         stroke: clickPosition,
-        noteValue: selectedNoteValue,
       };
     }
 
@@ -125,27 +121,6 @@ export const StrummingPatternEditor = ({
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Label>Note Value:</Label>
-              <div className="flex gap-1">
-                <Toggle
-                  pressed={selectedNoteValue === "full"}
-                  onPressedChange={() => setSelectedNoteValue("full")}
-                  className="px-3"
-                  aria-label="Full note"
-                >
-                  ♩
-                </Toggle>
-                <Toggle
-                  pressed={selectedNoteValue === "half"}
-                  onPressedChange={() => setSelectedNoteValue("half")}
-                  className="px-3"
-                  aria-label="Half note"
-                >
-                  𝅗𝅥
-                </Toggle>
-              </div>
-            </div>
 
             <Button variant="outline" size="sm" onClick={handleClear}>
               Clear All
@@ -193,13 +168,10 @@ export const StrummingPatternEditor = ({
                                 {beat.stroke === "up" && (
                                   <ArrowUp 
                                     className="text-primary" 
-                                    style={{ width: beatWidth - 12, height: beatHeight / 2 - 4 }} 
+                                    style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
                                   />
                                 )}
                               </div>
-
-                              {/* Center line */}
-                              <div className="absolute top-1/2 left-0 right-0 h-[3px] bg-muted-foreground -translate-y-1/2" />
 
                               {/* Lower click zone (downstroke) */}
                               <div
@@ -209,15 +181,10 @@ export const StrummingPatternEditor = ({
                                 {beat.stroke === "down" && (
                                   <ArrowDown 
                                     className="text-primary" 
-                                    style={{ width: beatWidth - 12, height: beatHeight / 2 - 4 }} 
+                                    style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
                                   />
                                 )}
                               </div>
-
-                              {/* Half note indicator */}
-                              {beat.noteValue === "half" && beat.stroke && (
-                                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-primary rounded" />
-                              )}
                             </div>
                           </div>
                         );
