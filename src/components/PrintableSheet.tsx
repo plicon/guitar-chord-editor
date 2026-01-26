@@ -53,12 +53,18 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         {/* Watermark - visible in preview and print */}
         {APP_CONFIG.showWatermark && (
           <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none print:flex"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none print:flex overflow-hidden"
             style={{ zIndex: 0 }}
           >
             <span 
-              className="text-gray-400 font-bold transform -rotate-45 select-none"
-              style={{ fontSize: '100px', opacity: 0.25 }}
+              className="text-gray-400 select-none whitespace-nowrap"
+              style={{ 
+                fontFamily: "'Permanent Marker', cursive",
+                fontSize: '160px',
+                opacity: 0.2,
+                transform: 'rotate(-35deg) scale(1.5)',
+                letterSpacing: '0.05em'
+              }}
             >
               {APP_CONFIG.appName}
             </span>
