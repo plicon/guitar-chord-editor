@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "deploy": "npx wrangler versions upload && npx wrangler versions deploy",
+    "deploy": "npx wrangler versions upload && npx wrangler versions deploy --yes",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
