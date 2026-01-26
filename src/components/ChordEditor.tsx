@@ -271,15 +271,23 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         fingerLabels: [...editedChord.fingerLabels, { string, finger: 1 }],
       });
     } else if (existing.finger < 4) {
-      // Increment finger
+      // Increment finger (1 -> 2 -> 3 -> 4)
       setEditedChord({
         ...editedChord,
         fingerLabels: editedChord.fingerLabels.map((f) =>
           f.string === string ? { ...f, finger: f.finger + 1 } : f
         ),
       });
+    } else if (existing.finger === 4) {
+      // Switch to thumb (0 = T)
+      setEditedChord({
+        ...editedChord,
+        fingerLabels: editedChord.fingerLabels.map((f) =>
+          f.string === string ? { ...f, finger: 0 } : f
+        ),
+      });
     } else {
-      // Remove finger label
+      // Remove finger label (after T)
       setEditedChord({
         ...editedChord,
         fingerLabels: editedChord.fingerLabels.filter((f) => f.string !== string),
@@ -314,8 +322,11 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     );
   };
 
-  const getFingerLabel = (string: number) => {
-    return editedChord.fingerLabels.find((f) => f.string === string)?.finger;
+  const getFingerLabel = (string: number): string | undefined => {
+    const finger = editedChord.fingerLabels.find((f) => f.string === string)?.finger;
+    if (finger === undefined) return undefined;
+    if (finger === 0) return "T";
+    return String(finger);
   };
 
   // Calculate drag preview
@@ -423,7 +434,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
             <svg 
               ref={svgRef} 
               width={220} 
-              height={330}
+              height={295}
               onMouseLeave={() => {
                 if (dragStart) {
                   setDragStart(null);
@@ -535,7 +546,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               ))}
 
               {/* Frets */}
-              {Array.from({ length: 7 }).map((_, i) => (
+              {Array.from({ length: 6 }).map((_, i) => (
                 <line
                   key={`fret-${i}`}
                   x1={startX}
@@ -574,7 +585,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
               {/* Clickable fret positions */}
               {[1, 2, 3, 4, 5, 6].map((string) =>
-                [1, 2, 3, 4, 5, 6].map((fret) => {
+                [1, 2, 3, 4, 5].map((fret) => {
                   const hasFinger = hasFingerAt(string, fret);
                   const inBarre = isInBarre(string, fret);
                   const isDragStart = dragStart?.string === string && dragStart?.fret === fret;
@@ -607,16 +618,16 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               {/* Finger Labels Section - Bottom */}
               <line
                 x1={startX}
-                y1={startY + fretSpacing * 6 + 15}
+                y1={startY + fretSpacing * 5 + 15}
                 x2={startX + stringSpacing * 5}
-                y2={startY + fretSpacing * 6 + 15}
+                y2={startY + fretSpacing * 5 + 15}
                 className="stroke-border"
                 strokeWidth={1}
               />
               
               <text
-                x={startX - 20}
-                y={startY + fretSpacing * 6 + 35}
+                x={startX - 25}
+                y={startY + fretSpacing * 5 + 35}
                 className="fill-muted-foreground"
                 fontSize={10}
                 textAnchor="middle"
@@ -634,7 +645,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                   >
                     <circle
                       cx={startX + (6 - string) * stringSpacing}
-                      cy={startY + fretSpacing * 6 + 32}
+                      cy={startY + fretSpacing * 5 + 32}
                       r={10}
                       className={cn(
                         fingerLabel ? "fill-primary" : "fill-transparent hover:fill-muted",
@@ -644,7 +655,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                     />
                     <text
                       x={startX + (6 - string) * stringSpacing}
-                      y={startY + fretSpacing * 6 + 36}
+                      y={startY + fretSpacing * 5 + 36}
                       className={cn(
                         fingerLabel ? "fill-primary-foreground" : "fill-muted-foreground"
                       )}
@@ -664,7 +675,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
           <div className="text-sm text-muted-foreground text-center space-y-1">
             <p><strong>Click</strong> on frets to add/remove fingers</p>
             <p><strong>Drag</strong> across strings on same fret for barre chords</p>
-            <p><strong>Bottom row:</strong> Click to set finger numbers (1-4)</p>
+            <p><strong>Bottom row:</strong> Click to set finger numbers (1-4, T for thumb)</p>
           </div>
 
           {/* Actions */}
