@@ -136,7 +136,73 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior: none;
+  }
+
   body {
     @apply bg-background text-foreground;
+    /* Touch optimizations */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    /* Safe area for iOS notch */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Prevent text selection on interactive elements */
+  button,
+  [role="button"],
+  .touch-none {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Ensure minimum touch target size (44x44px per Apple HIG) */
+  button,
+  [role="button"],
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Smaller buttons can override with explicit sizing */
+  .btn-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* PWA standalone mode adjustments */
+@media (display-mode: standalone) {
+  body {
+    /* Extra padding when running as installed app */
+    padding-top: max(env(safe-area-inset-top), 20px);
+  }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS momentum scrolling */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
