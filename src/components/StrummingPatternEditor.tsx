@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StrummingPattern, StrumBeat, createEmptyPattern, NoteValue } from "@/types/strumming";
+import { StrummingPattern, StrumBeat, createEmptyPattern, NoteValue, BeatType } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Toggle } from "@/components/ui/toggle";
@@ -47,9 +47,14 @@ export const StrummingPatternEditor = ({
 
   const handleBarsChange = (value: string) => {
     const newBars = parseInt(value);
+    const slotsPerBar = 8; // 1 & 2 & 3 & 4 &
     const newBeats: StrumBeat[] = Array.from(
-      { length: newBars * editedPattern.beatsPerBar },
-      (_, i) => editedPattern.beats[i] || { stroke: null, noteValue: "full" }
+      { length: newBars * slotsPerBar },
+      (_, i) => editedPattern.beats[i] || { 
+        stroke: null, 
+        noteValue: "full",
+        beatType: (i % 2 === 0 ? "on" : "off") as BeatType
+      }
     );
     setEditedPattern({
       ...editedPattern,
@@ -67,9 +72,10 @@ export const StrummingPatternEditor = ({
       (clickPosition === "up" && currentBeat.stroke === "up") ||
       (clickPosition === "down" && currentBeat.stroke === "down")
     ) {
-      newBeats[beatIndex] = { stroke: null, noteValue: selectedNoteValue };
+      newBeats[beatIndex] = { ...currentBeat, stroke: null, noteValue: selectedNoteValue };
     } else {
       newBeats[beatIndex] = {
+        ...currentBeat,
         stroke: clickPosition,
         noteValue: selectedNoteValue,
       };
@@ -87,8 +93,8 @@ export const StrummingPatternEditor = ({
     setEditedPattern(createEmptyPattern(editedPattern.bars));
   };
 
-  const beatWidth = 48;
-  const beatHeight = 100;
+  const beatWidth = 36;
+  const beatHeight = 80;
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -154,29 +160,30 @@ export const StrummingPatternEditor = ({
                   {/* Bar */}
                   <div className="flex items-center border-2 border-border rounded-lg bg-card p-2">
                     {editedPattern.beats
-                      .slice(
-                        barIndex * editedPattern.beatsPerBar,
-                        (barIndex + 1) * editedPattern.beatsPerBar
-                      )
-                      .map((beat, beatIndex) => {
-                        const globalBeatIndex =
-                          barIndex * editedPattern.beatsPerBar + beatIndex;
+                      .slice(barIndex * 8, (barIndex + 1) * 8)
+                      .map((beat, slotIndex) => {
+                        const globalBeatIndex = barIndex * 8 + slotIndex;
+                        const isOffBeat = beat.beatType === "off";
+                        const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
 
                         return (
                           <div
-                            key={beatIndex}
+                            key={slotIndex}
                             className="flex flex-col items-center"
                             style={{ width: beatWidth }}
                           >
-                            {/* Beat number */}
-                            <span className="text-sm font-medium text-muted-foreground mb-1">
-                              {beatIndex + 1}
+                            {/* Beat label */}
+                            <span className={cn(
+                              "text-sm font-medium mb-1",
+                              isOffBeat ? "text-muted-foreground/60" : "text-muted-foreground"
+                            )}>
+                              {beatLabel}
                             </span>
 
                             {/* Interactive area */}
                             <div
                               className="relative cursor-pointer rounded-md hover:bg-muted/50 transition-colors"
-                              style={{ width: beatWidth - 8, height: beatHeight }}
+                              style={{ width: beatWidth - 4, height: beatHeight }}
                             >
                               {/* Upper click zone (upstroke) */}
                               <div
@@ -184,7 +191,10 @@ export const StrummingPatternEditor = ({
                                 onClick={() => handleBeatClick(globalBeatIndex, "up")}
                               >
                                 {beat.stroke === "up" && (
-                                  <ArrowUp className="text-primary" size={28} />
+                                  <ArrowUp 
+                                    className="text-primary" 
+                                    style={{ width: beatWidth - 12, height: beatHeight / 2 - 4 }} 
+                                  />
                                 )}
                               </div>
 
@@ -197,7 +207,10 @@ export const StrummingPatternEditor = ({
                                 onClick={() => handleBeatClick(globalBeatIndex, "down")}
                               >
                                 {beat.stroke === "down" && (
-                                  <ArrowDown className="text-primary" size={28} />
+                                  <ArrowDown 
+                                    className="text-primary" 
+                                    style={{ width: beatWidth - 12, height: beatHeight / 2 - 4 }} 
+                                  />
                                 )}
                               </div>
 
@@ -213,7 +226,7 @@ export const StrummingPatternEditor = ({
 
                   {/* Bar line separator */}
                   {barIndex < editedPattern.bars - 1 && (
-                    <div className="w-[3px] h-20 bg-muted-foreground mx-2 rounded" />
+                    <div className="w-[3px] h-16 bg-muted-foreground mx-2 rounded" />
                   )}
                 </div>
               ))}
