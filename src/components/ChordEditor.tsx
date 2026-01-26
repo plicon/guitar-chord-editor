@@ -413,7 +413,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
             <svg 
               ref={svgRef} 
               width={220} 
-              height={260}
+              height={330}
               onMouseLeave={() => {
                 if (dragStart) {
                   setDragStart(null);
@@ -518,14 +518,14 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                   x1={startX + i * stringSpacing}
                   y1={startY + (editedChord.startFret === 1 ? nutHeight : 0)}
                   x2={startX + i * stringSpacing}
-                  y2={startY + fretSpacing * 4}
+                  y2={startY + fretSpacing * 6}
                   className="stroke-chord-string"
                   strokeWidth={1.5}
                 />
               ))}
 
               {/* Frets */}
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 7 }).map((_, i) => (
                 <line
                   key={`fret-${i}`}
                   x1={startX}
@@ -564,7 +564,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
               {/* Clickable fret positions */}
               {[1, 2, 3, 4, 5, 6].map((string) =>
-                [1, 2, 3, 4].map((fret) => {
+                [1, 2, 3, 4, 5, 6].map((fret) => {
                   const hasFinger = hasFingerAt(string, fret);
                   const inBarre = isInBarre(string, fret);
                   const isDragStart = dragStart?.string === string && dragStart?.fret === fret;
@@ -597,16 +597,16 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               {/* Finger Labels Section - Bottom */}
               <line
                 x1={startX}
-                y1={startY + fretSpacing * 4 + 15}
+                y1={startY + fretSpacing * 6 + 15}
                 x2={startX + stringSpacing * 5}
-                y2={startY + fretSpacing * 4 + 15}
+                y2={startY + fretSpacing * 6 + 15}
                 className="stroke-border"
                 strokeWidth={1}
               />
               
               <text
                 x={startX - 20}
-                y={startY + fretSpacing * 4 + 35}
+                y={startY + fretSpacing * 6 + 35}
                 className="fill-muted-foreground"
                 fontSize={10}
                 textAnchor="middle"
@@ -624,7 +624,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                   >
                     <circle
                       cx={startX + (6 - string) * stringSpacing}
-                      cy={startY + fretSpacing * 4 + 32}
+                      cy={startY + fretSpacing * 6 + 32}
                       r={10}
                       className={cn(
                         fingerLabel ? "fill-primary" : "fill-transparent hover:fill-muted",
@@ -634,7 +634,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                     />
                     <text
                       x={startX + (6 - string) * stringSpacing}
-                      y={startY + fretSpacing * 4 + 36}
+                      y={startY + fretSpacing * 6 + 36}
                       className={cn(
                         fingerLabel ? "fill-primary-foreground" : "fill-muted-foreground"
                       )}
