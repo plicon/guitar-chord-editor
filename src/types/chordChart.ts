@@ -31,7 +31,7 @@ export const createChordChart = (
 ): ChordChart => {
   const now = new Date().toISOString();
   return {
-    id: `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `chart-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     name: title || "Untitled Chart",
     title,
     description,
