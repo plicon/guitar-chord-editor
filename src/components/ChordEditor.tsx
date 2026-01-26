@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -348,6 +349,9 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Chord</DialogTitle>
+          <DialogDescription className="sr-only">
+            Edit chord name, fingering positions, and string markers
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -63,6 +64,9 @@ export const SavedChartsDialog = ({ open, onClose, onLoad }: SavedChartsDialogPr
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Saved Charts</DialogTitle>
+          <DialogDescription className="sr-only">
+            Browse and manage your saved chord charts
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
