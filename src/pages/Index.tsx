@@ -37,6 +37,7 @@ const createRow = (startId: number, chordsPerRow: number): ChordDiagram[] =>
 
 const Index = () => {
   const [title, setTitle] = useState("My Chord Chart");
+  const [description, setDescription] = useState("");
   const [chordsPerRow, setChordsPerRow] = useState(4);
   const [rows, setRows] = useState<ChordDiagram[][]>([createRow(0, 4)]);
   const [rowSubtitles, setRowSubtitles] = useState<string[]>([""]);
@@ -251,6 +252,18 @@ const Index = () => {
                   className="text-xl font-semibold"
                 />
               </div>
+            </div>
+            
+            {/* Description Field */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Description / Notes <span className="text-muted-foreground font-normal">(optional)</span>
+              </label>
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add notes, tuning info, or instructions..."
+              />
               <Button
                 variant="outline"
                 onClick={() => setStrummingEditorOpen(true)}
@@ -407,7 +420,7 @@ const Index = () => {
             <DialogTitle>Print Preview</DialogTitle>
           </DialogHeader>
           <div className="border rounded-lg overflow-hidden">
-            <PrintableSheet ref={printRef} title={title} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
+            <PrintableSheet ref={printRef} title={title} description={description} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
@@ -435,7 +448,7 @@ const Index = () => {
 
       {/* Hidden printable content */}
       <div className="fixed left-[-9999px] top-0">
-        <PrintableSheet ref={printRef} title={title} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
+        <PrintableSheet ref={printRef} title={title} description={description} rows={rows} rowSubtitles={rowSubtitles} strummingPattern={strummingPattern} />
       </div>
     </div>
   );
