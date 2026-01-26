@@ -45,10 +45,18 @@ export const ChordDiagramComponent = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center cursor-pointer transition-all",
+        "flex flex-col items-center cursor-pointer transition-all select-none",
+        "active:scale-95 touch-manipulation",
         !printMode && "hover:scale-105"
       )}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onClick?.();
+        }
+      }}
     >
       {/* Chord Name */}
       <span

@@ -10,6 +10,8 @@ A web application for creating, editing, and printing guitar chord charts with c
 - 💾 Save and load chord charts (localStorage or S3-compatible storage)
 - 🎨 Light/dark theme support
 - 📱 Responsive design for desktop and mobile
+- 📲 **PWA Support** - Install as native app on iOS/Android
+- 👆 **Touch Optimized** - 44px tap targets, gesture support, haptic-ready
 
 ---
 
@@ -90,6 +92,9 @@ To use cloud storage instead of browser localStorage:
 │       └── ci.yml              # GitHub Actions CI pipeline
 ├── public/
 │   ├── favicon.ico             # App favicon
+│   ├── apple-touch-icon.png    # iOS home screen icon
+│   ├── pwa-192x192.png         # PWA icon (Android)
+│   ├── pwa-512x512.png         # PWA icon (splash screens)
 │   ├── placeholder.svg         # Placeholder images
 │   └── robots.txt              # SEO robots file
 ├── src/
