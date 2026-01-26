@@ -157,6 +157,10 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
 
         {/* Chord Rows */}
         <div className="space-y-4">
+          {/* Separator if first row has no subtitle */}
+          {processedRows.length > 0 && !rowSubtitles[processedRows[0]?.originalIndex]?.trim() && (
+            <div className="border-t-2 border-gray-200 pt-2" />
+          )}
           {processedRows.map(({ chords, originalIndex }, idx) => {
             const subtitle = rowSubtitles[originalIndex];
             
