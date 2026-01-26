@@ -12,6 +12,7 @@ import { ChordDiagram, FingerPosition, Barre, FingerLabel } from "@/types/chord"
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
+import { getChordPreset } from "@/data/chordPresets";
 
 interface ChordEditorProps {
   chord: ChordDiagram;
@@ -70,7 +71,22 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setEditedChord({ ...editedChord, name: suggestion });
+    const preset = getChordPreset(suggestion);
+    if (preset) {
+      // Apply the preset fingering
+      setEditedChord({
+        ...editedChord,
+        name: suggestion,
+        startFret: preset.startFret,
+        fingers: preset.fingers,
+        barres: preset.barres,
+        mutedStrings: preset.mutedStrings,
+        openStrings: preset.openStrings,
+        fingerLabels: preset.fingerLabels,
+      });
+    } else {
+      setEditedChord({ ...editedChord, name: suggestion });
+    }
     setShowSuggestions(false);
     inputRef.current?.focus();
   };
