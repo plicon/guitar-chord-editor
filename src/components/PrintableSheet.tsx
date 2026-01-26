@@ -71,27 +71,27 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                           <div
                             key={slotIndex}
                             className="flex flex-col items-center justify-center relative"
-                            style={{ width: 16, height: 32 }}
+                            style={{ width: 16, height: 64 }}
                           >
-                            <span className={`absolute top-0 text-[7px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
+                            <span className={`absolute top-0 text-[8px] ${isOffBeat ? "text-gray-400" : "text-gray-500"}`}>
                               {beatLabel}
                             </span>
                             <div className="absolute top-1/2 w-full h-[1px] bg-gray-400" />
                             {beat.stroke === "up" && (
-                              <ArrowUp className="text-gray-800 absolute" style={{ top: "15%", width: 10, height: 12 }} />
+                              <ArrowUp className="text-gray-800 absolute" style={{ top: "15%", width: 12, height: 24 }} />
                             )}
                             {beat.stroke === "down" && (
-                              <ArrowDown className="text-gray-800 absolute" style={{ top: "55%", width: 10, height: 12 }} />
+                              <ArrowDown className="text-gray-800 absolute" style={{ top: "55%", width: 12, height: 24 }} />
                             )}
                             {beat.noteValue === "half" && beat.stroke && (
-                              <div className="absolute bottom-0 w-2 h-[1px] bg-gray-800" />
+                              <div className="absolute bottom-1 w-2 h-[2px] bg-gray-800" />
                             )}
                           </div>
                         );
                       })}
                   </div>
                   {barIndex < strummingPattern.bars - 1 && (
-                    <div className="w-[2px] h-5 bg-gray-400 mx-1" />
+                    <div className="w-[2px] h-10 bg-gray-400 mx-1" />
                   )}
                 </div>
               ))}
