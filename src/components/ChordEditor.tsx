@@ -33,6 +33,37 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [autoFillPresets, setAutoFillPresets] = useState(false);
+
+  const handleAutoFillToggle = (checked: boolean) => {
+    setAutoFillPresets(checked);
+    
+    if (checked && editedChord.name) {
+      // Apply preset if available
+      const preset = getChordPreset(editedChord.name);
+      if (preset) {
+        setEditedChord({
+          ...editedChord,
+          startFret: preset.startFret,
+          fingers: preset.fingers,
+          barres: preset.barres,
+          mutedStrings: preset.mutedStrings,
+          openStrings: preset.openStrings,
+          fingerLabels: preset.fingerLabels,
+        });
+      }
+    } else if (!checked) {
+      // Clear fingering but keep the name
+      setEditedChord({
+        ...editedChord,
+        startFret: 1,
+        fingers: [],
+        barres: [],
+        mutedStrings: [],
+        openStrings: [],
+        fingerLabels: [],
+      });
+    }
+  };
   const svgRef = useRef<SVGSVGElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -356,7 +387,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
             <Switch
               id="autoFill"
               checked={autoFillPresets}
-              onCheckedChange={setAutoFillPresets}
+              onCheckedChange={handleAutoFillToggle}
             />
           </div>
 
