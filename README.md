@@ -5,14 +5,18 @@ A web application for creating, editing, and printing guitar chord charts with c
 ## Features
 
 - 🎸 Create chord diagrams with finger positions, barre chords, and custom labels
-- 🎵 Add strumming patterns with up/down strokes, accents, and muted beats
+- 🎵 **Advanced Strumming Patterns**
+  - Multiple time signatures (4/4, 3/4, 6/8)
+  - Variable subdivisions: eighth notes (1 & 2 &), triplets (1 & a 2 & a), sixteenth notes (1 e + a 2 e + a)
+  - Multi-bar patterns (1-2 bars, up to 32 beat slots)
+  - Up/down strokes with visual beat labels
 - 📄 Print-ready output with customizable watermarks and branding
 - 💾 Save and load chord charts (localStorage or S3-compatible storage)
 - 🎨 Light/dark theme support
 - 📱 Responsive design for desktop and mobile
 - 📲 **PWA Support** - Install as native app on iOS/Android
 - 👆 **Touch Optimized** - 44px tap targets, gesture support, haptic-ready
-- 🧪 **Comprehensive Test Suite** - 66+ automated tests with coverage reporting
+- 🧪 **Comprehensive Test Suite** - 117 automated tests with coverage reporting
 
 ---
 
@@ -110,14 +114,18 @@ To use cloud storage instead of browser localStorage:
 │   │   ├── ChartMetadataSection.tsx  # Title, description, strumming
 │   │   ├── ChordDiagram.tsx    # Individual chord diagram renderer
 │   │   ├── ChordEditor.tsx     # Main chord editing interface
+│   │   ├── ChordEditor.test.tsx # Chord editor tests (35 tests)
 │   │   ├── ChordGridSection.tsx # Chord grid with drag-and-drop
 │   │   ├── ChordRow.tsx        # Row of chord diagrams
 │   │   ├── PreviewDialog.tsx   # Print preview modal
+│   │   ├── PreviewDialog.test.tsx # Preview dialog tests (15 tests)
 │   │   ├── PrintableSheet.tsx  # Print-optimized layout
+│   │   ├── PrintableSheet.test.tsx # Printable sheet tests (20 tests)
 │   │   ├── SavedChartsDialog.tsx # Load/manage saved charts
 │   │   ├── SortableChord.tsx   # Drag-and-drop chord wrapper
 │   │   ├── StrummingPatternDisplay.tsx  # Strumming pattern renderer
 │   │   ├── StrummingPatternEditor.tsx   # Strumming pattern editor
+│   │   ├── StrummingPatternEditor.test.tsx # Pattern editor tests (22 tests)
 │   │   ├── ThemeProvider.tsx   # Dark/light theme context
 │   │   └── ThemeToggle.tsx     # Theme switcher button
 │   ├── config/
@@ -125,7 +133,8 @@ To use cloud storage instead of browser localStorage:
 │   ├── data/
 │   │   ├── chordPresets.ts     # Predefined chord shapes
 │   │   ├── chordSuggestions.ts # Chord autocomplete data
-│   │   └── strummingPresets.ts # Predefined strumming patterns
+│   │   ├── strummingPresets.ts # Predefined strumming patterns
+│   │   └── strummingPresets.test.ts # Strumming preset tests (20 tests)
 │   ├── hooks/
 │   │   ├── use-mobile.tsx      # Mobile detection hook
 │   │   ├── use-toast.ts        # Toast notification hook
@@ -230,20 +239,21 @@ npm test -- --grep "drag and drop"
 # Generate coverage report
 npm test -- --coverage
 
-# Current coverage summary (66 tests):
-# - Statements: 44.49%
-# - Branches: 57.89%
-# - Functions: 28%
-# - Lines: 44.49%
+# Current test count: 117 tests passing
 ```
 
 **Well-covered modules:**
 | Module | Coverage | Tests |
 |--------|----------|-------|
-| `useChartState.ts` | 64.59% | 21 tests |
-| `useChordDragAndDrop.ts` | 96.05% | 13 tests |
+| `useChartState.ts` | High | 21 tests |
+| `useChordDragAndDrop.ts` | High | 13 tests |
 | `usePdfExport.ts` | 100% | 8 tests |
-| `Index.tsx` | 86.33% | 23 tests |
+| `Index.tsx` | High | 24 tests |
+| `ChordEditor.tsx` | High | 35 tests |
+| `StrummingPatternEditor.tsx` | High | 22 tests |
+| `PrintableSheet.tsx` | High | 20 tests |
+| `PreviewDialog.tsx` | High | 15 tests |
+| `strummingPresets.ts` | High | 20 tests |
 | Type definitions | 96%+ | - |
 
 ### Manual Testing
@@ -267,9 +277,17 @@ npm test -- --coverage
 
 3. **Strumming Patterns**
    - [ ] Click "Add Strumming Pattern" to open editor
-   - [ ] Add up/down strokes on beats and off-beats
-   - [ ] Use preset patterns
-   - [ ] Verify pattern displays in header and print preview
+   - [ ] Select time signature (4/4, 3/4, or 6/8)
+   - [ ] Select subdivision:
+     - Eighth notes (1 & 2 &) for 4/4 and 3/4
+     - Triplets (1 & a 2 & a) for 3/4
+     - Sixteenth notes (1 e + a 2 e + a) for 4/4
+     - Note: 6/8 only supports triplets
+   - [ ] Select number of bars (1 or 2, except 6/8 which is limited to 1)
+   - [ ] Add up/down strokes by clicking beats
+   - [ ] Verify beat labels display correctly based on subdivision
+   - [ ] Use preset patterns (filtered by time signature and subdivision)
+   - [ ] Verify pattern displays in header and print preview with correct beat labels
 
 4. **Chart Metadata**
    - [ ] Enter a chart title
@@ -314,10 +332,24 @@ The test suite is organized into three layers:
 └─────────────────────────────────────────────┘
                     │
 ┌─────────────────────────────────────────────┐
+│         Component Unit Tests                 │
+│  - StrummingPatternEditor.test.tsx          │
+│  - ChordEditor.test.tsx                     │
+│  - PrintableSheet.test.tsx                  │
+│  - PreviewDialog.test.tsx                   │
+└─────────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────────┐
 │           Hook Unit Tests                    │
 │  - useChartState.test.ts (state management)  │
 │  - useChordDragAndDrop.test.ts (DnD logic)  │
 │  - usePdfExport.test.ts (PDF generation)    │
+└─────────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────────┐
+│         Data & Schema Tests                  │
+│  - strummingPresets.test.ts                 │
+│  - chartSchema.test.ts                      │
 └─────────────────────────────────────────────┘
                     │
 ┌─────────────────────────────────────────────┐
