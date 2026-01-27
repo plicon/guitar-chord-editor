@@ -74,7 +74,7 @@ export const ChordRow = ({
       strategy={horizontalListSortingStrategy}
     >
       {shouldScroll ? (
-        <div className="flex gap-4 p-4 bg-card rounded-lg border border-border">
+        <div className="flex gap-4 p-4 bg-card rounded-lg border border-border min-w-max">
           {chords.map((chord, index) => (
             <div key={chord.id} className="flex-shrink-0 w-[calc(33.333%-0.667rem)]">
               <SortableChord
