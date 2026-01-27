@@ -15,7 +15,14 @@ const strumBeatSchema = z.object({
 const strummingPatternSchema = z.object({
   bars: z.number().int().min(1).max(16),
   beatsPerBar: z.number().int().min(1).max(8),
+  timeSignature: z.enum(["4/4", "3/4", "6/8"]).default("4/4"),
   beats: z.array(strumBeatSchema).max(128),
+}).transform((data) => {
+  // Migration: add default timeSignature if missing
+  if (!data.timeSignature) {
+    return { ...data, timeSignature: "4/4" as const };
+  }
+  return data;
 });
 
 // Chord diagram schemas

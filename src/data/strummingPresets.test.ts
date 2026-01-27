@@ -1,19 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { applyPresetToBeats, strummingPresets, StrummingPreset } from "./strummingPresets";
+import { getSlotsPerBar } from "@/types/strumming";
 
 describe("strummingPresets", () => {
   describe("preset definitions", () => {
-    it("should have all 1-bar presets with 8 slots", () => {
-      const oneBarPresets = strummingPresets.filter(p => p.bars === 1);
-      oneBarPresets.forEach(preset => {
-        expect(preset.pattern).toHaveLength(8);
-      });
-    });
-
-    it("should have all 2-bar presets with 16 slots", () => {
-      const twoBarPresets = strummingPresets.filter(p => p.bars === 2);
-      twoBarPresets.forEach(preset => {
-        expect(preset.pattern).toHaveLength(16);
+    it("should have correct slot counts for time signatures", () => {
+      strummingPresets.forEach(preset => {
+        const expectedSlots = getSlotsPerBar(preset.timeSignature) * preset.bars;
+        expect(preset.pattern).toHaveLength(expectedSlots);
       });
     });
 
@@ -22,13 +16,20 @@ describe("strummingPresets", () => {
       const uniqueNames = new Set(names);
       expect(names).toHaveLength(uniqueNames.size);
     });
+
+    it("should have valid time signatures", () => {
+      strummingPresets.forEach(preset => {
+        expect(["4/4", "3/4", "6/8"]).toContain(preset.timeSignature);
+      });
+    });
   });
 
   describe("applyPresetToBeats", () => {
-    describe("1-bar presets", () => {
+    describe("1-bar 4/4 presets", () => {
       const basicDownPreset: StrummingPreset = {
         name: "Test Basic",
         bars: 1,
+        timeSignature: "4/4",
         pattern: ["down", null, "down", null, "down", null, "down", null],
       };
 
@@ -73,10 +74,11 @@ describe("strummingPresets", () => {
       });
     });
 
-    describe("2-bar presets", () => {
+    describe("2-bar 4/4 presets", () => {
       const twoBarPreset: StrummingPreset = {
         name: "Test 2-Bar",
         bars: 2,
+        timeSignature: "4/4",
         pattern: [
           "down", null, "down", "up", null, "up", "down", "up",
           "down", null, "down", null, "down", "up", "down", null,
@@ -129,11 +131,53 @@ describe("strummingPresets", () => {
       });
     });
 
+    describe("3/4 presets", () => {
+      const waltzPreset: StrummingPreset = {
+        name: "Test Waltz",
+        bars: 1,
+        timeSignature: "3/4",
+        pattern: ["down", null, "down", null, "down", null],
+      };
+
+      it("should apply 3/4 preset correctly", () => {
+        const beats = applyPresetToBeats(waltzPreset, 1);
+        
+        expect(beats).toHaveLength(6); // 3 beats * 2 slots
+        expect(beats[0].stroke).toBe("down");
+        expect(beats[2].stroke).toBe("down");
+        expect(beats[4].stroke).toBe("down");
+      });
+
+      it("should repeat 3/4 preset for 2 bars", () => {
+        const beats = applyPresetToBeats(waltzPreset, 2);
+        
+        expect(beats).toHaveLength(12); // 2 bars * 6 slots
+      });
+    });
+
+    describe("6/8 presets", () => {
+      const sixEightPreset: StrummingPreset = {
+        name: "Test 6/8",
+        bars: 1,
+        timeSignature: "6/8",
+        pattern: ["down", null, null, null, null, null, "down", null, null, null, null, null],
+      };
+
+      it("should apply 6/8 preset correctly", () => {
+        const beats = applyPresetToBeats(sixEightPreset, 1);
+        
+        expect(beats).toHaveLength(12); // 6 beats * 2 slots
+        expect(beats[0].stroke).toBe("down");
+        expect(beats[6].stroke).toBe("down");
+      });
+    });
+
     describe("edge cases", () => {
       it("should handle preset with mixed strokes", () => {
         const mixedPreset: StrummingPreset = {
           name: "Mixed",
           bars: 1,
+          timeSignature: "4/4",
           pattern: ["down", "up", null, "down", "up", null, "down", "up"],
         };
 
@@ -148,6 +192,7 @@ describe("strummingPresets", () => {
         const emptyPreset: StrummingPreset = {
           name: "Empty",
           bars: 1,
+          timeSignature: "4/4",
           pattern: [null, null, null, null, null, null, null, null],
         };
 
@@ -161,8 +206,9 @@ describe("strummingPresets", () => {
     });
 
     describe("real presets from configuration", () => {
-      it("should apply 'Basic Down' preset correctly", () => {
-        const preset = strummingPresets.find(p => p.name === "Basic Down")!;
+      it("should apply 4/4 presets correctly", () => {
+        const preset = strummingPresets.find(p => p.name === "Basic Down (4/4)")!;
+        expect(preset).toBeDefined();
         const beats = applyPresetToBeats(preset, 1);
         
         expect(beats).toHaveLength(8);
@@ -173,29 +219,20 @@ describe("strummingPresets", () => {
         expect(beats[6].stroke).toBe("down");
       });
 
-      it("should apply 'Old Faithful' preset correctly", () => {
-        const preset = strummingPresets.find(p => p.name === "Old Faithful")!;
+      it("should apply 3/4 presets correctly", () => {
+        const preset = strummingPresets.find(p => p.name === "Basic Down (3/4)")!;
+        expect(preset).toBeDefined();
         const beats = applyPresetToBeats(preset, 1);
         
-        expect(beats).toHaveLength(8);
-        expect(beats[0].stroke).toBe("down"); // 1
-        expect(beats[2].stroke).toBe("down"); // 2
-        expect(beats[3].stroke).toBe("up");   // &
-        expect(beats[5].stroke).toBe("up");   // &
-        expect(beats[6].stroke).toBe("down"); // 4
+        expect(beats).toHaveLength(6); // 3 beats * 2 slots
       });
 
-      it("should apply 2-bar preset 'The Push' correctly", () => {
-        const preset = strummingPresets.find(p => p.name === "The Push");
-        if (!preset) {
-          // Skip if preset doesn't exist
-          return;
-        }
+      it("should apply 6/8 presets correctly", () => {
+        const preset = strummingPresets.find(p => p.name === "Basic Down (6/8)")!;
+        expect(preset).toBeDefined();
+        const beats = applyPresetToBeats(preset, 1);
         
-        expect(preset.bars).toBe(2);
-        const beats = applyPresetToBeats(preset, 2);
-        
-        expect(beats).toHaveLength(16);
+        expect(beats).toHaveLength(12); // 6 beats * 2 slots
       });
 
       it("should apply all presets without errors", () => {
