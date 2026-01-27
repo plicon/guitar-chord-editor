@@ -20,6 +20,26 @@ interface AppHeaderProps {
   isSaving: boolean;
 }
 
+interface ActionButtonProps {
+  onClick: () => void;
+  icon: React.ElementType;
+  label: string;
+  disabled?: boolean;
+}
+
+const ActionButton = ({ onClick, icon: Icon, label, disabled = false }: ActionButtonProps) => (
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={onClick}
+    disabled={disabled}
+    className="justify-start"
+  >
+    <Icon className="w-4 h-4 mr-2" />
+    {label}
+  </Button>
+);
+
 export const AppHeader = ({
   onNew,
   onOpen,
@@ -32,38 +52,19 @@ export const AppHeader = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const ActionButton = ({ 
-    onClick, 
-    icon: Icon, 
-    label, 
-    disabled = false 
-  }: { 
-    onClick: () => void; 
-    icon: React.ElementType; 
-    label: string; 
-    disabled?: boolean;
-  }) => (
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={() => { onClick(); setMobileMenuOpen(false); }} 
-      disabled={disabled}
-      className="justify-start"
-    >
-      <Icon className="w-4 h-4 mr-2" />
-      {label}
-    </Button>
-  );
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
 
-  const actionButtons = (
-    <>
-      <ActionButton onClick={onNew} icon={Plus} label="New" />
-      <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
-      <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
-      <ActionButton onClick={onExport} icon={FileDown} label="Export" />
-      <ActionButton onClick={() => fileInputRef.current?.click()} icon={FileUp} label="Import" />
-    </>
-  );
+  const handleMobileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onImport(e);
+    setMobileMenuOpen(false);
+  };
+
+  const handleMobileAction = (action: () => void) => {
+    action();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="border-b border-border bg-card">
@@ -71,10 +72,10 @@ export const AppHeader = ({
         <div className="flex items-center justify-between gap-2">
           {/* Logo and title */}
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
-            <img 
-              src="/ms-icon-310x310.png" 
-              alt="Fretkit Logo" 
-              className="w-12 h-12 md:w-24 md:h-24 flex-shrink-0" 
+            <img
+              src="/ms-icon-310x310.png"
+              alt="Fretkit Logo"
+              className="w-12 h-12 md:w-24 md:h-24 flex-shrink-0"
             />
             <div className="min-w-0">
               <h1 className="text-lg md:text-4xl font-bold text-foreground truncate">
@@ -89,7 +90,11 @@ export const AppHeader = ({
           {/* Desktop actions */}
           {!isMobile && (
             <div className="flex items-center gap-2">
-              {actionButtons}
+              <ActionButton onClick={onNew} icon={Plus} label="New" />
+              <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
+              <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
+              <ActionButton onClick={onExport} icon={FileDown} label="Export" />
+              <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -132,12 +137,16 @@ export const AppHeader = ({
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex flex-col gap-2 p-4">
-            {actionButtons}
+            <ActionButton onClick={() => handleMobileAction(onNew)} icon={Plus} label="New" />
+            <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
+            <ActionButton onClick={() => handleMobileAction(onSave)} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
+            <ActionButton onClick={() => handleMobileAction(onExport)} icon={FileDown} label="Export" />
+            <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
             <input
               ref={fileInputRef}
               type="file"
               accept=".json"
-              onChange={(e) => { onImport(e); setMobileMenuOpen(false); }}
+              onChange={handleMobileImport}
               className="hidden"
             />
           </div>
