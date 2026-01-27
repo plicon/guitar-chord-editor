@@ -53,7 +53,7 @@ export const APP_CONFIG = {
   // Toggle visibility of watermark and URL
   showWatermark: true,
   watermarkText: "FRETKIT.io",
-  showRowUrl: true,
+  showRowUrl: false,
 
   // Storage configuration
   // Configured via environment variables (see .env.example)
