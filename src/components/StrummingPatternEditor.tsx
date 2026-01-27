@@ -65,9 +65,12 @@ export const StrummingPatternEditor = ({
   const handlePresetChange = (presetName: string) => {
     const preset = strummingPresets.find((p) => p.name === presetName);
     if (preset) {
-      const newBeats = applyPresetToBeats(preset, editedPattern.bars);
+      // Automatically adjust bars to match the preset's bar count
+      const targetBars = Math.max(preset.bars, editedPattern.bars);
+      const newBeats = applyPresetToBeats(preset, targetBars);
       setEditedPattern({
         ...editedPattern,
+        bars: targetBars,
         beats: newBeats,
       });
     }
