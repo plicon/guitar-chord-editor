@@ -2,16 +2,32 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useChordDragAndDrop } from "@/hooks/useChordDragAndDrop";
 import { ChordDiagram, createEmptyChord } from "@/types/chord";
+import type { DragStartEvent, DragOverEvent } from "@dnd-kit/core";
 
 // Create mock events that satisfy the dnd-kit type requirements
-const createMockDragStartEvent = (activeId: string) => ({
-  active: { id: activeId },
+const createMockDragStartEvent = (activeId: string): DragStartEvent => ({
+  active: {
+    id: activeId,
+    data: { current: undefined },
+    rect: { current: { initial: null, translated: null } },
+  },
   activatorEvent: new MouseEvent("mousedown"),
 });
 
-const createMockDragOverEvent = (activeId: string, overId: string | null) => ({
-  active: { id: activeId },
-  over: overId ? { id: overId } : null,
+const createMockDragOverEvent = (activeId: string, overId: string | null): DragOverEvent => ({
+  active: {
+    id: activeId,
+    data: { current: undefined },
+    rect: { current: { initial: null, translated: null } },
+  },
+  over: overId
+    ? {
+        id: overId,
+        data: { current: undefined },
+        rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        disabled: false,
+      }
+    : null,
   activatorEvent: new MouseEvent("mousemove"),
   collisions: [],
   delta: { x: 0, y: 0 },
@@ -86,7 +102,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragStart(createMockDragStartEvent("chord-1") as any);
+        result.current.handleDragStart(createMockDragStartEvent("chord-1"));
       });
 
       expect(result.current.activeChord).not.toBeNull();
@@ -100,7 +116,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragStart(createMockDragStartEvent("non-existent") as any);
+        result.current.handleDragStart(createMockDragStartEvent("non-existent"));
       });
 
       expect(result.current.activeChord).toBeNull();
@@ -116,7 +132,7 @@ describe("useChordDragAndDrop", () => {
 
       // Start drag
       act(() => {
-        result.current.handleDragStart(createMockDragStartEvent("chord-1") as any);
+        result.current.handleDragStart(createMockDragStartEvent("chord-1"));
       });
 
       expect(result.current.activeChord).not.toBeNull();
@@ -138,7 +154,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-3") as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-3"));
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -157,7 +173,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-1") as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-1"));
       });
 
       expect(mockOnRowsChange).not.toHaveBeenCalled();
@@ -170,7 +186,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", null) as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", null));
       });
 
       expect(mockOnRowsChange).not.toHaveBeenCalled();
@@ -186,7 +202,7 @@ describe("useChordDragAndDrop", () => {
 
       // Move chord-1 (Am) to row 2 (which has empty slots)
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-5") as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-5"));
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -207,7 +223,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-1") as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-1"));
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -220,7 +236,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-0") as any);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-0"));
       });
 
       // Should not call onRowsChange since it's the same row
@@ -248,7 +264,7 @@ describe("useChordDragAndDrop", () => {
 
       // Start drag with new chord
       act(() => {
-        result.current.handleDragStart(createMockDragStartEvent("new-1") as any);
+        result.current.handleDragStart(createMockDragStartEvent("new-1"));
       });
 
       expect(result.current.activeChord?.name).toBe("D");
