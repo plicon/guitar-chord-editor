@@ -80,8 +80,8 @@ const Index = () => {
         isSaving={state.isSaving}
       />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8">
           <ChartMetadataSection
             title={state.title}
             description={state.description}

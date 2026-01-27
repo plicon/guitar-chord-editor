@@ -3,23 +3,19 @@ import { renderHook, act } from "@testing-library/react";
 import { useChordDragAndDrop } from "@/hooks/useChordDragAndDrop";
 import { ChordDiagram, createEmptyChord } from "@/types/chord";
 
-// Type helpers for drag events
-interface DragActive {
-  id: string;
-}
+// Create mock events that satisfy the dnd-kit type requirements
+const createMockDragStartEvent = (activeId: string) => ({
+  active: { id: activeId },
+  activatorEvent: new MouseEvent("mousedown"),
+});
 
-interface DragOver {
-  id: string;
-}
-
-interface DragStartEvent {
-  active: DragActive;
-}
-
-interface DragOverEvent {
-  active: DragActive;
-  over: DragOver | null;
-}
+const createMockDragOverEvent = (activeId: string, overId: string | null) => ({
+  active: { id: activeId },
+  over: overId ? { id: overId } : null,
+  activatorEvent: new MouseEvent("mousemove"),
+  collisions: [],
+  delta: { x: 0, y: 0 },
+});
 
 // Mock @dnd-kit/core
 vi.mock("@dnd-kit/core", () => ({
@@ -90,9 +86,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragStart({
-          active: { id: "chord-1" },
-        } as DragStartEvent);
+        result.current.handleDragStart(createMockDragStartEvent("chord-1") as any);
       });
 
       expect(result.current.activeChord).not.toBeNull();
@@ -106,9 +100,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragStart({
-          active: { id: "non-existent" },
-        } as DragStartEvent);
+        result.current.handleDragStart(createMockDragStartEvent("non-existent") as any);
       });
 
       expect(result.current.activeChord).toBeNull();
@@ -124,9 +116,7 @@ describe("useChordDragAndDrop", () => {
 
       // Start drag
       act(() => {
-        result.current.handleDragStart({
-          active: { id: "chord-1" },
-        } as DragStartEvent);
+        result.current.handleDragStart(createMockDragStartEvent("chord-1") as any);
       });
 
       expect(result.current.activeChord).not.toBeNull();
@@ -148,10 +138,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" },
-          over: { id: "chord-3" },
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-3") as any);
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -170,10 +157,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" },
-          over: { id: "chord-1" },
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-1") as any);
       });
 
       expect(mockOnRowsChange).not.toHaveBeenCalled();
@@ -186,10 +170,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" },
-          over: null,
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", null) as any);
       });
 
       expect(mockOnRowsChange).not.toHaveBeenCalled();
@@ -205,10 +186,7 @@ describe("useChordDragAndDrop", () => {
 
       // Move chord-1 (Am) to row 2 (which has empty slots)
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" },
-          over: { id: "chord-5" },
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "chord-5") as any);
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -229,10 +207,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" },
-          over: { id: "row-1" }, // Dropping on row 1's droppable area
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-1") as any);
       });
 
       expect(mockOnRowsChange).toHaveBeenCalled();
@@ -245,10 +220,7 @@ describe("useChordDragAndDrop", () => {
       );
 
       act(() => {
-        result.current.handleDragOver({
-          active: { id: "chord-1" }, // In row 0
-          over: { id: "row-0" }, // Same row
-        } as DragOverEvent);
+        result.current.handleDragOver(createMockDragOverEvent("chord-1", "row-0") as any);
       });
 
       // Should not call onRowsChange since it's the same row
@@ -276,9 +248,7 @@ describe("useChordDragAndDrop", () => {
 
       // Start drag with new chord
       act(() => {
-        result.current.handleDragStart({
-          active: { id: "new-1" },
-        } as DragStartEvent);
+        result.current.handleDragStart(createMockDragStartEvent("new-1") as any);
       });
 
       expect(result.current.activeChord?.name).toBe("D");

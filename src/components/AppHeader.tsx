@@ -1,7 +1,15 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp, Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 interface AppHeaderProps {
   onNew: () => void;
@@ -21,52 +29,120 @@ export const AppHeader = ({
   isSaving,
 }: AppHeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const ActionButton = ({ 
+    onClick, 
+    icon: Icon, 
+    label, 
+    disabled = false 
+  }: { 
+    onClick: () => void; 
+    icon: React.ElementType; 
+    label: string; 
+    disabled?: boolean;
+  }) => (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={() => { onClick(); setMobileMenuOpen(false); }} 
+      disabled={disabled}
+      className="justify-start"
+    >
+      <Icon className="w-4 h-4 mr-2" />
+      {label}
+    </Button>
+  );
+
+  const actionButtons = (
+    <>
+      <ActionButton onClick={onNew} icon={Plus} label="New" />
+      <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
+      <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
+      <ActionButton onClick={onExport} icon={FileDown} label="Export" />
+      <ActionButton onClick={() => fileInputRef.current?.click()} icon={FileUp} label="Import" />
+    </>
+  );
 
   return (
     <header className="border-b border-border bg-card">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
-            <h1 className="text-4xl font-bold text-foreground">
-              Fretkit - Guitar Chord Creator
-            </h1>
+      <div className="container mx-auto px-4 py-4 md:py-6">
+        <div className="flex items-center justify-between gap-2">
+          {/* Logo and title */}
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <img 
+              src="/ms-icon-310x310.png" 
+              alt="Fretkit Logo" 
+              className="w-12 h-12 md:w-24 md:h-24 flex-shrink-0" 
+            />
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-4xl font-bold text-foreground truncate">
+                Fretkit
+              </h1>
+              <span className="hidden md:inline text-lg font-bold text-foreground">
+                {" "}- Guitar Chord Creator
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onNew}>
-              <Plus className="w-4 h-4 mr-1" />
-              New
-            </Button>
-            <Button variant="outline" size="sm" onClick={onOpen}>
-              <FolderOpen className="w-4 h-4 mr-1" />
-              Open
-            </Button>
-            <Button variant="outline" size="sm" onClick={onSave} disabled={isSaving}>
-              <Save className="w-4 h-4 mr-1" />
-              {isSaving ? "Saving..." : "Save"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={onExport}>
-              <FileDown className="w-4 h-4 mr-1" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              <FileUp className="w-4 h-4 mr-1" />
-              Import
-            </Button>
+
+          {/* Desktop actions */}
+          {!isMobile && (
+            <div className="flex items-center gap-2">
+              {actionButtons}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={onImport}
+                className="hidden"
+              />
+              <ThemeToggle />
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          {isMobile && (
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <p className="text-muted-foreground mt-1 text-sm md:text-base">
+          Create and print beautiful chord diagrams
+        </p>
+      </div>
+
+      {/* Mobile drawer menu */}
+      <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Menu</DrawerTitle>
+            <DrawerDescription className="sr-only">
+              Application actions menu
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col gap-2 p-4">
+            {actionButtons}
             <input
               ref={fileInputRef}
               type="file"
               accept=".json"
-              onChange={onImport}
+              onChange={(e) => { onImport(e); setMobileMenuOpen(false); }}
               className="hidden"
             />
-            <ThemeToggle />
           </div>
-        </div>
-        <p className="text-muted-foreground mt-1">
-          Create and print beautiful chord diagrams
-        </p>
-      </div>
+        </DrawerContent>
+      </Drawer>
     </header>
   );
 };
