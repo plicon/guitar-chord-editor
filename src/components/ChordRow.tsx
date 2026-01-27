@@ -9,6 +9,8 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface ChordRowProps {
   chords: ChordDiagram[];
@@ -31,6 +33,9 @@ export const ChordRow = ({
   showRemove = false,
   printMode = false,
 }: ChordRowProps) => {
+  const isMobile = useIsMobile();
+  const shouldScroll = isMobile && chords.length > 3;
+
   const gridCols = {
     1: "grid-cols-1",
     2: "grid-cols-2",
@@ -63,6 +68,36 @@ export const ChordRow = ({
     );
   }
 
+  const chordsContent = (
+    <SortableContext
+      items={chords.map((c) => c.id)}
+      strategy={horizontalListSortingStrategy}
+    >
+      {shouldScroll ? (
+        <div className="flex gap-4 p-4 bg-card rounded-lg border border-border">
+          {chords.map((chord, index) => (
+            <div key={chord.id} className="flex-shrink-0 w-[calc(33.333%-0.667rem)]">
+              <SortableChord
+                chord={chord}
+                onClick={() => onChordClick(index)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
+          {chords.map((chord, index) => (
+            <SortableChord
+              key={chord.id}
+              chord={chord}
+              onClick={() => onChordClick(index)}
+            />
+          ))}
+        </div>
+      )}
+    </SortableContext>
+  );
+
   return (
     <div className="relative group space-y-2" ref={setNodeRef}>
       {/* Subtitle Input */}
@@ -73,20 +108,15 @@ export const ChordRow = ({
         className="text-sm h-8 bg-transparent border-dashed"
       />
       
-      <SortableContext
-        items={chords.map((c) => c.id)}
-        strategy={horizontalListSortingStrategy}
-      >
-        <div className={`grid ${gridCols} gap-4 p-4 bg-card rounded-lg border border-border`}>
-          {chords.map((chord, index) => (
-            <SortableChord
-              key={chord.id}
-              chord={chord}
-              onClick={() => onChordClick(index)}
-            />
-          ))}
-        </div>
-      </SortableContext>
+      {shouldScroll ? (
+        <ScrollArea className="w-full whitespace-nowrap">
+          {chordsContent}
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      ) : (
+        chordsContent
+      )}
+
       {showRemove && (
         <Button
           variant="destructive"
