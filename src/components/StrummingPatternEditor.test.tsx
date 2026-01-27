@@ -114,7 +114,7 @@ describe("StrummingPatternEditor", () => {
 
     it("should create correct number of slots for 1 bar in 6/8", () => {
       const pattern = createEmptyPattern(1, "6/8");
-      expect(pattern.beats).toHaveLength(12); // 1 bar × 12 slots
+      expect(pattern.beats).toHaveLength(18); // 1 bar × 18 slots (6 beats × 3 subdivision)
     });
   });
 
@@ -155,9 +155,9 @@ describe("StrummingPatternEditor", () => {
     it("should have preset selector in the UI", () => {
       renderEditor();
 
-      // Verify all three comboboxes are rendered (time, bars, preset)
+      // Verify all four comboboxes are rendered (time, division, bars, preset)
       const comboboxes = screen.queryAllByRole("combobox");
-      expect(comboboxes.length).toBe(3);
+      expect(comboboxes.length).toBe(4);
     });
   });
 
@@ -204,39 +204,104 @@ describe("StrummingPatternEditor", () => {
   });
 
   describe("Pattern Creation with Different Time Signatures", () => {
-    it("should create 4/4 pattern with 8 slots per bar", () => {
+    it("should create 4/4 pattern with 8 slots per bar (subdivision 2)", () => {
       const pattern = createEmptyPattern(1, "4/4");
       expect(pattern.timeSignature).toBe("4/4");
+      expect(pattern.subdivision).toBe(2);
       expect(pattern.bars).toBe(1);
       expect(pattern.beats).toHaveLength(8);
     });
 
-    it("should create 3/4 pattern with 6 slots per bar", () => {
+    it("should create 3/4 pattern with 6 slots per bar (subdivision 2)", () => {
       const pattern = createEmptyPattern(1, "3/4");
       expect(pattern.timeSignature).toBe("3/4");
+      expect(pattern.subdivision).toBe(2);
       expect(pattern.bars).toBe(1);
       expect(pattern.beats).toHaveLength(6);
     });
 
-    it("should create 6/8 pattern with 12 slots per bar", () => {
+    it("should create 6/8 pattern with 18 slots per bar (subdivision 3)", () => {
       const pattern = createEmptyPattern(1, "6/8");
       expect(pattern.timeSignature).toBe("6/8");
+      expect(pattern.subdivision).toBe(3);
       expect(pattern.bars).toBe(1);
-      expect(pattern.beats).toHaveLength(12);
+      expect(pattern.beats).toHaveLength(18);
     });
 
-    it("should create 2-bar 4/4 pattern with 16 slots", () => {
+    it("should create 2-bar 4/4 pattern with 16 slots (subdivision 2)", () => {
       const pattern = createEmptyPattern(2, "4/4");
       expect(pattern.timeSignature).toBe("4/4");
+      expect(pattern.subdivision).toBe(2);
       expect(pattern.bars).toBe(2);
       expect(pattern.beats).toHaveLength(16);
     });
 
-    it("should create 2-bar 3/4 pattern with 12 slots", () => {
+    it("should create 2-bar 3/4 pattern with 12 slots (subdivision 2)", () => {
       const pattern = createEmptyPattern(2, "3/4");
       expect(pattern.timeSignature).toBe("3/4");
+      expect(pattern.subdivision).toBe(2);
       expect(pattern.bars).toBe(2);
       expect(pattern.beats).toHaveLength(12);
+    });
+  });
+
+  describe("Subdivision Support", () => {
+    it("should create 4/4 pattern with subdivision 4 (16 slots)", () => {
+      const pattern = createEmptyPattern(1, "4/4", 4);
+      expect(pattern.subdivision).toBe(4);
+      expect(pattern.beats).toHaveLength(16);
+      expect(pattern.beats[0].beatType).toBe("on");
+      expect(pattern.beats[1].beatType).toBe("e");
+      expect(pattern.beats[2].beatType).toBe("+");
+      expect(pattern.beats[3].beatType).toBe("a");
+    });
+
+    it("should create 3/4 pattern with subdivision 3 (9 slots)", () => {
+      const pattern = createEmptyPattern(1, "3/4", 3);
+      expect(pattern.subdivision).toBe(3);
+      expect(pattern.beats).toHaveLength(9);
+      expect(pattern.beats[0].beatType).toBe("on");
+      expect(pattern.beats[1].beatType).toBe("&");
+      expect(pattern.beats[2].beatType).toBe("a");
+    });
+
+    it("should use default subdivision when not specified", () => {
+      const pattern44 = createEmptyPattern(1, "4/4");
+      expect(pattern44.subdivision).toBe(2);
+
+      const pattern34 = createEmptyPattern(1, "3/4");
+      expect(pattern34.subdivision).toBe(2);
+
+      const pattern68 = createEmptyPattern(1, "6/8");
+      expect(pattern68.subdivision).toBe(3);
+    });
+
+    it("should generate correct beat labels for subdivision 2 (eighth notes)", () => {
+      const pattern = createEmptyPattern(1, "4/4", 2);
+      expect(pattern.beats[0].beatType).toBe("on");  // 1
+      expect(pattern.beats[1].beatType).toBe("&");   // &
+      expect(pattern.beats[2].beatType).toBe("on");  // 2
+      expect(pattern.beats[3].beatType).toBe("&");   // &
+    });
+
+    it("should generate correct beat labels for subdivision 3 (triplets)", () => {
+      const pattern = createEmptyPattern(1, "3/4", 3);
+      expect(pattern.beats[0].beatType).toBe("on");  // 1
+      expect(pattern.beats[1].beatType).toBe("&");   // &
+      expect(pattern.beats[2].beatType).toBe("a");   // a
+      expect(pattern.beats[3].beatType).toBe("on");  // 2
+      expect(pattern.beats[4].beatType).toBe("&");   // &
+      expect(pattern.beats[5].beatType).toBe("a");   // a
+    });
+
+    it("should generate correct beat labels for subdivision 4 (sixteenth notes)", () => {
+      const pattern = createEmptyPattern(1, "4/4", 4);
+      expect(pattern.beats[0].beatType).toBe("on");  // 1
+      expect(pattern.beats[1].beatType).toBe("e");   // e
+      expect(pattern.beats[2].beatType).toBe("+");   // +
+      expect(pattern.beats[3].beatType).toBe("a");   // a
+      expect(pattern.beats[4].beatType).toBe("on");  // 2
+      expect(pattern.beats[5].beatType).toBe("e");   // e
     });
   });
 });

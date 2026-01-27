@@ -11,19 +11,19 @@ export const StrummingPatternDisplay = ({
   pattern,
   compact = false,
 }: StrummingPatternDisplayProps) => {
-  const beatWidth = compact ? 18 : 24;
-  const height = compact ? 40 : 52;
+  // Reduced widths for better space efficiency
+  const beatWidth = compact ? 14 : 20;
+  const height = compact ? 36 : 48;
   const arrowHeight = (height - 8) / 2;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 overflow-x-auto max-w-full">
       {/* Single continuous bar display */}
-      <div className="flex items-center border border-border rounded-md bg-card/50 px-1">
+      <div className="flex items-center border border-border rounded-md bg-card/50 px-0.5">
         {pattern.beats.map((beat, beatIndex) => {
-          const isOffBeat = beat.beatType === "off";
-          // For 2 bars, count 1-8 instead of repeating 1-4
-          const beatNumber = Math.floor(beatIndex / 2) + 1;
-          const beatLabel = isOffBeat ? "&" : String(beatNumber);
+          const beatLabel = beat.beatType === "on" 
+            ? String(Math.floor(beatIndex / pattern.subdivision) + 1)
+            : beat.beatType;
 
           return (
             <div
@@ -33,8 +33,8 @@ export const StrummingPatternDisplay = ({
             >
               {/* Beat label */}
               <span className={cn(
-                "absolute top-0 text-[9px]",
-                isOffBeat ? "text-muted-foreground/50" : "text-muted-foreground"
+                "absolute top-0 text-[8px] font-medium",
+                beat.beatType === "on" ? "text-muted-foreground" : "text-muted-foreground/50"
               )}>
                 {beatLabel}
               </span>

@@ -59,22 +59,28 @@ export const ChartMetadataSection = ({
       </div>
 
       {hasStrummingContent(strummingPattern) && strummingPattern && (
-        <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg">
-          <span className="text-sm font-medium text-muted-foreground">
-            Strumming:
-          </span>
-          <StrummingPatternDisplay pattern={strummingPattern} />
-          <span className="text-4xl font-bold text-foreground ml-auto mr-2">
-            {strummingPattern.timeSignature}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onStrummingEditorOpen}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
+        <div className="p-3 bg-card border border-border rounded-lg space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Strumming Pattern
+              </span>
+              <span className="text-xl font-bold text-foreground">
+                {strummingPattern.timeSignature}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onStrummingEditorOpen}
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="overflow-x-auto">
+            <StrummingPatternDisplay pattern={strummingPattern} />
+          </div>
         </div>
       )}
     </div>
