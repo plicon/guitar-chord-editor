@@ -21,14 +21,19 @@ export const strummingPresets: StrummingPreset[] = [
     pattern: ["down", null, "down", null, "down", null, "down", null],
   },
   {
-    name: "Island Strum",
-    // Down, Down-Up, Up-Down-Up pattern
-    pattern: ["down", null, "down", "up", null, "up", "down", "up"],
+    name: "Old Faithful",
+    // Old Faithful by Justin Guitar
+    pattern: ["down", null, "down", "up", null, "up", "down", null],
   },
   {
-    name: "Folk Pattern",
-    // Down, Down, Up, Up, Down, Up
-    pattern: ["down", null, "down", "up", "up", null, "down", "up"],
+    name: "Shoot 'Em Up",
+    // Shoot 'em up by Justing Guitar
+    pattern: ["down", null, "down", null, "down", "up", "down", "up"],
+  },
+  {
+    name: "Old Faithful (Shuffle)",
+    // Old Faithful in shuffle by Justin Guitar
+    pattern: ["down", null, "down", "up", null, "up", "down", null ],
   },
 ];
 
