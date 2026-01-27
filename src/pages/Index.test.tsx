@@ -240,6 +240,29 @@ describe("Index Page Integration", () => {
         expect(screen.getByRole("heading", { name: /strumming pattern editor/i })).toBeInTheDocument();
       });
     });
+
+    it("should display time signature in the strumming pattern section when pattern is added", async () => {
+      renderIndex();
+
+      const strummingButton = screen.getByRole("button", { name: /add strumming pattern/i });
+      fireEvent.click(strummingButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /strumming pattern editor/i })).toBeInTheDocument();
+      });
+
+      // Save a pattern
+      const saveButton = screen.getByRole("button", { name: /save pattern/i });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        // After saving, the time signature should be visible on the homepage
+        // Look for the large time signature display (text-4xl)
+        const timeSignature = screen.getByText("4/4");
+        expect(timeSignature).toBeInTheDocument();
+        expect(timeSignature).toHaveClass("text-4xl");
+      });
+    });
   });
 
   describe("Chords Per Row Control", () => {
