@@ -43,12 +43,12 @@ export const strummingPresets: StrummingPreset[] = [
     pattern: ["down", null, "down", "up", null, "up", "down", null ],
   },
   {
-    name: "2-Bar Classic",
+    name: "The Push",
     bars: 2,
-    // Example 2-bar pattern
+    // The Push by Justin Guitar
     pattern: [
-      "down", null, "down", "up", null, "up", "down", "up",
-      "down", null, "down", null, "down", "up", "down", null,
+      "down", null, "down", null, "down", "up", null, "up",
+      null, "up", "down", null, "down", "up", "down", null,
     ],
   },
   {

@@ -164,73 +164,63 @@ export const StrummingPatternEditor = ({
           {/* Pattern Editor Grid */}
           <div className="overflow-x-auto pb-2">
             <div className="flex items-center gap-2">
-              {Array.from({ length: editedPattern.bars }).map((_, barIndex) => (
-                <div key={barIndex} className="flex items-center">
-                  {/* Bar */}
-                  <div className="flex items-center border-2 border-border rounded-lg bg-card p-2">
-                    {editedPattern.beats
-                      .slice(barIndex * 8, (barIndex + 1) * 8)
-                      .map((beat, slotIndex) => {
-                        const globalBeatIndex = barIndex * 8 + slotIndex;
-                        const isOffBeat = beat.beatType === "off";
-                        const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
+              {/* Single bar display - shows all beats continuously for 2-bar patterns */}
+              <div className="flex items-center border-2 border-border rounded-lg bg-card p-2">
+                {editedPattern.beats.map((beat, beatIndex) => {
+                  const isOffBeat = beat.beatType === "off";
+                  // For 2 bars, count 1-8 instead of repeating 1-4
+                  const beatNumber = Math.floor(beatIndex / 2) + 1;
+                  const beatLabel = isOffBeat ? "&" : String(beatNumber);
 
-                        return (
-                          <div
-                            key={slotIndex}
-                            className="flex flex-col items-center"
-                            style={{ width: beatWidth }}
-                          >
-                            {/* Beat label */}
-                            <span className={cn(
-                              "text-sm font-medium mb-1",
-                              isOffBeat ? "text-muted-foreground/60" : "text-muted-foreground"
-                            )}>
-                              {beatLabel}
-                            </span>
+                  return (
+                    <div
+                      key={beatIndex}
+                      className="flex flex-col items-center"
+                      style={{ width: beatWidth }}
+                    >
+                      {/* Beat label */}
+                      <span className={cn(
+                        "text-sm font-medium mb-1",
+                        isOffBeat ? "text-muted-foreground/60" : "text-muted-foreground"
+                      )}>
+                        {beatLabel}
+                      </span>
 
-                            {/* Interactive area */}
-                            <div
-                              className="relative cursor-pointer rounded-md hover:bg-muted/50 transition-colors"
-                              style={{ width: beatWidth - 4, height: beatHeight }}
-                            >
-                              {/* Upper click zone (upstroke) */}
-                              <div
-                                className="absolute top-0 left-0 right-0 h-1/2 flex items-center justify-center hover:bg-primary/10 rounded-t-md transition-colors"
-                                onClick={() => handleBeatClick(globalBeatIndex, "up")}
-                              >
-                                {beat.stroke === "up" && (
-                                  <ArrowUp 
-                                    className="text-primary" 
-                                    style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
-                                  />
-                                )}
-                              </div>
+                      {/* Interactive area */}
+                      <div
+                        className="relative cursor-pointer rounded-md hover:bg-muted/50 transition-colors"
+                        style={{ width: beatWidth - 4, height: beatHeight }}
+                      >
+                        {/* Upper click zone (upstroke) */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-1/2 flex items-center justify-center hover:bg-primary/10 rounded-t-md transition-colors"
+                          onClick={() => handleBeatClick(beatIndex, "up")}
+                        >
+                          {beat.stroke === "up" && (
+                            <ArrowUp 
+                              className="text-primary" 
+                              style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
+                            />
+                          )}
+                        </div>
 
-                              {/* Lower click zone (downstroke) */}
-                              <div
-                                className="absolute bottom-0 left-0 right-0 h-1/2 flex items-center justify-center hover:bg-primary/10 rounded-b-md transition-colors"
-                                onClick={() => handleBeatClick(globalBeatIndex, "down")}
-                              >
-                                {beat.stroke === "down" && (
-                                  <ArrowDown 
-                                    className="text-primary" 
-                                    style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
-                                  />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  {/* Bar line separator */}
-                  {barIndex < editedPattern.bars - 1 && (
-                    <div className="w-[3px] h-16 bg-muted-foreground mx-2 rounded" />
-                  )}
-                </div>
-              ))}
+                        {/* Lower click zone (downstroke) */}
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-1/2 flex items-center justify-center hover:bg-primary/10 rounded-b-md transition-colors"
+                          onClick={() => handleBeatClick(beatIndex, "down")}
+                        >
+                          {beat.stroke === "down" && (
+                            <ArrowDown 
+                              className="text-primary" 
+                              style={{ width: beatWidth - 8, height: beatHeight - 8 }} 
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

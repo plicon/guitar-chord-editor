@@ -89,76 +89,68 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
             <div className="flex flex-col gap-1">
               <span className="text-[10px] text-gray-500 uppercase tracking-wide">Strumming Pattern</span>
               <div className="flex items-center gap-2">
-                {Array.from({ length: strummingPattern.bars }).map((_, barIndex) => (
-                  <div key={barIndex} className="flex items-center">
-                    <div className="relative bg-gray-50 rounded border border-gray-200">
-                      {/* Staff lines */}
-                      <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 16, paddingBottom: 8 }}>
-                        {[0, 1, 2, 3, 4].map((line) => (
-                          <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 8 : 0 }} />
-                        ))}
-                      </div>
-                      
-                      <div className="flex items-center relative" style={{ height: 80 }}>
-                        {strummingPattern.beats
-                          .slice(barIndex * 8, (barIndex + 1) * 8)
-                          .map((beat, slotIndex) => {
-                            const isOffBeat = beat.beatType === "off";
-                            const beatLabel = isOffBeat ? "&" : String(Math.floor(slotIndex / 2) + 1);
-                            
-                            return (
-                              <div
-                                key={slotIndex}
-                                className="flex flex-col items-center justify-center relative"
-                                style={{ width: 18, height: 80 }}
-                              >
-                                <span className={`absolute top-0 text-[8px] font-medium ${isOffBeat ? "text-gray-400" : "text-gray-600"}`}>
-                                  {beatLabel}
-                                </span>
-                                
-                                {/* Filled up arrow - CSS based for html2canvas compatibility */}
-                                {beat.stroke === "up" && (
-                                  <div className="absolute flex flex-col items-center" style={{ top: 14 }}>
-                                    <div 
-                                      style={{ 
-                                        width: 0, 
-                                        height: 0, 
-                                        borderLeft: '6px solid transparent',
-                                        borderRight: '6px solid transparent',
-                                        borderBottom: '10px solid #1f2937'
-                                      }} 
-                                    />
-                                    <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
-                                  </div>
-                                )}
-                                
-                                {/* Filled down arrow - CSS based for html2canvas compatibility */}
-                                {beat.stroke === "down" && (
-                                  <div className="absolute flex flex-col items-center" style={{ bottom: 6 }}>
-                                    <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
-                                    <div 
-                                      style={{ 
-                                        width: 0, 
-                                        height: 0, 
-                                        borderLeft: '6px solid transparent',
-                                        borderRight: '6px solid transparent',
-                                        borderTop: '10px solid #1f2937'
-                                      }} 
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                    
-                    {/* Bar separator */}
-                    {barIndex < strummingPattern.bars - 1 && (
-                      <div className="w-[3px] h-12 bg-gray-600 mx-2 rounded-full" />
-                    )}
+                {/* Single continuous bar display */}
+                <div className="relative bg-gray-50 rounded border border-gray-200">
+                  {/* Staff lines */}
+                  <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 16, paddingBottom: 8 }}>
+                    {[0, 1, 2, 3, 4].map((line) => (
+                      <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 8 : 0 }} />
+                    ))}
                   </div>
-                ))}
+                  
+                  <div className="flex items-center relative" style={{ height: 80 }}>
+                    {strummingPattern.beats.map((beat, beatIndex) => {
+                      const isOffBeat = beat.beatType === "off";
+                      // For 2 bars, count 1-8 instead of repeating 1-4
+                      const beatNumber = Math.floor(beatIndex / 2) + 1;
+                      const beatLabel = isOffBeat ? "&" : String(beatNumber);
+                            
+                      return (
+                        <div
+                          key={beatIndex}
+                          className="flex flex-col items-center justify-center relative"
+                          style={{ width: 18, height: 80 }}
+                        >
+                          <span className={`absolute top-0 text-[8px] font-medium ${isOffBeat ? "text-gray-400" : "text-gray-600"}`}>
+                            {beatLabel}
+                          </span>
+                          
+                          {/* Filled up arrow - CSS based for html2canvas compatibility */}
+                          {beat.stroke === "up" && (
+                            <div className="absolute flex flex-col items-center" style={{ top: 14 }}>
+                              <div 
+                                style={{ 
+                                  width: 0, 
+                                  height: 0, 
+                                  borderLeft: '6px solid transparent',
+                                  borderRight: '6px solid transparent',
+                                  borderBottom: '10px solid #1f2937'
+                                }} 
+                              />
+                              <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                            </div>
+                          )}
+                          
+                          {/* Filled down arrow - CSS based for html2canvas compatibility */}
+                          {beat.stroke === "down" && (
+                            <div className="absolute flex flex-col items-center" style={{ bottom: 6 }}>
+                              <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                              <div 
+                                style={{ 
+                                  width: 0, 
+                                  height: 0, 
+                                  borderLeft: '6px solid transparent',
+                                  borderRight: '6px solid transparent',
+                                  borderTop: '10px solid #1f2937'
+                                }} 
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
