@@ -136,8 +136,8 @@ describe("PrintableSheet", () => {
       render(<PrintableSheet {...defaultProps} strummingPattern={pattern} />);
 
       expect(screen.getByText(/Strumming Pattern/)).toBeInTheDocument();
-      // 1 bar of 6/8 = 12 slots
-      expect(pattern.beats).toHaveLength(12);
+      // 1 bar of 6/8 with subdivision 3 = 18 slots (6 beats × 3)
+      expect(pattern.beats).toHaveLength(18);
     });
   });
 

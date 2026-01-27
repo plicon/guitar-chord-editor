@@ -101,9 +101,11 @@ describe("chartSchema", () => {
         strummingPattern: {
           bars: 1,
           beatsPerBar: 4,
+          subdivision: 2,
+          timeSignature: "4/4",
           beats: [
             { stroke: "down", noteValue: "full", beatType: "on" },
-            { stroke: null, noteValue: "full", beatType: "off" },
+            { stroke: null, noteValue: "full", beatType: "&" },
           ],
         },
       };

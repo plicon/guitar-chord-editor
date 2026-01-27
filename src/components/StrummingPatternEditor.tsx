@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType, TimeSignature, getSlotsPerBar } from "@/types/strumming";
+import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType, TimeSignature, Subdivision, getSlotsPerBar, getBeatLabel, getAvailableSubdivisions, getDefaultSubdivision } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { strummingPresets, applyPresetToBeats } from "@/data/strummingPresets";
@@ -46,13 +46,13 @@ export const StrummingPatternEditor = ({
 
   const handleBarsChange = (value: string) => {
     const newBars = parseInt(value);
-    const slotsPerBar = getSlotsPerBar(editedPattern.timeSignature);
+    const slotsPerBar = getSlotsPerBar(editedPattern.timeSignature, editedPattern.subdivision);
     const newBeats: StrumBeat[] = Array.from(
       { length: newBars * slotsPerBar },
       (_, i) => editedPattern.beats[i] || { 
         stroke: null, 
         noteValue: "full",
-        beatType: (i % 2 === 0 ? "on" : "off") as BeatType
+        beatType: getBeatLabel(i, editedPattern.subdivision)
       }
     );
     setEditedPattern({
@@ -66,7 +66,15 @@ export const StrummingPatternEditor = ({
     const newTimeSignature = value as TimeSignature;
     // For 6/8, force to 1 bar only
     const newBars = newTimeSignature === "6/8" ? 1 : editedPattern.bars;
-    const newPattern = createEmptyPattern(newBars, newTimeSignature);
+    // Use default subdivision for the new time signature
+    const defaultSubdivision = getDefaultSubdivision(newTimeSignature);
+    const newPattern = createEmptyPattern(newBars, newTimeSignature, defaultSubdivision);
+    setEditedPattern(newPattern);
+  };
+
+  const handleSubdivisionChange = (value: string) => {
+    const newSubdivision = parseInt(value) as Subdivision;
+    const newPattern = createEmptyPattern(editedPattern.bars, editedPattern.timeSignature, newSubdivision);
     setEditedPattern(newPattern);
   };
 
@@ -75,18 +83,19 @@ export const StrummingPatternEditor = ({
     if (preset) {
       // Automatically adjust bars to match the preset's bar count
       const targetBars = Math.max(preset.bars, editedPattern.bars);
-      const newBeats = applyPresetToBeats(preset, targetBars, editedPattern.timeSignature);
+      const newBeats = applyPresetToBeats(preset, targetBars, editedPattern.timeSignature, editedPattern.subdivision);
       setEditedPattern({
         ...editedPattern,
         bars: targetBars,
+        subdivision: preset.subdivision,
         beats: newBeats,
       });
     }
   };
 
-  // Filter presets by current time signature
+  // Filter presets by current time signature and subdivision
   const filteredPresets = strummingPresets.filter(
-    p => p.timeSignature === editedPattern.timeSignature
+    p => p.timeSignature === editedPattern.timeSignature && p.subdivision === editedPattern.subdivision
   );
 
   const handleBeatClick = (beatIndex: number, clickPosition: "up" | "down") => {
@@ -118,12 +127,14 @@ export const StrummingPatternEditor = ({
     setEditedPattern(createEmptyPattern(1, "4/4"));
   };
 
-  const beatWidth = 36;
+  // Responsive beat width based on number of beats
+  const totalBeats = editedPattern.beats.length;
+  const beatWidth = totalBeats > 24 ? 28 : totalBeats > 16 ? 32 : 36;
   const beatHeight = 80;
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-[960px]">
         <DialogHeader>
           <DialogTitle>Strumming Pattern Editor</DialogTitle>
           <DialogDescription className="sr-only">
@@ -147,6 +158,26 @@ export const StrummingPatternEditor = ({
                   <SelectItem value="4/4">4/4</SelectItem>
                   <SelectItem value="3/4">3/4</SelectItem>
                   <SelectItem value="6/8">6/8</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Label>Division:</Label>
+              <Select
+                value={editedPattern.subdivision.toString()}
+                onValueChange={handleSubdivisionChange}
+                disabled={editedPattern.timeSignature === "6/8"}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableSubdivisions(editedPattern.timeSignature).map((div) => (
+                    <SelectItem key={div} value={div.toString()}>
+                      {div === 2 ? "Eighth" : div === 3 ? "Triplet" : "Sixteenth"}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -198,10 +229,9 @@ export const StrummingPatternEditor = ({
               {/* Single bar display - shows all beats continuously for 2-bar patterns */}
               <div className="flex items-center border-2 border-border rounded-lg bg-card p-2">
                 {editedPattern.beats.map((beat, beatIndex) => {
-                  const isOffBeat = beat.beatType === "off";
-                  // For 2 bars, count 1-8 instead of repeating 1-4
-                  const beatNumber = Math.floor(beatIndex / 2) + 1;
-                  const beatLabel = isOffBeat ? "&" : String(beatNumber);
+                  const beatLabel = beat.beatType === "on" 
+                    ? String(Math.floor(beatIndex / editedPattern.subdivision) + 1)
+                    : beat.beatType;
 
                   return (
                     <div
@@ -211,8 +241,8 @@ export const StrummingPatternEditor = ({
                     >
                       {/* Beat label */}
                       <span className={cn(
-                        "text-sm font-medium mb-1",
-                        isOffBeat ? "text-muted-foreground/60" : "text-muted-foreground"
+                        "text-xs font-medium mb-1",
+                        beat.beatType === "on" ? "text-muted-foreground" : "text-muted-foreground/60"
                       )}>
                         {beatLabel}
                       </span>

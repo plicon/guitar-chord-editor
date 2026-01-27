@@ -92,32 +92,31 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                 {/* Single continuous bar display */}
                 <div className="relative bg-gray-50 rounded border border-gray-200">
                   {/* Staff lines */}
-                  <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 16, paddingBottom: 8 }}>
+                  <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 14, paddingBottom: 7 }}>
                     {[0, 1, 2, 3, 4].map((line) => (
-                      <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 8 : 0 }} />
+                      <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 7 : 0 }} />
                     ))}
                   </div>
                   
-                  <div className="flex items-center relative" style={{ height: 80 }}>
+                  <div className="flex items-center relative" style={{ height: 70 }}>
                     {strummingPattern.beats.map((beat, beatIndex) => {
-                      const isOffBeat = beat.beatType === "off";
-                      // For 2 bars, count 1-8 instead of repeating 1-4
-                      const beatNumber = Math.floor(beatIndex / 2) + 1;
-                      const beatLabel = isOffBeat ? "&" : String(beatNumber);
+                      const beatLabel = beat.beatType === "on" 
+                        ? String(Math.floor(beatIndex / strummingPattern.subdivision) + 1)
+                        : beat.beatType;
                             
                       return (
                         <div
                           key={beatIndex}
                           className="flex flex-col items-center justify-center relative"
-                          style={{ width: 18, height: 80 }}
+                          style={{ width: 14, height: 70 }}
                         >
-                          <span className={`absolute top-0 text-[8px] font-medium ${isOffBeat ? "text-gray-400" : "text-gray-600"}`}>
+                          <span className={`absolute top-0 text-[7px] font-medium ${beat.beatType === "on" ? "text-gray-600" : "text-gray-400"}`}>
                             {beatLabel}
                           </span>
                           
                           {/* Filled up arrow - CSS based for html2canvas compatibility */}
                           {beat.stroke === "up" && (
-                            <div className="absolute flex flex-col items-center" style={{ top: 14 }}>
+                            <div className="absolute flex flex-col items-center" style={{ top: 12 }}>
                               <div 
                                 style={{ 
                                   width: 0, 

@@ -4,7 +4,8 @@ import { ChordChart } from "@/types/chordChart";
 // Strumming pattern schemas
 const strokeTypeSchema = z.enum(["up", "down", "rest"]).nullable();
 const noteValueSchema = z.enum(["full", "half"]);
-const beatTypeSchema = z.enum(["on", "off"]);
+const beatTypeSchema = z.enum(["on", "&", "e", "+", "a"]);
+const subdivisionSchema = z.union([z.literal(2), z.literal(3), z.literal(4)]);
 
 const strumBeatSchema = z.object({
   stroke: strokeTypeSchema,
@@ -16,11 +17,16 @@ const strummingPatternSchema = z.object({
   bars: z.number().int().min(1).max(16),
   beatsPerBar: z.number().int().min(1).max(8),
   timeSignature: z.enum(["4/4", "3/4", "6/8"]).default("4/4"),
+  subdivision: subdivisionSchema.default(2),
   beats: z.array(strumBeatSchema).max(128),
 }).transform((data) => {
   // Migration: add default timeSignature if missing
   if (!data.timeSignature) {
     return { ...data, timeSignature: "4/4" as const };
+  }
+  // Migration: add default subdivision if missing
+  if (!data.subdivision) {
+    return { ...data, subdivision: 2 as const };
   }
   return data;
 });
