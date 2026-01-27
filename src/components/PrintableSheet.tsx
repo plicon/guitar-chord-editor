@@ -87,7 +87,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
           {/* Strumming Pattern for Print - Musical Staff Style */}
           {showStrumming && (
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wide">Strumming Pattern</span>
+              <span className="text-[10px] text-gray-500 uppercase tracking-wide">Strumming Pattern <span className="font-bold">{strummingPattern.timeSignature}</span></span>
               <div className="flex items-center gap-2">
                 {/* Single continuous bar display */}
                 <div className="relative bg-gray-50 rounded border border-gray-200">

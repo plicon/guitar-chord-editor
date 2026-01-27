@@ -64,10 +64,13 @@ export const ChartMetadataSection = ({
             Strumming:
           </span>
           <StrummingPatternDisplay pattern={strummingPattern} />
+          <span className="text-4xl font-bold text-foreground ml-auto mr-2">
+            {strummingPattern.timeSignature}
+          </span>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 ml-auto"
+            className="h-8 w-8"
             onClick={onStrummingEditorOpen}
           >
             <Pencil className="w-4 h-4" />

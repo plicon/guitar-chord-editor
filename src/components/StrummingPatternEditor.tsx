@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType } from "@/types/strumming";
+import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType, TimeSignature, getSlotsPerBar } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { strummingPresets, applyPresetToBeats } from "@/data/strummingPresets";
@@ -46,7 +46,7 @@ export const StrummingPatternEditor = ({
 
   const handleBarsChange = (value: string) => {
     const newBars = parseInt(value);
-    const slotsPerBar = 8; // 1 & 2 & 3 & 4 &
+    const slotsPerBar = getSlotsPerBar(editedPattern.timeSignature);
     const newBeats: StrumBeat[] = Array.from(
       { length: newBars * slotsPerBar },
       (_, i) => editedPattern.beats[i] || { 
@@ -62,12 +62,20 @@ export const StrummingPatternEditor = ({
     });
   };
 
+  const handleTimeSignatureChange = (value: string) => {
+    const newTimeSignature = value as TimeSignature;
+    // For 6/8, force to 1 bar only
+    const newBars = newTimeSignature === "6/8" ? 1 : editedPattern.bars;
+    const newPattern = createEmptyPattern(newBars, newTimeSignature);
+    setEditedPattern(newPattern);
+  };
+
   const handlePresetChange = (presetName: string) => {
     const preset = strummingPresets.find((p) => p.name === presetName);
     if (preset) {
       // Automatically adjust bars to match the preset's bar count
       const targetBars = Math.max(preset.bars, editedPattern.bars);
-      const newBeats = applyPresetToBeats(preset, targetBars);
+      const newBeats = applyPresetToBeats(preset, targetBars, editedPattern.timeSignature);
       setEditedPattern({
         ...editedPattern,
         bars: targetBars,
@@ -75,6 +83,11 @@ export const StrummingPatternEditor = ({
       });
     }
   };
+
+  // Filter presets by current time signature
+  const filteredPresets = strummingPresets.filter(
+    p => p.timeSignature === editedPattern.timeSignature
+  );
 
   const handleBeatClick = (beatIndex: number, clickPosition: "up" | "down") => {
     const newBeats = [...editedPattern.beats];
@@ -102,7 +115,7 @@ export const StrummingPatternEditor = ({
   };
 
   const handleClear = () => {
-    setEditedPattern(createEmptyPattern(editedPattern.bars));
+    setEditedPattern(createEmptyPattern(1, "4/4"));
   };
 
   const beatWidth = 36;
@@ -122,10 +135,28 @@ export const StrummingPatternEditor = ({
           {/* Controls */}
           <div className="flex items-center gap-6 flex-wrap">
             <div className="flex items-center gap-2">
+              <Label>Time:</Label>
+              <Select
+                value={editedPattern.timeSignature}
+                onValueChange={handleTimeSignatureChange}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4/4">4/4</SelectItem>
+                  <SelectItem value="3/4">3/4</SelectItem>
+                  <SelectItem value="6/8">6/8</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
               <Label>Bars:</Label>
               <Select
                 value={editedPattern.bars.toString()}
                 onValueChange={handleBarsChange}
+                disabled={editedPattern.timeSignature === "6/8"}
               >
                 <SelectTrigger className="w-20">
                   <SelectValue />
@@ -147,7 +178,7 @@ export const StrummingPatternEditor = ({
                   <SelectValue placeholder="Select pattern" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
-                  {strummingPresets.map((preset) => (
+                  {filteredPresets.map((preset) => (
                     <SelectItem key={preset.name} value={preset.name}>
                       {preset.name}
                     </SelectItem>
