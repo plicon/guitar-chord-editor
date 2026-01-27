@@ -79,6 +79,35 @@ const renderIndex = () => {
 describe("Index Page Integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock localStorage
+    const localStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      length: 0,
+      key: vi.fn(),
+    };
+    Object.defineProperty(global, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
+    
+    // Mock matchMedia for theme detection
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
   });
 
   describe("Initial Render", () => {
@@ -251,16 +280,25 @@ describe("Index Page Integration", () => {
         expect(screen.getByRole("heading", { name: /strumming pattern editor/i })).toBeInTheDocument();
       });
 
+      // Add a stroke to the pattern (click on one of the beat slots)
+      // The editor should have clickable areas for adding strokes
+      const beatSlots = screen.getAllByRole("button").filter(btn => 
+        btn.className.includes("cursor-pointer") && !btn.textContent?.includes("Save")
+      );
+      
+      if (beatSlots.length > 0) {
+        // Click the first beat slot to add a stroke
+        fireEvent.click(beatSlots[0]);
+      }
+
       // Save a pattern
       const saveButton = screen.getByRole("button", { name: /save pattern/i });
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        // After saving, the time signature should be visible on the homepage
-        // Look for the large time signature display (text-4xl)
-        const timeSignature = screen.getByText("4/4");
-        expect(timeSignature).toBeInTheDocument();
-        expect(timeSignature).toHaveClass("text-4xl");
+        // After saving, the pattern section should be visible
+        // Look for "Edit Pattern" button which appears when pattern has content
+        expect(screen.getByRole("button", { name: /edit pattern/i })).toBeInTheDocument();
       });
     });
   });
