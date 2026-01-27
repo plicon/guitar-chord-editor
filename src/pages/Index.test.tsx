@@ -284,8 +284,8 @@ describe("Index Page Integration", () => {
     it("should display app name in header", () => {
       renderIndex();
 
-      // Use getByRole to target the h1 heading specifically (not the watermark)
-      expect(screen.getByRole("heading", { level: 1, name: /guitar chord creator/i })).toBeInTheDocument();
+      // The h1 contains "Fretkit" and there's a subtitle span with "Guitar Chord Creator"
+      expect(screen.getByRole("heading", { level: 1, name: /fretkit/i })).toBeInTheDocument();
     });
   });
 });
