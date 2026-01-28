@@ -292,6 +292,8 @@ describe("useChartState", () => {
       const pattern = {
         bars: 1,
         beatsPerBar: 4,
+        timeSignature: "4/4" as const,
+        subdivision: 2 as const,
         beats: [
           { stroke: "down" as const, noteValue: "full" as const, beatType: "on" as const },
         ],
@@ -310,6 +312,8 @@ describe("useChartState", () => {
       const pattern = {
         bars: 1,
         beatsPerBar: 4,
+        timeSignature: "4/4" as const,
+        subdivision: 2 as const,
         beats: [
           { stroke: "down" as const, noteValue: "full" as const, beatType: "on" as const },
         ],
