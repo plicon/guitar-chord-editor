@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { ChordEditor } from "@/components/ChordEditor";
@@ -52,7 +52,9 @@ const Index = () => {
     handleDragEnd,
   } = useChordDragAndDrop(state.rows, handleRowsChange);
 
-  const { printRef, handleDownloadPDF } = usePdfExport(state.title);
+  // Use a dedicated ref for the always-mounted hidden PrintableSheet
+  const hiddenPrintRef = useRef<HTMLDivElement>(null);
+  const { handleDownloadPDF } = usePdfExport(state.title, hiddenPrintRef);
 
   const handleChordClick = useCallback((rowIndex: number, chordIndex: number) => {
     setEditingChord({ rowIndex, chordIndex });
@@ -142,7 +144,6 @@ const Index = () => {
 
       {/* Preview Dialog */}
       <PreviewDialog
-        ref={printRef}
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         title={state.title}
@@ -172,10 +173,10 @@ const Index = () => {
         onLoad={handleLoadChart}
       />
 
-      {/* Hidden printable content */}
+      {/* Hidden printable content - always mounted for reliable PDF export */}
       <div className="fixed left-[-9999px] top-0">
         <PrintableSheet
-          ref={printRef}
+          ref={hiddenPrintRef}
           title={state.title}
           description={state.description}
           rows={state.rows}

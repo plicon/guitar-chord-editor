@@ -3,6 +3,7 @@ import { renderHook, act } from "@testing-library/react";
 import { usePdfExport } from "./usePdfExport";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { RefObject } from "react";
 
 // Mock html2canvas
 vi.mock("html2canvas", () => ({
@@ -17,9 +18,17 @@ vi.mock("jspdf", () => ({
 describe("usePdfExport", () => {
   let mockCanvas: HTMLCanvasElement;
   let mockPdf: { addImage: Mock; save: Mock };
+  let mockRef: { current: HTMLDivElement | null };
+  let mockElement: HTMLDivElement;
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Create mock element
+    mockElement = document.createElement("div");
+
+    // Create mutable mock ref
+    mockRef = { current: null };
 
     // Create mock canvas
     mockCanvas = document.createElement("canvas");
@@ -40,16 +49,14 @@ describe("usePdfExport", () => {
     (jsPDF as unknown as Mock).mockImplementation(() => mockPdf);
   });
 
-  it("should return a ref and handleDownloadPDF function", () => {
-    const { result } = renderHook(() => usePdfExport("Test Chart"));
+  it("should return handleDownloadPDF function", () => {
+    const { result } = renderHook(() => usePdfExport("Test Chart", mockRef));
 
-    expect(result.current.printRef).toBeDefined();
-    expect(result.current.printRef.current).toBeNull();
     expect(typeof result.current.handleDownloadPDF).toBe("function");
   });
 
   it("should not generate PDF if ref is not attached", async () => {
-    const { result } = renderHook(() => usePdfExport("Test Chart"));
+    const { result } = renderHook(() => usePdfExport("Test Chart", mockRef));
 
     await act(async () => {
       await result.current.handleDownloadPDF();
@@ -60,14 +67,8 @@ describe("usePdfExport", () => {
   });
 
   it("should generate PDF when ref is attached to an element", async () => {
-    const { result } = renderHook(() => usePdfExport("Test Chart"));
-
-    // Create and attach a mock element to the ref
-    const mockElement = document.createElement("div");
-    Object.defineProperty(result.current.printRef, "current", {
-      value: mockElement,
-      writable: true,
-    });
+    mockRef.current = mockElement;
+    const { result } = renderHook(() => usePdfExport("Test Chart", mockRef));
 
     await act(async () => {
       await result.current.handleDownloadPDF();
@@ -102,13 +103,8 @@ describe("usePdfExport", () => {
   });
 
   it("should use default filename when title is empty", async () => {
-    const { result } = renderHook(() => usePdfExport(""));
-
-    const mockElement = document.createElement("div");
-    Object.defineProperty(result.current.printRef, "current", {
-      value: mockElement,
-      writable: true,
-    });
+    mockRef.current = mockElement;
+    const { result } = renderHook(() => usePdfExport("", mockRef));
 
     await act(async () => {
       await result.current.handleDownloadPDF();
@@ -122,13 +118,8 @@ describe("usePdfExport", () => {
     mockCanvas.width = 1000;
     mockCanvas.height = 1500;
 
-    const { result } = renderHook(() => usePdfExport("Test"));
-
-    const mockElement = document.createElement("div");
-    Object.defineProperty(result.current.printRef, "current", {
-      value: mockElement,
-      writable: true,
-    });
+    mockRef.current = mockElement;
+    const { result } = renderHook(() => usePdfExport("Test", mockRef));
 
     await act(async () => {
       await result.current.handleDownloadPDF();
@@ -146,16 +137,11 @@ describe("usePdfExport", () => {
   });
 
   it("should update filename when title changes", async () => {
+    mockRef.current = mockElement;
     const { result, rerender } = renderHook(
-      ({ title }) => usePdfExport(title),
+      ({ title }) => usePdfExport(title, mockRef),
       { initialProps: { title: "First Title" } }
     );
-
-    const mockElement = document.createElement("div");
-    Object.defineProperty(result.current.printRef, "current", {
-      value: mockElement,
-      writable: true,
-    });
 
     // Generate PDF with first title
     await act(async () => {
@@ -171,22 +157,10 @@ describe("usePdfExport", () => {
     expect(mockPdf.save).toHaveBeenCalledWith("Second Title.pdf");
   });
 
-  it("should maintain stable ref across renders", () => {
+  it("should memoize handleDownloadPDF based on title and ref", () => {
+    mockRef.current = mockElement;
     const { result, rerender } = renderHook(
-      ({ title }) => usePdfExport(title),
-      { initialProps: { title: "Test" } }
-    );
-
-    const initialRef = result.current.printRef;
-
-    rerender({ title: "Updated" });
-
-    expect(result.current.printRef).toBe(initialRef);
-  });
-
-  it("should memoize handleDownloadPDF based on title", () => {
-    const { result, rerender } = renderHook(
-      ({ title }) => usePdfExport(title),
+      ({ title }) => usePdfExport(title, mockRef),
       { initialProps: { title: "Test" } }
     );
 

@@ -1,9 +1,8 @@
-import { useRef, useCallback } from "react";
+import { useCallback, RefObject } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export function usePdfExport(title: string) {
-  const printRef = useRef<HTMLDivElement>(null);
+export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>) {
 
   const handleDownloadPDF = useCallback(async () => {
     if (!printRef.current) return;
@@ -29,7 +28,6 @@ export function usePdfExport(title: string) {
   }, [title]);
 
   return {
-    printRef,
     handleDownloadPDF,
   };
 }
