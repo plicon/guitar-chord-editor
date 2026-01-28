@@ -180,13 +180,13 @@ describe("PreviewDialog", () => {
     });
   });
 
-  describe("Forward Ref", () => {
-    it("should accept and pass ref to PrintableSheet", () => {
-      const ref = { current: null };
-      render(<PreviewDialog ref={ref} {...defaultProps} />);
+  describe("Accessibility", () => {
+    it("should have proper dialog structure with title and content", () => {
+      render(<PreviewDialog {...defaultProps} />);
 
-      // The ref should be passed through to the PrintableSheet component
-      expect(ref.current).toBeDefined();
+      // Verify dialog has proper accessible structure
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("Print Preview")).toBeInTheDocument();
     });
   });
 });
