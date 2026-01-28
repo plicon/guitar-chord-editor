@@ -3,11 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# D1 Database binding
+# D1 Database binding used for Development
 [[d1_databases]]
 binding = "DB"
 database_name = "fretkit-db"
-database_id = "7bebfd84-3b15-4905-bc79-2812683354a3" 
+database_id = "d9c128f4-06c6-471b-9e84-ffbd4a0f280b"
 migrations_dir = "migrations"
 
 # Environment variables
@@ -18,8 +18,18 @@ ENVIRONMENT = "development"
 [env.production]
 name = "fretkit-worker-production"
 vars = { ENVIRONMENT = "production" }
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "fretkit-db-production"
+database_id = "1f1b225b-1977-4f49-a244-4e320dee0374"
+migrations_dir = "migrations"
 
 # Staging environment
 [env.staging]
 name = "fretkit-worker-staging"
 vars = { ENVIRONMENT = "staging" }
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "fretkit-db-staging"
+database_id = "99f36e70-f499-4023-8bf8-1ac8f6c15a1e"
+migrations_dir = "migrations"

@@ -31,16 +31,18 @@ npx wrangler whoami
 cd worker
 
 # Create the database
-npx wrangler d1 create fretkit-db
+npx wrangler d1 create fretkit-db-production
 ```
 
 **Output:**
-```
-✅ Successfully created DB 'fretkit-db'
 
-[[d1_databases]]
+```
+
+✅ Successfully created DB 'fretkit-db-production'
+
+[[env.production.d1_databases]]
 binding = "DB"
-database_name = "fretkit-db"
+database_name = "fretkit-db-production"
 database_id = "xxxx-xxxx-xxxx-xxxx"
 ```
 
@@ -52,9 +54,9 @@ Edit `worker/wrangler.toml`:
 
 ```toml
 # Uncomment and add your database ID:
-[[d1_databases]]
+[[env.production.d1_databases]]
 binding = "DB"
-database_name = "fretkit-db"
+database_name = "fretkit-db-production"
 database_id = "YOUR_DATABASE_ID_HERE"  # ← Paste here
 ```
 
@@ -64,7 +66,7 @@ database_id = "YOUR_DATABASE_ID_HERE"  # ← Paste here
 cd worker
 
 # Apply initial schema
-npx wrangler d1 migrations apply fretkit-db --remote
+npx wrangler d1 migrations apply fretkit-db-production --remote -c wrangler.toml --env production
 ```
 
 **Output:**
@@ -76,7 +78,7 @@ npx wrangler d1 migrations apply fretkit-db --remote
 
 ```bash
 # Check tables
-npx wrangler d1 execute fretkit-db --remote \
+npx wrangler d1 execute fretkit-db-production --remote -c wrangler.toml --env production \
   --command "SELECT name FROM sqlite_master WHERE type='table'"
 
 # Should show: chord_charts, strumming_presets, chord_presets
@@ -86,84 +88,180 @@ npx wrangler d1 execute fretkit-db --remote \
 
 ## Part 2: Worker Deployment
 
-### Step 6: Deploy Worker
+### Option A: Manual Deployment
+
+#### Step 6: Deploy Worker
 
 ```bash
 cd worker
 
 # Deploy to production
-npx wrangler deploy
+npm run deploy --env production
 ```
 
 **Output:**
 ```
 ✅ Successfully deployed to:
-   https://fretkit-api.YOUR_SUBDOMAIN.workers.dev
+   https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev
 ```
 
 **⚠️ IMPORTANT:** Copy this URL
 
-### Step 7: Test Worker
+#### Step 7: Test Worker
 
 ```bash
 # Test health endpoint
-curl https://fretkit-api.YOUR_SUBDOMAIN.workers.dev/api/health
+curl https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev/health
 
-# Expected: {"status":"ok","version":"1.0.0"}
+# Expected: {"status":"ok","timestamp":"...","version":"1.0.0"}
 
 # Test presets
-curl https://fretkit-api.YOUR_SUBDOMAIN.workers.dev/api/presets/strumming
+curl https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev/api/presets/strumming
 
 # Should return array of presets
 ```
 
+### Option B: GitHub Actions CI/CD (Recommended)
+
+Automate deployments with GitHub Actions for a complete CI/CD pipeline.
+
+#### Step 6: Generate Cloudflare API Token
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **My Profile** → **API Tokens**
+2. Click **Create Token**
+3. Use **Edit Cloudflare Workers** template or create custom token with:
+   - **Permissions:**
+     - Account → Workers Scripts → Edit
+     - Account → D1 → Edit
+   - **Account Resources:** Include → Your Account
+4. Click **Continue to summary** → **Create Token**
+5. **Copy the token** (you won't see it again!)
+
+#### Step 7: Add Token to GitHub Secrets
+
+1. Go to your GitHub repository
+2. **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add:
+   - **Name:** `CLOUDFLARE_API_TOKEN`
+   - **Secret:** Paste your API token
+5. Click **Add secret**
+
+#### Step 8: Configure GitHub Environments
+
+1. **Settings** → **Environments** → **New environment**
+
+Create three environments:
+
+**1. development**
+- No protection rules needed
+- Click **Configure environment**
+
+**2. staging**
+- No protection rules needed
+- Click **Configure environment**
+
+**3. production**
+- ✅ **Required reviewers:** Add yourself or team members
+- ✅ **Wait timer:** 0 minutes (or add delay if desired)
+- Click **Save protection rules**
+
+#### Step 9: Update Worker URLs in Workflow
+
+Edit `.github/workflows/deploy-worker.yml`:
+
+Replace `YOUR_SUBDOMAIN` with your actual Cloudflare subdomain in these lines:
+- Line ~64: `https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev`
+- Line ~66: `https://fretkit-worker-staging.YOUR_SUBDOMAIN.workers.dev`
+- Line ~68: `https://fretkit-worker.YOUR_SUBDOMAIN.workers.dev`
+- Line ~112: `https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev` (2 instances)
+
+#### Step 10: How It Works
+
+**Feature Branches** (`feature/*`, `dev/*`):
+- Push triggers automatic deployment to **development** environment
+- Shared dev environment for quick testing
+- No approval needed
+
+**Main Branch**:
+- Merge to `main` triggers automatic deployment to **staging**
+- Runs tests and smoke tests
+- After staging succeeds, **production** deployment requires manual approval
+- Go to **Actions** tab → Click the workflow run → Review and approve
+
+**Manual Deployment**:
+- Go to **Actions** → **Deploy Worker** → **Run workflow**
+- Choose environment: development, staging, or production
+- Click **Run workflow**
+
+#### Step 11: Test the Pipeline
+
+```bash
+# Create a feature branch
+git checkout -b feature/test-cicd
+
+# Make a small change
+echo "# Test" >> worker/README.md
+
+# Commit and push
+git add .
+git commit -m "Test CI/CD pipeline"
+git push -u origin feature/test-cicd
+```
+
+Go to GitHub **Actions** tab to see the deployment to development!
+
+#### Step 12: Deploy to Production
+
+```bash
+# Merge feature to main (via PR or direct merge)
+git checkout main
+git merge feature/test-cicd
+git push origin main
+```
+
+**What happens:**
+1. ✅ Auto-deploys to staging
+2. ✅ Runs tests and smoke tests
+3. ⏸️ Waits for your approval to deploy to production
+4. Go to **Actions** → Review and approve
+5. ✅ Deploys to production
+
 ---
 
-## Part 3: Bulk Import Chords
+## Part 3: Verify Initial Data
 
-### Step 8: Generate Chord Data
+The migrations have already seeded your database with:
+- ✅ 107 common chord presets
+- ✅ 11 strumming patterns
 
-```bash
-# From root directory
-node scripts/exportAllChords.js > worker/data/all-chords.json
-```
-
-### Step 9: Import to D1
-
-```bash
-# Run bulk import script
-node scripts/bulkImportChords.js
-```
-
-This imports ~1600 chords in batches. Takes 2-3 minutes.
-
-**Output:**
-```
-🚀 Starting bulk chord import...
-📊 Found 1636 chords to import
-✅ Imported batch 1/17 (100/1636 chords)
-✅ Imported batch 2/17 (200/1636 chords)
-...
-🎉 Successfully imported 1636 chords!
-```
-
-### Step 10: Verify Import
+### Step 8: Verify Seeded Data
 
 ```bash
 cd worker
 
-# Count chords
+# Check chord count
 npx wrangler d1 execute fretkit-db --remote \
   --command "SELECT COUNT(*) as count FROM chord_presets"
 
-# Expected: 1636 (or similar)
+# Expected: 107
+
+# Check strumming patterns count
+npx wrangler d1 execute fretkit-db --remote \
+  --command "SELECT COUNT(*) as count FROM strumming_presets"
+
+# Expected: 11
+
+# List some chord presets
+npx wrangler d1 execute fretkit-db --remote \
+  --command "SELECT id, name FROM chord_presets LIMIT 10"
 ```
 
 ---
 
 ## Part 4: Frontend Configuration
 
-### Step 11: Update Frontend Environment
+### Step 9: Update Frontend Environment
 
 Create `.env.local` in root directory:
 
@@ -172,7 +270,7 @@ VITE_STORAGE_PROVIDER=cloudflare-api
 VITE_CLOUDFLARE_API_URL=https://fretkit-api.YOUR_SUBDOMAIN.workers.dev/api
 ```
 
-### Step 12: Test Locally
+### Step 10: Test Locally
 
 ```bash
 # From root directory
@@ -265,7 +363,7 @@ cd worker
 npx wrangler d1 migrations apply fretkit-db-staging --remote --env staging
 
 # Deploy staging worker
-npx wrangler deploy --env staging
+npm run deploy -- --env staging
 ```
 
 ### Step 16: Test Staging
@@ -398,7 +496,7 @@ ALLOWED_ORIGIN = "https://fretkit.io"  # ← Must match your domain
 Redeploy worker after changing:
 ```bash
 cd worker
-npx wrangler deploy
+npm run deploy
 ```
 
 ### Migrations Failed
