@@ -48,7 +48,7 @@ jobs:
           fi
 
   # Deploy worker
-  deploy:
+  deploy-staging:
     needs: determine-environment
     if: needs.determine-environment.outputs.should-deploy == 'true'
     runs-on: ubuntu-latest
