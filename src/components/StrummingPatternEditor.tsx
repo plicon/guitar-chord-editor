@@ -18,7 +18,7 @@ import {
 import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType, TimeSignature, Subdivision, getSlotsPerBar, getBeatLabel, getAvailableSubdivisions, getDefaultSubdivision } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { applyPresetToBeats, type StrummingPreset } from "@/data/strummingPresets";
+import { applyPresetToBeats, type StrummingPreset } from "@/types/presets";
 import { getStrummingPreset, listStrummingPresets } from "@/services/presets";
 
 interface StrummingPatternEditorProps {
