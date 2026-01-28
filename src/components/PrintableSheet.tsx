@@ -38,8 +38,8 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
       };
     }).filter(Boolean) as { chords: ChordDiagram[]; originalIndex: number }[];
 
-    // Always use large size for print - ensures consistent sizing and equal page margins
-    const diagramSize = "lg";
+    // Use print-optimized size - fits 5 diagrams per row on A4 with equal margins
+    const diagramSize = "print";
 
     const showStrumming = hasStrummingContent(strummingPattern) && strummingPattern;
 

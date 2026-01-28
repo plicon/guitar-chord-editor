@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 interface ChordDiagramProps {
   chord: ChordDiagramType;
   onClick?: () => void;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "print";
   showPlaceholder?: boolean;
   printMode?: boolean;
 }
@@ -14,6 +14,7 @@ const sizeConfig = {
   sm: { width: 80, height: 120, fontSize: 10, fingerSize: 8 },
   md: { width: 120, height: 170, fontSize: 14, fingerSize: 10 },
   lg: { width: 160, height: 220, fontSize: 18, fingerSize: 12 },
+  print: { width: 138, height: 190, fontSize: 16, fingerSize: 11 }, // Optimized for 5 per row on A4
 };
 
 export const ChordDiagramComponent = ({
