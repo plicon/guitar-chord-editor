@@ -160,7 +160,7 @@ describe("PrintableSheet", () => {
 
     it("should display rows with edited chords", () => {
       const editedChord = createEmptyChord("1");
-      editedChord.chordName = "Am";
+      editedChord.name = "Am";
       editedChord.fingers = [{ string: 2, fret: 1 }];
       
       const { container } = render(
