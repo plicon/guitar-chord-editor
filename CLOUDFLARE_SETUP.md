@@ -1,4 +1,4 @@
-# ☁️ Cloudflare Setup Guide
+# ☁️ Cloudflare Setup Guide -
 
 Complete step-by-step guide to deploy FretKit backend on Cloudflare Workers + D1.
 
