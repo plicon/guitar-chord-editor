@@ -294,9 +294,15 @@ npm run build
 
 ## Part 5: Frontend Deployment
 
-### Option A: Cloudflare Pages (Recommended)
+### Cloudflare Pages with Git Integration (Recommended)
 
-#### Using Git Integration:
+Cloudflare Pages automatically creates:
+- **Production** deployment from `main` branch
+- **Preview** deployments from feature branches
+
+The key is configuring different worker URLs for each environment.
+
+#### Step 13: Connect Repository
 
 1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
 2. **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
@@ -304,20 +310,84 @@ npm run build
 4. **Build settings:**
    - Build command: `npm run build`
    - Build output directory: `dist`
-5. **Environment variables:**
+   - Root directory: `/` (leave default)
+
+#### Step 14: Configure Production Environment Variables
+
+In the setup wizard, add **Production** environment variables (for main branch):
+
+- `VITE_STORAGE_PROVIDER` = `cloudflare-api`
+- `VITE_CLOUDFLARE_API_URL` = `https://fretkit-worker-production.YOUR_SUBDOMAIN.workers.dev/api`
+
+Click **Save and Deploy**
+
+#### Step 15: Configure Preview Environment Variables
+
+After initial deployment:
+
+1. Go to your Pages project → **Settings** → **Environment variables**
+2. Scroll to **Preview** section
+3. Add preview environment variables (for feature branches):
    - `VITE_STORAGE_PROVIDER` = `cloudflare-api`
-   - `VITE_CLOUDFLARE_API_URL` = `https://fretkit-api.YOUR_SUBDOMAIN.workers.dev/api`
-6. Click **Save and Deploy**
+   - `VITE_CLOUDFLARE_API_URL` = `https://fretkit-worker-staging.YOUR_SUBDOMAIN.workers.dev/api`
+4. Click **Save**
 
-#### Using Wrangler CLI:
+#### Step 16: How It Works
 
+**Local Development:**
 ```bash
-# From root directory
-npm run build
-npx wrangler pages deploy dist --project-name=fretkit
+# Start local dev server
+npm run dev
 ```
 
-### Option B: Manual Deploy
+Uses `.env.local`:
+```env
+VITE_STORAGE_PROVIDER=cloudflare-api
+VITE_CLOUDFLARE_API_URL=https://fretkit-worker.YOUR_SUBDOMAIN.workers.dev/api
+```
+
+- Frontend: `http://localhost:5173`
+- Worker: Development environment
+
+**Feature Branch Workflow (Preview):**
+```bash
+git checkout -b feature/new-chord-editor
+# make changes
+git push origin feature/new-chord-editor
+```
+
+Cloudflare automatically:
+1. ✅ Builds with **staging** worker URL (from preview env vars)
+2. ✅ Deploys to preview URL: `https://abc123.fretkit.pages.dev`
+3. ✅ Posts comment on PR with preview link
+
+**Production Workflow:**
+```bash
+git checkout main
+git merge feature/new-chord-editor
+git push origin main
+```
+
+Cloudflare automatically:
+1. ✅ Builds with **production** worker URL (from production env vars)
+2. ✅ Deploys to: `https://fretkit.pages.dev`
+
+**No pipelines needed!** Cloudflare Pages handles everything.
+
+#### Step 17: Local Development Setup
+
+Create `.env.local` in root directory:
+
+```env
+VITE_STORAGE_PROVIDER=cloudflare-api
+VITE_CLOUDFLARE_API_URL=https://fretkit-worker.YOUR_SUBDOMAIN.workers.dev/api
+```
+
+This connects your local development to the **development** worker environment.
+
+---
+
+### Alternative: Manual Deploy
 
 Use existing deployment method (Azure, Netlify, Vercel, etc.)
 
@@ -329,52 +399,57 @@ VITE_CLOUDFLARE_API_URL=https://fretkit-api.YOUR_SUBDOMAIN.workers.dev/api
 
 ---
 
-## Part 6: Staging Environment (Optional but Recommended)
+## Part 6: Architecture Summary
 
-### Step 14: Create Staging Database
+You now have a complete three-tier environment setup:
 
+### Development Environment
+- **Worker**: `fretkit-worker` (development database)
+- **Frontend**: Local dev server `http://localhost:5173`
+- **Database**: `fretkit-db` (development data)
+- **Use case**: Local development and testing
+
+### Staging Environment
+- **Worker**: `fretkit-worker-staging` (auto-deploys from main via GitHub Actions)
+- **Frontend**: Preview deployments from feature branches (Cloudflare Pages)
+- **Database**: `fretkit-db-staging` (staging data)
+- **Use case**: Preview and test features before merging to main
+
+### Production Environment
+- **Worker**: `fretkit-worker-production` (manual approval via GitHub Actions)
+- **Frontend**: Production deployment from main branch (Cloudflare Pages)
+- **Database**: `fretkit-db-production` (live data)
+- **Use case**: Live application
+
+### Complete Deployment Flow
+
+**1. Local Development:**
 ```bash
-cd worker
-
-# Create staging database
-npx wrangler d1 create fretkit-db-staging
+npm run dev  # Uses development worker via .env.local
 ```
 
-Copy the `database_id` and update `worker/wrangler.toml`:
-
-```toml
-# Add this section
-[env.staging]
-name = "fretkit-api-staging"
-vars = { ALLOWED_ORIGIN = "http://localhost:5173" }
-
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "fretkit-db-staging"
-database_id = "YOUR_STAGING_DB_ID_HERE"
-```
-
-### Step 15: Deploy Staging Worker
-
+**2. Feature Development:**
 ```bash
-cd worker
-
-# Apply migrations to staging
-npx wrangler d1 migrations apply fretkit-db-staging --remote --env staging
-
-# Deploy staging worker
-npm run deploy -- --env staging
+git checkout -b feature/new-feature
+# code changes
+git push origin feature/new-feature
 ```
+- Worker → Auto-deploys to staging (GitHub Actions)
+- Frontend → Preview deployment with **staging** worker URL (Cloudflare Pages)
+- Test at: `https://abc123.fretkit.pages.dev`
 
-### Step 16: Test Staging
-
+**3. Ready for Production:**
 ```bash
-# Update .env.local for staging:
-VITE_CLOUDFLARE_API_URL=https://fretkit-api-staging.YOUR_SUBDOMAIN.workers.dev/api
-
-# Test locally
-npm run dev
+git checkout main
+git merge feature/new-feature
+git push origin main
 ```
+- Worker → Waits for manual approval (GitHub Actions)
+- Frontend → Auto-deploys to production with **production** worker URL (Cloudflare Pages)
+
+**4. Approve Production Worker:**
+- Go to GitHub **Actions** → Review and approve worker deployment
+- Frontend is already live and switches to production worker automatically
 
 ---
 
