@@ -38,9 +38,8 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
       };
     }).filter(Boolean) as { chords: ChordDiagram[]; originalIndex: number }[];
 
-    // Calculate appropriate size based on max chords in a row
-    const maxChordsInRow = Math.max(...processedRows.map(r => r.chords.length), 0);
-    const diagramSize = maxChordsInRow >= 5 ? "md" : "lg";
+    // Always use large size for print - ensures consistent sizing and equal page margins
+    const diagramSize = "lg";
 
     const showStrumming = hasStrummingContent(strummingPattern) && strummingPattern;
 
@@ -174,7 +173,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                     </p>
                   </div>
                 )}
-                <div className="flex justify-start gap-3 flex-wrap">
+                <div className="flex justify-center gap-3 flex-wrap">
                   {chords.map((chord) => (
                     <ChordDiagramComponent
                       key={chord.id}
