@@ -1,0 +1,99 @@
+/**
+ * FretKit Cloudflare Worker
+ * 
+ * Main entry point for the Cloudflare Worker that provides the REST API
+ * for managing chord charts and presets stored in D1.
+ */
+
+import type { Env } from './types';
+import { handleCharts } from './routes/charts';
+import { handleChordPresets, handleStrummingPresets } from './routes/presets';
+import {
+  healthCheckResponse,
+  errorResponse,
+  methodNotAllowedResponse,
+} from './utils/responses';
+import {
+  getCorsHeaders,
+  handleCorsPreflightRequest,
+  addCorsHeaders,
+} from './utils/cors';
+
+/**
+ * CORS configuration
+ */
+function getCorsConfig(env: Env) {
+  const allowedOrigins =
+    env.ENVIRONMENT === 'production'
+      ? ['https://fretkit.io', 'https://www.fretkit.io']
+      : ['http://localhost:5173', 'http://localhost:3000', '*'];
+
+  return {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400, // 24 hours
+  };
+}
+
+/**
+ * Main request handler
+ */
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const corsConfig = getCorsConfig(env);
+
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return handleCorsPreflightRequest(request, corsConfig);
+    }
+
+    try {
+      const url = new URL(request.url);
+      const pathParts = url.pathname.split('/').filter(Boolean);
+
+      // Health check endpoint
+      if (url.pathname === '/health' || url.pathname === '/') {
+        const response = healthCheckResponse();
+        return addCorsHeaders(response, request, corsConfig);
+      }
+
+      // API routes
+      if (pathParts[0] === 'api') {
+        let response: Response;
+
+        // /api/charts/*
+        if (pathParts[1] === 'charts') {
+          response = await handleCharts(request, env, pathParts);
+        }
+        // /api/presets/chords/*
+        else if (pathParts[1] === 'presets' && pathParts[2] === 'chords') {
+          response = await handleChordPresets(request, env, pathParts);
+        }
+        // /api/presets/strumming/*
+        else if (pathParts[1] === 'presets' && pathParts[2] === 'strumming') {
+          response = await handleStrummingPresets(request, env, pathParts);
+        }
+        // Unknown API route
+        else {
+          response = errorResponse('Not Found', 404);
+        }
+
+        return addCorsHeaders(response, request, corsConfig);
+      }
+
+      // 404 for all other routes
+      const response = errorResponse('Not Found', 404);
+      return addCorsHeaders(response, request, corsConfig);
+    } catch (error) {
+      console.error('Worker error:', error);
+      const response = errorResponse(
+        'Internal Server Error',
+        500,
+        env.ENVIRONMENT === 'development' ? error : undefined
+      );
+      return addCorsHeaders(response, request, corsConfig);
+    }
+  },
+};
