@@ -58,4 +58,13 @@ export const APP_CONFIG = {
   // Storage configuration
   // Configured via environment variables (see .env.example)
   storage: getStorageConfig(),
+  
+  // Preset configuration
+  presets: {
+    backend: 'cloudflare-d1' as const,
+    cloudflareD1: {
+      apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8787/api',
+      enabled: true,
+    },
+  },
 } as const;

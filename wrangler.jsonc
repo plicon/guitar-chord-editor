@@ -1,23 +1,38 @@
 {
-    "name": "fretkit",
-    "compatibility_date": "2026-01-26",
-    "assets": {
-        "directory": "./dist",
-        "not_found_handling": "single-page-application"
-    },
-    "observability": {
-        "enabled": false,
-        "head_sampling_rate": 1,
-        "logs": {
-        "enabled": true,
-        "head_sampling_rate": 1,
-        "persist": true,
-        "invocation_logs": true
-        },
-        "traces": {
-        "enabled": false,
-        "persist": true,
-        "head_sampling_rate": 1
-        }
-    }
+	"name": "fretkit",
+	"compatibility_date": "2026-01-26",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "fretkit-db",
+			"database_id": "d9c128f4-06c6-471b-9e84-ffbd4a0f280b",
+			"migrations_dir": "worker/migrations",
+			"remote": true
+		},
+		{
+			"binding": "fretkit_db_production",
+			"database_name": "fretkit-db-production",
+			"database_id": "1f1b225b-1977-4f49-a244-4e320dee0374"
+		},
+		{
+			"binding": "fretkit_db_staging",
+			"database_name": "fretkit-db-staging",
+			"database_id": "99f36e70-f499-4023-8bf8-1ac8f6c15a1e"
+		},
+	],
+	"observability": {
+		"enabled": false,
+		"head_sampling_rate": 1,
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1,
+			"persist": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false,
+			"persist": true,
+			"head_sampling_rate": 1
+		}
+	}
 }

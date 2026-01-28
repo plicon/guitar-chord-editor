@@ -13,8 +13,9 @@ import { ChordDiagram, FingerPosition, Barre, FingerLabel } from "@/types/chord"
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
-import { getChordPreset } from "@/data/chordPresets";
+import { getChordPreset as getChordPresetFromProvider } from "@/services/presets";
 import { Switch } from "@/components/ui/switch";
+import type { ChordPreset } from "@/types/chord";
 
 interface ChordEditorProps {
   chord: ChordDiagram;
@@ -34,14 +35,15 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [autoFillPresets, setAutoFillPresets] = useState(true);
+  const [availablePresets, setAvailablePresets] = useState<Set<string>>(new Set());
   const justSelectedRef = useRef(false);
 
-  const handleAutoFillToggle = (checked: boolean) => {
+  const handleAutoFillToggle = async (checked: boolean) => {
     setAutoFillPresets(checked);
     
     if (checked && editedChord.name) {
       // Apply preset if available
-      const preset = getChordPreset(editedChord.name);
+      const preset = await getChordPresetFromProvider(editedChord.name);
       if (preset) {
         setEditedChord({
           ...editedChord,
@@ -78,6 +80,8 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   // Update suggestions when chord name changes
   useEffect(() => {
+    let isMounted = true;
+    
     if (justSelectedRef.current) {
       justSelectedRef.current = false;
       return;
@@ -86,6 +90,30 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     setSuggestions(filtered);
     setSelectedIndex(0);
     setShowSuggestions(filtered.length > 0 && editedChord.name.length > 0);
+    
+    // Check which suggestions have presets available
+    const checkPresets = async () => {
+      const presetChecks = await Promise.all(
+        filtered.map(async (name) => {
+          const preset = await getChordPresetFromProvider(name);
+          return { name, hasPreset: !!preset };
+        })
+      );
+      if (isMounted) {
+        const available = new Set(
+          presetChecks.filter(p => p.hasPreset).map(p => p.name)
+        );
+        setAvailablePresets(available);
+      }
+    };
+    
+    if (filtered.length > 0) {
+      checkPresets();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [editedChord.name]);
 
   // Handle click outside to close suggestions
@@ -109,11 +137,11 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     setEditedChord({ ...editedChord, name: value });
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = async (suggestion: string) => {
     justSelectedRef.current = true;
     setShowSuggestions(false);
     setSuggestions([]); // Clear suggestions to prevent reopening
-    const preset = getChordPreset(suggestion);
+    const preset = await getChordPresetFromProvider(suggestion);
     if (preset) {
       // Always apply the preset fingering when selecting from dropdown
       setEditedChord({
@@ -387,7 +415,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                 className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto"
               >
                 {suggestions.map((suggestion, index) => {
-                  const hasPreset = !!getChordPreset(suggestion);
+                  const hasPreset = availablePresets.has(suggestion);
                   return (
                     <button
                       key={suggestion}

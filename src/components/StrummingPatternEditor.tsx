@@ -18,7 +18,8 @@ import {
 import { StrummingPattern, StrumBeat, createEmptyPattern, BeatType, TimeSignature, Subdivision, getSlotsPerBar, getBeatLabel, getAvailableSubdivisions, getDefaultSubdivision } from "@/types/strumming";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { strummingPresets, applyPresetToBeats } from "@/data/strummingPresets";
+import { applyPresetToBeats, type StrummingPreset } from "@/types/presets";
+import { getStrummingPreset, listStrummingPresets } from "@/services/presets";
 
 interface StrummingPatternEditorProps {
   pattern: StrummingPattern | null;
@@ -38,11 +39,37 @@ export const StrummingPatternEditor = ({
   const [editedPattern, setEditedPattern] = useState<StrummingPattern>(
     pattern || createEmptyPattern(1)
   );
+  const [availablePresets, setAvailablePresets] = useState<StrummingPreset[]>([]);
+
   useEffect(() => {
     if (open) {
       setEditedPattern(pattern || createEmptyPattern(1));
     }
   }, [open, pattern]);
+
+  // Load available presets
+  useEffect(() => {
+    let isMounted = true;
+    
+    if (open) {
+      listStrummingPresets()
+        .then(presets => {
+          if (isMounted) {
+            setAvailablePresets(presets);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load strumming presets:", err);
+          if (isMounted) {
+            setAvailablePresets([]);
+          }
+        });
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
 
   const handleBarsChange = (value: string) => {
     const newBars = parseInt(value);
@@ -78,23 +105,27 @@ export const StrummingPatternEditor = ({
     setEditedPattern(newPattern);
   };
 
-  const handlePresetChange = (presetName: string) => {
-    const preset = strummingPresets.find((p) => p.name === presetName);
-    if (preset) {
-      // Automatically adjust bars to match the preset's bar count
-      const targetBars = Math.max(preset.bars, editedPattern.bars);
-      const newBeats = applyPresetToBeats(preset, targetBars, editedPattern.timeSignature, editedPattern.subdivision);
-      setEditedPattern({
-        ...editedPattern,
-        bars: targetBars,
-        subdivision: preset.subdivision,
-        beats: newBeats,
-      });
+  const handlePresetChange = async (presetName: string) => {
+    try {
+      const preset = await getStrummingPreset(presetName);
+      if (preset) {
+        // Automatically adjust bars to match the preset's bar count
+        const targetBars = Math.max(preset.bars, editedPattern.bars);
+        const newBeats = applyPresetToBeats(preset, targetBars, editedPattern.timeSignature, editedPattern.subdivision);
+        setEditedPattern({
+          ...editedPattern,
+          bars: targetBars,
+          subdivision: preset.subdivision,
+          beats: newBeats,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load strumming preset:", err);
     }
   };
 
   // Filter presets by current time signature and subdivision
-  const filteredPresets = strummingPresets.filter(
+  const filteredPresets = availablePresets.filter(
     p => p.timeSignature === editedPattern.timeSignature && p.subdivision === editedPattern.subdivision
   );
 
