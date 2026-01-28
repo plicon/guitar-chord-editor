@@ -3,6 +3,15 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { StrummingPatternEditor } from "./StrummingPatternEditor";
 import { createEmptyPattern } from "@/types/strumming";
 
+// Mock preset services
+vi.mock("@/services/presets", () => ({
+  getChordPreset: vi.fn(async () => null),
+  listChordPresets: vi.fn(async () => []),
+  searchChordPresets: vi.fn(async () => []),
+  getStrummingPreset: vi.fn(async () => null),
+  listStrummingPresets: vi.fn(async () => []),
+}));
+
 describe("StrummingPatternEditor", () => {
   const mockOnClose = vi.fn();
   const mockOnSave = vi.fn();

@@ -49,14 +49,26 @@ export const StrummingPatternEditor = ({
 
   // Load available presets
   useEffect(() => {
+    let isMounted = true;
+    
     if (open) {
       listStrummingPresets()
-        .then(presets => setAvailablePresets(presets))
+        .then(presets => {
+          if (isMounted) {
+            setAvailablePresets(presets);
+          }
+        })
         .catch(err => {
           console.error("Failed to load strumming presets:", err);
-          setAvailablePresets([]);
+          if (isMounted) {
+            setAvailablePresets([]);
+          }
         });
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [open]);
 
   const handleBarsChange = (value: string) => {

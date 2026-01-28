@@ -80,6 +80,8 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   // Update suggestions when chord name changes
   useEffect(() => {
+    let isMounted = true;
+    
     if (justSelectedRef.current) {
       justSelectedRef.current = false;
       return;
@@ -97,15 +99,21 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
           return { name, hasPreset: !!preset };
         })
       );
-      const available = new Set(
-        presetChecks.filter(p => p.hasPreset).map(p => p.name)
-      );
-      setAvailablePresets(available);
+      if (isMounted) {
+        const available = new Set(
+          presetChecks.filter(p => p.hasPreset).map(p => p.name)
+        );
+        setAvailablePresets(available);
+      }
     };
     
     if (filtered.length > 0) {
       checkPresets();
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [editedChord.name]);
 
   // Handle click outside to close suggestions

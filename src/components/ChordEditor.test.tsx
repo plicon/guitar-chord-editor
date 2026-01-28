@@ -3,11 +3,12 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ChordEditor } from "./ChordEditor";
 import { createEmptyChord, ChordDiagram } from "@/types/chord";
 
-// Mock chord presets
-vi.mock("@/data/chordPresets", () => ({
-  getChordPreset: vi.fn((name: string) => {
+// Mock preset services
+vi.mock("@/services/presets", () => ({
+  getChordPreset: vi.fn(async (name: string) => {
     const presets: Record<string, Partial<ChordDiagram>> = {
       Am: {
+        name: "Am",
         startFret: 1,
         fingers: [
           { string: 2, fret: 1 },
@@ -24,6 +25,7 @@ vi.mock("@/data/chordPresets", () => ({
         ],
       },
       G: {
+        name: "G",
         startFret: 1,
         fingers: [
           { string: 6, fret: 3 },
@@ -36,6 +38,7 @@ vi.mock("@/data/chordPresets", () => ({
         fingerLabels: [],
       },
       F: {
+        name: "F",
         startFret: 1,
         fingers: [
           { string: 3, fret: 2 },
@@ -50,6 +53,10 @@ vi.mock("@/data/chordPresets", () => ({
     };
     return presets[name] || null;
   }),
+  listChordPresets: vi.fn(async () => []),
+  searchChordPresets: vi.fn(async () => []),
+  getStrummingPreset: vi.fn(async () => null),
+  listStrummingPresets: vi.fn(async () => []),
 }));
 
 // Mock chord suggestions
@@ -191,7 +198,9 @@ describe("ChordEditor", () => {
       );
       if (amButton) fireEvent.click(amButton);
 
-      expect(input).toHaveValue("Am");
+      await waitFor(() => {
+        expect(input).toHaveValue("Am");
+      });
     });
 
     it("should navigate suggestions with arrow keys", async () => {
