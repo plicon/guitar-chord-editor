@@ -47,8 +47,8 @@ export class CloudflareD1PresetProvider implements PresetProvider {
         throw new Error(`Failed to fetch chord presets: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return this.convertApiChordPresetsToAppFormat(data);
+      const result = await response.json();
+      return this.convertApiChordPresetsToAppFormat(result.data || []);
     } catch (error) {
       console.error('Failed to fetch chord presets:', error);
       return [];
@@ -88,7 +88,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
 
       const searchResult = await response.json();
       // Look for exact name match
-      const presets = this.convertApiChordPresetsToAppFormat(searchResult);
+      const presets = this.convertApiChordPresetsToAppFormat(searchResult.data || []);
       const match = presets.find(p => p.name === nameOrId);
       return match || null;
     } catch (error) {
@@ -138,32 +138,50 @@ export class CloudflareD1PresetProvider implements PresetProvider {
         throw new Error(`Failed to fetch strumming presets: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return this.convertApiStrummingPresetsToAppFormat(data);
+      const result = await response.json();
+      return this.convertApiStrummingPresetsToAppFormat(result.data || []);
     } catch (error) {
       console.error('Failed to fetch strumming presets:', error);
       return [];
     }
   }
 
-  async getStrummingPreset(id: string): Promise<StrummingPreset | null> {
+  async getStrummingPreset(nameOrId: string): Promise<StrummingPreset | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/presets/strumming/${id}`, {
+      // First try by ID (lowercase, remove special chars)
+      const id = nameOrId.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      let response = await fetch(`${this.apiUrl}/presets/strumming/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`Failed to fetch strumming preset: ${response.statusText}`);
+      if (response.ok) {
+        const data = await response.json();
+        return this.convertApiStrummingPresetToAppFormat(data);
       }
 
-      const data = await response.json();
-      return this.convertApiStrummingPresetToAppFormat(data);
+      // If not found by ID, try searching by name
+      response = await fetch(
+        `${this.apiUrl}/presets/strumming?q=${encodeURIComponent(nameOrId)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const searchResult = await response.json();
+      // Look for exact name match
+      const presets = this.convertApiStrummingPresetsToAppFormat(searchResult.data || []);
+      const match = presets.find(p => p.name === nameOrId);
+      return match || null;
     } catch (error) {
       console.error('Failed to fetch strumming preset:', error);
       return null;
@@ -244,12 +262,14 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   private convertApiStrummingPresetToAppFormat(apiPreset: any): StrummingPreset {
+    // API format: { id, name, pattern: { bars, timeSignature, subdivision, pattern } }
+    // App format: { name, pattern: [...], bars, timeSignature, subdivision }
     return {
-      id: apiPreset.id,
       name: apiPreset.name,
-      timeSignature: apiPreset.timeSignature,
-      subdivision: apiPreset.subdivision,
-      pattern: apiPreset.pattern,
+      pattern: apiPreset.pattern.pattern,
+      bars: apiPreset.pattern.bars,
+      timeSignature: apiPreset.pattern.timeSignature,
+      subdivision: apiPreset.pattern.subdivision,
     };
   }
 }
