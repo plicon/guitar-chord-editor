@@ -10,17 +10,17 @@ export type { PresetProvider, PresetProviderConfig };
 
 // Create preset provider based on configuration
 const createPresetProvider = (): PresetProvider => {
-  const config = APP_CONFIG.storage;
+  const config = APP_CONFIG.presets;
 
-  // Use Cloudflare API if configured
-  if (config?.provider === 'cloudflare-api' && config.cloudflareApi) {
-    const baseProvider = new CloudflareD1PresetProvider(config.cloudflareApi);
+  // Use Cloudflare D1 API if configured
+  if (config?.backend === 'cloudflare-d1' && config.cloudflareD1) {
+    const baseProvider = new CloudflareD1PresetProvider(config.cloudflareD1);
     // Wrap with cache for better performance
     return new CachedPresetProvider(baseProvider);
   }
 
   // TODO: Add PostgresPresetProvider when implemented
-  // if (config?.provider === 'postgres' && config.postgres) {
+  // if (config?.backend === 'postgres' && config.postgres) {
   //   const baseProvider = new PostgresPresetProvider(config.postgres);
   //   return new CachedPresetProvider(baseProvider);
   // }
@@ -32,19 +32,19 @@ const createPresetProvider = (): PresetProvider => {
       return false;
     },
     async listChordPresets() {
-      throw new Error('Preset provider not configured. Please set VITE_STORAGE_PROVIDER.');
+      throw new Error('Preset provider not configured. Please check APP_CONFIG.presets.');
     },
     async getChordPreset() {
-      throw new Error('Preset provider not configured. Please set VITE_STORAGE_PROVIDER.');
+      throw new Error('Preset provider not configured. Please check APP_CONFIG.presets.');
     },
     async searchChordPresets() {
-      throw new Error('Preset provider not configured. Please set VITE_STORAGE_PROVIDER.');
+      throw new Error('Preset provider not configured. Please check APP_CONFIG.presets.');
     },
     async listStrummingPresets() {
-      throw new Error('Preset provider not configured. Please set VITE_STORAGE_PROVIDER.');
+      throw new Error('Preset provider not configured. Please check APP_CONFIG.presets.');
     },
     async getStrummingPreset() {
-      throw new Error('Preset provider not configured. Please set VITE_STORAGE_PROVIDER.');
+      throw new Error('Preset provider not configured. Please check APP_CONFIG.presets.');
     },
   };
 };

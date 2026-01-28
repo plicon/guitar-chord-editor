@@ -55,24 +55,42 @@ export class CloudflareD1PresetProvider implements PresetProvider {
     }
   }
 
-  async getChordPreset(id: string): Promise<ChordPreset | null> {
+  async getChordPreset(nameOrId: string): Promise<ChordPreset | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/presets/chords/${id}`, {
+      // First try by ID (lowercase, remove special chars)
+      const id = nameOrId.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      let response = await fetch(`${this.apiUrl}/presets/chords/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`Failed to fetch chord preset: ${response.statusText}`);
+      if (response.ok) {
+        const data = await response.json();
+        return this.convertApiChordPresetToAppFormat(data);
       }
 
-      const data = await response.json();
-      return this.convertApiChordPresetToAppFormat(data);
+      // If not found by ID, try searching by name
+      response = await fetch(
+        `${this.apiUrl}/presets/chords?q=${encodeURIComponent(nameOrId)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const searchResult = await response.json();
+      // Look for exact name match
+      const presets = this.convertApiChordPresetsToAppFormat(searchResult);
+      const match = presets.find(p => p.name === nameOrId);
+      return match || null;
     } catch (error) {
       console.error('Failed to fetch chord preset:', error);
       return null;
