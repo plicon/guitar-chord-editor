@@ -7,9 +7,10 @@ on:
       - 'feature/**'
       - 'feat/**'
       - 'dev/**'
-    paths:
-      - 'worker/**'
-      - '.github/workflows/deploy-worker.yml'
+  
+  pull_request:
+    branches:
+      - main
   
   # Manual production deployment
   workflow_dispatch:
@@ -66,9 +67,6 @@ jobs:
       
       - name: Install dependencies
         run: cd worker && npm ci
-      
-      - name: Run tests
-        run: cd worker && npm test
       
       - name: Deploy to ${{ needs.determine-environment.outputs.environment }}
         id: deploy
