@@ -8,6 +8,30 @@ export interface CloudflareApiConfig {
   enabled: boolean;
 }
 
+// API response types
+interface ApiChordPreset {
+  id: string;
+  name: string;
+  frets: (number | 'x' | null)[];
+  fingers?: (number | null)[];
+  barreInfo?: {
+    fret: number;
+    fromString: number;
+    toString: number;
+  } | null;
+}
+
+interface ApiStrummingPreset {
+  id: string;
+  name: string;
+  pattern: {
+    bars: number;
+    timeSignature: string;
+    subdivision: string;
+    pattern: string[];
+  };
+}
+
 export class CloudflareD1PresetProvider implements PresetProvider {
   name = 'Cloudflare D1';
   private apiUrl: string;
@@ -189,11 +213,11 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   // Convert API format to app format for chord presets
-  private convertApiChordPresetsToAppFormat(apiPresets: any[]): ChordPreset[] {
+  private convertApiChordPresetsToAppFormat(apiPresets: ApiChordPreset[]): ChordPreset[] {
     return apiPresets.map((preset) => this.convertApiChordPresetToAppFormat(preset));
   }
 
-  private convertApiChordPresetToAppFormat(apiPreset: any): ChordPreset {
+  private convertApiChordPresetToAppFormat(apiPreset: ApiChordPreset): ChordPreset {
     // API format: { id, name, frets, fingers, barreInfo }
     // App format: { name, startFret, fingers, barres, mutedStrings, openStrings, fingerLabels }
     
@@ -257,11 +281,11 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   // Convert API format to app format for strumming presets
-  private convertApiStrummingPresetsToAppFormat(apiPresets: any[]): StrummingPreset[] {
+  private convertApiStrummingPresetsToAppFormat(apiPresets: ApiStrummingPreset[]): StrummingPreset[] {
     return apiPresets.map((preset) => this.convertApiStrummingPresetToAppFormat(preset));
   }
 
-  private convertApiStrummingPresetToAppFormat(apiPreset: any): StrummingPreset {
+  private convertApiStrummingPresetToAppFormat(apiPreset: ApiStrummingPreset): StrummingPreset {
     // API format: { id, name, pattern: { bars, timeSignature, subdivision, pattern } }
     // App format: { name, pattern: [...], bars, timeSignature, subdivision }
     return {
