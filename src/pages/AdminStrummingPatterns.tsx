@@ -1,11 +1,19 @@
 import { StrummingPatternDisplay } from "../components/StrummingPatternDisplay";
 import { StrummingPatternEditor } from "../components/StrummingPatternEditor";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useStrummingPatterns } from "../hooks/useStrummingPatterns";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Button } from "../components/ui/button";
 import { Plus, Pencil, Trash2, Home } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Label } from "../components/ui/label";
 import { getBeatLabel } from "../types/strumming";
 
 // Convert backend StrummingPreset format to frontend StrummingPattern format
@@ -61,6 +69,51 @@ export default function AdminStrummingPatternsPage() {
   const [creating, setCreating] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [presetDescription, setPresetDescription] = useState("");
+  const [filterTime, setFilterTime] = useState<string>("all");
+  const [filterSubdivision, setFilterSubdivision] = useState<string>("all");
+
+  // Extract unique time signatures and subdivisions from patterns
+  const { timeSignatures, subdivisions } = useMemo(() => {
+    if (!Array.isArray(patterns)) {
+      return { timeSignatures: [], subdivisions: [] };
+    }
+    
+    const times = new Set<string>();
+    const subs = new Set<number>();
+    
+    patterns.forEach((pattern: any) => {
+      if (pattern.pattern?.timeSignature) {
+        times.add(pattern.pattern.timeSignature);
+      }
+      if (pattern.pattern?.subdivision != null) {
+        subs.add(pattern.pattern.subdivision);
+      }
+    });
+    
+    return {
+      timeSignatures: Array.from(times).sort(),
+      subdivisions: Array.from(subs).sort((a, b) => a - b),
+    };
+  }, [patterns]);
+
+  // Filter patterns based on selected filters (AND operator)
+  const filteredPatterns = useMemo(() => {
+    if (!Array.isArray(patterns)) {
+      return [];
+    }
+    
+    return patterns.filter((pattern: any) => {
+      // If no filters, show all
+      if (filterTime === "all" && filterSubdivision === "all") {
+        return true;
+      }
+      
+      const matchesTime = filterTime === "all" || pattern.pattern?.timeSignature === filterTime;
+      const matchesSubdivision = filterSubdivision === "all" || pattern.pattern?.subdivision === parseInt(filterSubdivision);
+      
+      return matchesTime && matchesSubdivision;
+    });
+  }, [patterns, filterTime, filterSubdivision]);
 
   useEffect(() => {
     // Debug: log patterns value and type
@@ -139,6 +192,58 @@ export default function AdminStrummingPatternsPage() {
             Add New Pattern
           </Button>
         </div>
+
+        {/* Filter Bar */}
+        <div className="mb-6 p-4 border rounded-lg bg-card">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[200px]">
+              <Label htmlFor="filter-time" className="mb-2 block">Time Signature</Label>
+              <Select value={filterTime} onValueChange={setFilterTime}>
+                <SelectTrigger id="filter-time">
+                  <SelectValue placeholder="All times" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All times</SelectItem>
+                  {timeSignatures.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+              <Label htmlFor="filter-subdivision" className="mb-2 block">Subdivision</Label>
+              <Select value={filterSubdivision} onValueChange={setFilterSubdivision}>
+                <SelectTrigger id="filter-subdivision">
+                  <SelectValue placeholder="All subdivisions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All subdivisions</SelectItem>
+                  {subdivisions.map((sub) => (
+                    <SelectItem key={sub} value={sub.toString()}>
+                      {sub}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(filterTime !== "all" || filterSubdivision !== "all") && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  setFilterTime("all");
+                  setFilterSubdivision("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </div>
       {creating && (
         <StrummingPatternEditor
           pattern={null}
@@ -169,11 +274,15 @@ export default function AdminStrummingPatternsPage() {
           onDescriptionChange={setPresetDescription}
         />
       )}
-      {Array.isArray(patterns) && patterns.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">No strumming patterns found. Click "Add New Pattern" to create one.</p>
+      {Array.isArray(filteredPatterns) && filteredPatterns.length === 0 ? (
+        <p className="text-muted-foreground text-center py-8">
+          {filterTime !== "all" || filterSubdivision !== "all" 
+            ? "No patterns match the selected filters." 
+            : "No strumming patterns found. Click 'Add New Pattern' to create one."}
+        </p>
       ) : (
         <ul className="space-y-4">
-          {patterns.map((pattern) => (
+          {filteredPatterns.map((pattern) => (
             <li key={pattern.id} className="border p-2 rounded">
               {editingId === pattern.id ? (
                 <StrummingPatternEditor
