@@ -6,8 +6,6 @@
  */
 
 import type { Env } from './types';
-import { handleCharts } from './routes/charts';
-import { handleChordPresets, handleStrummingPresets } from './routes/presets';
 import { openApiSpec } from './openapi';
 import { handleCharts, handleAdminCharts } from './routes/charts';
 import {
