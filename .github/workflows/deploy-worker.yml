@@ -40,7 +40,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "should-deploy=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/heads/feature/* ]] || [[ "${{ github.ref }}" == refs/heads/dev/* ]]; then
+          elif [[ "${{ github.ref }}" == refs/heads/feat/* ]] || [[ "${{ github.ref }}" == refs/heads/feature/* ]]; then
             echo "environment=development" >> $GITHUB_OUTPUT
             echo "should-deploy=true" >> $GITHUB_OUTPUT
           else
@@ -48,7 +48,7 @@ jobs:
           fi
 
   # Deploy worker
-  deploy-staging:
+  deploy-nonprod:
     needs: determine-environment
     if: needs.determine-environment.outputs.should-deploy == 'true'
     runs-on: ubuntu-latest
@@ -114,7 +114,7 @@ jobs:
   # Production deployment requires manual approval
   deploy-production:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: deploy
+    needs: deploy-nonprod
     runs-on: ubuntu-latest
     environment:
       name: production

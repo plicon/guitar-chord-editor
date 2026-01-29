@@ -5,7 +5,7 @@ This guide shows how to protect your Worker API using Cloudflare Access with Ser
 ## Overview
 
 - **Read operations** (GET) → Public (no authentication)
-- **Write operations** (POST, PUT, DELETE) → Protected by Cloudflare Access on `/api/admin/*`
+- **Write operations** (POST, PUT, DELETE) → Protected by Cloudflare Access
 - Service Tokens allow your frontend to authenticate without user interaction
 
 ## Step 1: Enable Cloudflare Zero Trust (One-Time Setup)
