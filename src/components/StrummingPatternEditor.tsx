@@ -27,6 +27,12 @@ interface StrummingPatternEditorProps {
   onClose: () => void;
   onSave: (pattern: StrummingPattern) => void;
   onDelete: () => void;
+  // Admin mode props
+  showMetadata?: boolean;
+  name?: string;
+  description?: string;
+  onNameChange?: (name: string) => void;
+  onDescriptionChange?: (description: string) => void;
 }
 
 export const StrummingPatternEditor = ({
@@ -35,6 +41,11 @@ export const StrummingPatternEditor = ({
   onClose,
   onSave,
   onDelete,
+  showMetadata = false,
+  name = "",
+  description = "",
+  onNameChange,
+  onDescriptionChange,
 }: StrummingPatternEditorProps) => {
   const [editedPattern, setEditedPattern] = useState<StrummingPattern>(
     pattern || createEmptyPattern(1)
@@ -174,6 +185,34 @@ export const StrummingPatternEditor = ({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Admin metadata fields */}
+          {showMetadata && (
+            <div className="space-y-4 pb-4 border-b">
+              <div>
+                <Label htmlFor="pattern-name">Pattern Name *</Label>
+                <input
+                  id="pattern-name"
+                  type="text"
+                  className="w-full border rounded px-3 py-2 mt-1 text-black"
+                  value={name}
+                  onChange={(e) => onNameChange?.(e.target.value)}
+                  placeholder="e.g., Basic Down Strums"
+                />
+              </div>
+              <div>
+                <Label htmlFor="pattern-description">Description (optional)</Label>
+                <textarea
+                  id="pattern-description"
+                  className="w-full border rounded px-3 py-2 mt-1 text-black"
+                  value={description}
+                  onChange={(e) => onDescriptionChange?.(e.target.value)}
+                  placeholder="Brief description of this pattern"
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          
           {/* Controls */}
           <div className="flex items-center gap-6 flex-wrap">
             <div className="flex items-center gap-2">
