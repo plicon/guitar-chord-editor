@@ -6,8 +6,14 @@
  */
 
 import type { Env } from './types';
-import { handleCharts } from './routes/charts';
-import { handleChordPresets, handleStrummingPresets } from './routes/presets';
+import { openApiSpec } from './openapi';
+import { handleCharts, handleAdminCharts } from './routes/charts';
+import {
+  handleChordPresets,
+  handleStrummingPresets,
+  handleAdminChordPresets,
+  handleAdminStrummingPresets,
+} from './routes/presets';
 import {
   healthCheckResponse,
   errorResponse,
@@ -63,9 +69,56 @@ export default {
       if (pathParts[0] === 'api') {
         let response: Response;
 
+        // /api/docs - API Documentation UI
+        if (pathParts[1] === 'docs' && pathParts.length === 2) {
+          const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FretKit API Documentation</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <script
+    id="api-reference"
+    data-url="/api/docs/openapi.json"
+    data-configuration='${JSON.stringify({
+      theme: 'purple',
+      layout: 'modern',
+      defaultOpenAllTags: true,
+    })}'></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>
+          `;
+          response = new Response(html, {
+            headers: { 'Content-Type': 'text/html' }
+          });
+          return addCorsHeaders(response, request, corsConfig);
+        }
+
+        // /api/docs/openapi.json - OpenAPI Specification
+        if (pathParts[1] === 'docs' && pathParts[2] === 'openapi.json') {
+          response = new Response(JSON.stringify(openApiSpec, null, 2), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+          return addCorsHeaders(response, request, corsConfig);
+        }
+
         // /api/charts/*
         if (pathParts[1] === 'charts') {
           response = await handleCharts(request, env, pathParts);
+        }
+        // /api/admin/charts/*
+        else if (pathParts[1] === 'admin' && pathParts[2] === 'charts') {
+          response = await handleAdminCharts(request, env, pathParts);
         }
         // /api/presets/chords/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'chords') {
@@ -74,6 +127,22 @@ export default {
         // /api/presets/strumming/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'strumming') {
           response = await handleStrummingPresets(request, env, pathParts);
+        }
+        // /api/admin/presets/chords/*
+        else if (
+          pathParts[1] === 'admin' &&
+          pathParts[2] === 'presets' &&
+          pathParts[3] === 'chords'
+        ) {
+          response = await handleAdminChordPresets(request, env, pathParts);
+        }
+        // /api/admin/presets/strumming/*
+        else if (
+          pathParts[1] === 'admin' &&
+          pathParts[2] === 'presets' &&
+          pathParts[3] === 'strumming'
+        ) {
+          response = await handleAdminStrummingPresets(request, env, pathParts);
         }
         // Unknown API route
         else {

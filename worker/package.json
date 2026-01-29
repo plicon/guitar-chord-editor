@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev -c wrangler.toml",
+    "dev:remote": "wrangler dev -c wrangler.toml --remote",
     "deploy": "wrangler deploy -c wrangler.toml",
     "tail": "wrangler tail",
     "db:migrate:local": "wrangler d1 migrations apply fretkit-db --local -c wrangler.toml",

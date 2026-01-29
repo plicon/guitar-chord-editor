@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'feat/*', 'dev/*']
   pull_request:
-    branches: [main, master]
+    branches: [main, master, 'feat/*', 'dev/*']
 
 jobs:
   # Lint and Type Check
@@ -26,6 +26,9 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Lint OpenAPI spec
+        run: npm run lint:openapi
 
       - name: TypeScript type check
         run: npx tsc --noEmit
