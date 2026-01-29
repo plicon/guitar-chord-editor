@@ -15,6 +15,10 @@ export const openApiSpec = {
     contact: {
       name: 'FretKit',
       url: 'https://fretkit.io'
+    },
+    license: {
+      name: 'Proprietary',
+      identifier: 'Proprietary'
     }
   },
   servers: [
@@ -30,6 +34,7 @@ export const openApiSpec = {
         description: 'Check if the API is running and get version information',
         operationId: 'healthCheck',
         tags: ['System'],
+        security: [],
         responses: {
           '200': {
             description: 'API is healthy and operational',
@@ -59,55 +64,76 @@ export const openApiSpec = {
                 }
               }
             }
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
           }
         }
       }
     },
     '/presets/chords': {
-              }
-            },
-            '/charts/{id}': {
-              get: {
-                summary: 'Get Chord Chart',
-                description: 'Retrieve a specific chord chart by its ID',
-                operationId: 'getChart',
-                tags: ['Charts'],
-                parameters: [
-                  {
-                    name: 'id',
-                    in: 'path',
-                    required: true,
-                    description: 'Unique identifier of the chord chart',
-                    schema: {
-                      type: 'string',
-                      format: 'uuid'
-                    }
-                  }
-                ],
-                responses: {
-                  '200': {
-                    description: 'Chord chart found',
-                    content: {
-                      'application/json': {
-                        schema: {
-                          $ref: '#/components/schemas/ChordChart'
-                        }
-                      }
-                    }
-                  },
-                  '404': {
-                    description: 'Chord chart not found',
-                    content: {
-                      'application/json': {
-                        schema: {
-                          $ref: '#/components/schemas/Error'
-                        }
-                      }
-                    }
+      get: {
+        summary: 'List Chord Presets',
+        description: 'Get all available chord presets from the database. Returns common chord shapes with fingering information.',
+        operationId: 'listChordPresets',
+        tags: ['Presets'],
+        security: [],
+        responses: {
+          '200': {
+            description: 'List of chord presets retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/ChordPreset'
                   }
                 }
               }
-            },
+            }
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/presets/chords/{id}': {
+      get: {
+        summary: 'Get Chord Preset',
+        description: 'Retrieve a specific chord preset by its ID',
+        operationId: 'getChordPreset',
+        tags: ['Presets'],
+        security: [],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
             description: 'Unique identifier of the chord preset',
             schema: {
               type: 'string',
@@ -122,6 +148,16 @@ export const openApiSpec = {
               'application/json': {
                 schema: {
                   $ref: '#/components/schemas/ChordPreset'
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
                 }
               }
             }
@@ -145,6 +181,7 @@ export const openApiSpec = {
         description: 'Get all available strumming pattern presets from the database',
         operationId: 'listStrummingPresets',
         tags: ['Presets'],
+        security: [],
         responses: {
           '200': {
             description: 'List of strumming pattern presets retrieved successfully',
@@ -155,6 +192,16 @@ export const openApiSpec = {
                   items: {
                     $ref: '#/components/schemas/StrummingPreset'
                   }
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
                 }
               }
             }
@@ -178,6 +225,7 @@ export const openApiSpec = {
         description: 'Retrieve a specific strumming pattern preset by its ID',
         operationId: 'getStrummingPreset',
         tags: ['Presets'],
+        security: [],
         parameters: [
           {
             name: 'id',
@@ -201,6 +249,16 @@ export const openApiSpec = {
               }
             }
           },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
           '404': {
             description: 'Strumming pattern not found',
             content: {
@@ -220,6 +278,7 @@ export const openApiSpec = {
         description: 'Get all saved chord charts for the current user',
         operationId: 'listCharts',
         tags: ['Charts'],
+        security: [],
         responses: {
           '200': {
             description: 'List of chord charts retrieved successfully',
@@ -230,6 +289,16 @@ export const openApiSpec = {
                   items: {
                     $ref: '#/components/schemas/ChordChart'
                   }
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
                 }
               }
             }
@@ -253,6 +322,7 @@ export const openApiSpec = {
         description: 'Retrieve a specific chord chart by its ID',
         operationId: 'getChart',
         tags: ['Charts'],
+        security: [],
         parameters: [
           {
             name: 'id',
@@ -276,6 +346,16 @@ export const openApiSpec = {
               }
             }
           },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
           '404': {
             description: 'Chord chart not found',
             content: {
@@ -295,6 +375,12 @@ export const openApiSpec = {
           description: 'Save a new chord chart to the database (admin)',
           operationId: 'createChart',
           tags: ['Admin', 'Charts'],
+          security: [
+            {
+              cfAccessClientId: [],
+              cfAccessClientSecret: []
+            }
+          ],
           requestBody: {
             required: true,
             description: 'Chord chart data to save',
@@ -346,6 +432,12 @@ export const openApiSpec = {
           description: 'Update an existing chord chart (admin)',
           operationId: 'updateChart',
           tags: ['Admin', 'Charts'],
+            security: [
+              {
+                cfAccessClientId: [],
+                cfAccessClientSecret: []
+              }
+            ],
           parameters: [
             {
               name: 'id',
@@ -407,6 +499,12 @@ export const openApiSpec = {
           description: 'Delete a chord chart from the database (admin)',
           operationId: 'deleteChart',
           tags: ['Admin', 'Charts'],
+          security: [
+            {
+              cfAccessClientId: [],
+              cfAccessClientSecret: []
+            }
+          ],
           parameters: [
             {
               name: 'id',
@@ -442,6 +540,12 @@ export const openApiSpec = {
           description: 'Create a new chord preset (admin)',
           operationId: 'createChordPreset',
           tags: ['Admin', 'Presets'],
+            security: [
+              {
+                cfAccessClientId: [],
+                cfAccessClientSecret: []
+              }
+            ],
           requestBody: {
             required: true,
             description: 'Chord preset data to save',
@@ -483,6 +587,12 @@ export const openApiSpec = {
           description: 'Update an existing chord preset (admin)',
           operationId: 'updateChordPreset',
           tags: ['Admin', 'Presets'],
+            security: [
+              {
+                cfAccessClientId: [],
+                cfAccessClientSecret: []
+              }
+            ],
           parameters: [
             {
               name: 'id',
@@ -533,6 +643,12 @@ export const openApiSpec = {
           description: 'Delete a chord preset (admin)',
           operationId: 'deleteChordPreset',
           tags: ['Admin', 'Presets'],
+          security: [
+            {
+              cfAccessClientId: [],
+              cfAccessClientSecret: []
+            }
+          ],
           parameters: [
             {
               name: 'id',
@@ -567,6 +683,12 @@ export const openApiSpec = {
           description: 'Create a new strumming preset (admin)',
           operationId: 'createStrummingPreset',
           tags: ['Admin', 'Presets'],
+            security: [
+              {
+                cfAccessClientId: [],
+                cfAccessClientSecret: []
+              }
+            ],
           requestBody: {
             required: true,
             description: 'Strumming preset data to save',
@@ -608,6 +730,12 @@ export const openApiSpec = {
           description: 'Update an existing strumming preset (admin)',
           operationId: 'updateStrummingPreset',
           tags: ['Admin', 'Presets'],
+            security: [
+              {
+                cfAccessClientId: [],
+                cfAccessClientSecret: []
+              }
+            ],
           parameters: [
             {
               name: 'id',
@@ -658,6 +786,12 @@ export const openApiSpec = {
           description: 'Delete a strumming preset (admin)',
           operationId: 'deleteStrummingPreset',
           tags: ['Admin', 'Presets'],
+          security: [
+            {
+              cfAccessClientId: [],
+              cfAccessClientSecret: []
+            }
+          ],
           parameters: [
             {
               name: 'id',
@@ -686,9 +820,22 @@ export const openApiSpec = {
           }
         }
       }
-    }
-  },
+    },
   components: {
+    securitySchemes: {
+      cfAccessClientId: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'CF-Access-Client-Id',
+        description: 'Cloudflare Access client ID header'
+      },
+      cfAccessClientSecret: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'CF-Access-Client-Secret',
+        description: 'Cloudflare Access client secret header'
+      }
+    },
     schemas: {
       ChordPreset: {
         type: 'object',
@@ -725,31 +872,34 @@ export const openApiSpec = {
                 { type: 'null' }
               ]
             },
-            example: [null, 3, 2, null, 1, null],
-            nullable: true
+            example: [null, 3, 2, null, 1, null]
           },
           barreInfo: {
-            type: 'object',
-            description: 'Barre chord information if applicable',
-            properties: {
-              fret: {
-                type: 'number',
-                description: 'Fret where the barre is placed'
+            oneOf: [
+              {
+                type: 'object',
+                description: 'Barre chord information if applicable',
+                properties: {
+                  fret: {
+                    type: 'number',
+                    description: 'Fret where the barre is placed'
+                  },
+                  fromString: {
+                    type: 'number',
+                    description: 'Starting string (1-6)',
+                    minimum: 1,
+                    maximum: 6
+                  },
+                  toString: {
+                    type: 'number',
+                    description: 'Ending string (1-6)',
+                    minimum: 1,
+                    maximum: 6
+                  }
+                }
               },
-              fromString: {
-                type: 'number',
-                description: 'Starting string (1-6)',
-                minimum: 1,
-                maximum: 6
-              },
-              toString: {
-                type: 'number',
-                description: 'Ending string (1-6)',
-                minimum: 1,
-                maximum: 6
-              }
-            },
-            nullable: true
+              { type: 'null' }
+            ]
           }
         },
         required: ['id', 'name', 'frets']
@@ -817,10 +967,9 @@ export const openApiSpec = {
             description: 'Title of the chord chart'
           },
           artist: {
-            type: 'string',
+            type: ['string', 'null'],
             example: 'Artist Name',
-            description: 'Artist or author name',
-            nullable: true
+            description: 'Artist or author name'
           },
           data: {
             type: 'object',
@@ -850,10 +999,9 @@ export const openApiSpec = {
             description: 'Title of the chord chart'
           },
           artist: {
-            type: 'string',
+            type: ['string', 'null'],
             example: 'Artist Name',
-            description: 'Artist or author name',
-            nullable: true
+            description: 'Artist or author name'
           },
           data: {
             type: 'object',
@@ -879,7 +1027,7 @@ export const openApiSpec = {
           },
           details: {
             description: 'Additional error details (only in development)',
-            nullable: true
+            type: ['object', 'null']
           }
         },
         required: ['error', 'status']
