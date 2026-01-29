@@ -244,56 +244,6 @@ export const openApiSpec = {
             }
           }
         }
-      },
-      post: {
-        summary: 'Create Chord Chart',
-        description: 'Save a new chord chart to the database',
-        operationId: 'createChart',
-        tags: ['Charts'],
-        requestBody: {
-          required: true,
-          description: 'Chord chart data to save',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ChordChartInput'
-              }
-            }
-          }
-        },
-        responses: {
-          '201': {
-            description: 'Chord chart created successfully',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ChordChart'
-                }
-              }
-            }
-          },
-          '400': {
-            description: 'Invalid request body',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
-                }
-              }
-            }
-          },
-          '500': {
-            description: 'Internal server error',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
-                }
-              }
-            }
-          }
-        }
-      }
     },
     '/charts/{id}': {
       get: {
@@ -318,102 +268,404 @@ export const openApiSpec = {
             description: 'Chord chart found',
             content: {
               'application/json': {
+      },
+      '/admin/charts': {
+        post: {
+          summary: 'Create Chord Chart',
+          description: 'Save a new chord chart to the database (admin)',
+          operationId: 'createChart',
+          tags: ['Admin', 'Charts'],
+          requestBody: {
+            required: true,
+            description: 'Chord chart data to save',
+            content: {
+              'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/ChordChart'
+                  $ref: '#/components/schemas/ChordChartInput'
                 }
               }
             }
           },
-          '404': {
-            description: 'Chord chart not found',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
+          responses: {
+            '201': {
+              description: 'Chord chart created successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ChordChart'
+                  }
+                }
+              }
+            },
+            '400': {
+              description: 'Invalid request body',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
                 }
               }
             }
           }
         }
       },
-      put: {
-        summary: 'Update Chord Chart',
-        description: 'Update an existing chord chart',
-        operationId: 'updateChart',
-        tags: ['Charts'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            description: 'Unique identifier of the chord chart',
-            schema: {
-              type: 'string',
-              format: 'uuid'
-            }
-          }
-        ],
-        requestBody: {
-          required: true,
-          description: 'Updated chord chart data',
-          content: {
-            'application/json': {
+      '/admin/charts/{id}': {
+        put: {
+          summary: 'Update Chord Chart',
+          description: 'Update an existing chord chart (admin)',
+          operationId: 'updateChart',
+          tags: ['Admin', 'Charts'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the chord chart',
               schema: {
-                $ref: '#/components/schemas/ChordChartInput'
+                type: 'string',
+                format: 'uuid'
+              }
+            }
+          ],
+          requestBody: {
+            required: true,
+            description: 'Updated chord chart data',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordChartInput'
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Chord chart updated successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ChordChart'
+                  }
+                }
+              }
+            },
+            '404': {
+              description: 'Chord chart not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            '400': {
+              description: 'Invalid request body',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
               }
             }
           }
         },
-        responses: {
-          '200': {
-            description: 'Chord chart updated successfully',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ChordChart'
-                }
+        delete: {
+          summary: 'Delete Chord Chart',
+          description: 'Delete a chord chart from the database (admin)',
+          operationId: 'deleteChart',
+          tags: ['Admin', 'Charts'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the chord chart',
+              schema: {
+                type: 'string',
+                format: 'uuid'
               }
             }
-          },
-          '404': {
-            description: 'Chord chart not found',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
-                }
-              }
-            }
-          },
-          '400': {
-            description: 'Invalid request body',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
+          ],
+          responses: {
+            '204': {
+              description: 'Chord chart deleted successfully'
+            },
+            '404': {
+              description: 'Chord chart not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
                 }
               }
             }
           }
         }
       },
-      delete: {
-        summary: 'Delete Chord Chart',
-        description: 'Delete a chord chart from the database',
-        operationId: 'deleteChart',
-        tags: ['Charts'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
+      '/admin/presets/chords': {
+        post: {
+          summary: 'Create Chord Preset',
+          description: 'Create a new chord preset (admin)',
+          operationId: 'createChordPreset',
+          tags: ['Admin', 'Presets'],
+          requestBody: {
             required: true,
-            description: 'Unique identifier of the chord chart',
-            schema: {
-              type: 'string',
-              format: 'uuid'
+            description: 'Chord preset data to save',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordPreset'
+                }
+              }
+            }
+          },
+          responses: {
+            '201': {
+              description: 'Chord preset created successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ChordPreset'
+                  }
+                }
+              }
+            },
+            '400': {
+              description: 'Invalid request body',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
             }
           }
-        ],
+        }
+      },
+      '/admin/presets/chords/{id}': {
+        put: {
+          summary: 'Update Chord Preset',
+          description: 'Update an existing chord preset (admin)',
+          operationId: 'updateChordPreset',
+          tags: ['Admin', 'Presets'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the chord preset',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          requestBody: {
+            required: true,
+            description: 'Updated chord preset data',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordPreset'
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Chord preset updated successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ChordPreset'
+                  }
+                }
+              }
+            },
+            '404': {
+              description: 'Chord preset not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        },
+        delete: {
+          summary: 'Delete Chord Preset',
+          description: 'Delete a chord preset (admin)',
+          operationId: 'deleteChordPreset',
+          tags: ['Admin', 'Presets'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the chord preset',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          responses: {
+            '204': {
+              description: 'Chord preset deleted successfully'
+            },
+            '404': {
+              description: 'Chord preset not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/admin/presets/strumming': {
+        post: {
+          summary: 'Create Strumming Preset',
+          description: 'Create a new strumming preset (admin)',
+          operationId: 'createStrummingPreset',
+          tags: ['Admin', 'Presets'],
+          requestBody: {
+            required: true,
+            description: 'Strumming preset data to save',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/StrummingPreset'
+                }
+              }
+            }
+          },
+          responses: {
+            '201': {
+              description: 'Strumming preset created successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/StrummingPreset'
+                  }
+                }
+              }
+            },
+            '400': {
+              description: 'Invalid request body',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/admin/presets/strumming/{id}': {
+        put: {
+          summary: 'Update Strumming Preset',
+          description: 'Update an existing strumming preset (admin)',
+          operationId: 'updateStrummingPreset',
+          tags: ['Admin', 'Presets'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the strumming preset',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          requestBody: {
+            required: true,
+            description: 'Updated strumming preset data',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/StrummingPreset'
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Strumming preset updated successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/StrummingPreset'
+                  }
+                }
+              }
+            },
+            '404': {
+              description: 'Strumming preset not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        },
+        delete: {
+          summary: 'Delete Strumming Preset',
+          description: 'Delete a strumming preset (admin)',
+          operationId: 'deleteStrummingPreset',
+          tags: ['Admin', 'Presets'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Unique identifier of the strumming preset',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          responses: {
+            '204': {
+              description: 'Strumming preset deleted successfully'
+            },
+            '404': {
+              description: 'Strumming preset not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
         responses: {
           '204': {
             description: 'Chord chart deleted successfully'
@@ -642,6 +894,10 @@ export const openApiSpec = {
     {
       name: 'Charts',
       description: 'User-created chord charts management'
+    },
+    {
+      name: 'Admin',
+      description: 'Protected write operations for charts and presets'
     }
   ]
 };
