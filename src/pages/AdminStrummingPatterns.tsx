@@ -2,6 +2,10 @@ import { StrummingPatternDisplay } from "../components/StrummingPatternDisplay";
 import { StrummingPatternEditor } from "../components/StrummingPatternEditor";
 import { useState, useEffect } from "react";
 import { useStrummingPatterns } from "../hooks/useStrummingPatterns";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { Button } from "../components/ui/button";
+import { Plus, Pencil, Trash2, Home } from "lucide-react";
+import { Link } from "react-router-dom";
 import { getBeatLabel } from "../types/strumming";
 
 // Convert backend StrummingPreset format to frontend StrummingPattern format
@@ -86,11 +90,55 @@ export default function AdminStrummingPatternsPage() {
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Admin: Strumming Patterns</h1>
-      <button className="mb-4 btn btn-primary" onClick={handleStartCreate}>
-        Add New Pattern
-      </button>
+    <>
+      {/* Header */}
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4 md:py-6">
+          <div className="flex items-center justify-between gap-2">
+            {/* Logo and title */}
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+              <img
+                src="/ms-icon-310x310.png"
+                alt="Fretkit Logo"
+                className="w-12 h-12 md:w-24 md:h-24 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-4xl font-bold text-foreground truncate">
+                  Fretkit
+                </h1>
+                <span className="hidden md:inline text-lg font-bold text-foreground">
+                  {" "}- Admin Panel
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/">
+                  <Home className="w-4 h-4 mr-2" />
+                  Back to App
+                </Link>
+              </Button>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
+            Manage strumming pattern presets
+          </p>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <div className="container mx-auto p-4 max-w-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Strumming Patterns</h2>
+          <Button onClick={handleStartCreate} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Pattern
+          </Button>
+        </div>
       {creating && (
         <StrummingPatternEditor
           pattern={null}
@@ -168,12 +216,22 @@ export default function AdminStrummingPatternsPage() {
                     <StrummingPatternDisplay pattern={transformPresetToPattern(pattern)!} />
                   )}
                   <div className="mt-2 flex gap-2">
-                    <button className="btn btn-secondary" onClick={() => handleStartEdit(pattern)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleStartEdit(pattern)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
                       Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => deletePattern(pattern.id)}>
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => deletePattern(pattern.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}
@@ -181,6 +239,7 @@ export default function AdminStrummingPatternsPage() {
           ))}
         </ul>
       )}
-    </div>
+      </div>
+    </>
   );
 }
