@@ -46,23 +46,6 @@ export async function handleCharts(
     return jsonResponse(result);
   }
 
-  // POST /api/charts
-  if (pathParts.length === 2 && method === 'POST') {
-    try {
-      const data: CreateChartRequest = await request.json();
-      
-      // Validate required fields
-      if (!data.title || !data.chords) {
-        return errorResponse('Missing required fields: title, chords', 400);
-      }
-      
-      const chart = await createChart(env.DB, data);
-      return jsonResponse(chart, 201);
-    } catch (error) {
-      return errorResponse('Invalid request body', 400, error);
-    }
-  }
-
   return methodNotAllowedResponse(['GET']);
 }
 

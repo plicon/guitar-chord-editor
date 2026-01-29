@@ -155,7 +155,7 @@ export async function handleAdminChordPresets(
       return notFoundResponse('Chord preset');
     }
 
-    return jsonResponse({ success: true });
+    return new Response(null, { status: 204 });
   }
 
   // POST /api/admin/presets/chords

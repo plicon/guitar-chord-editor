@@ -39,7 +39,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "should-deploy=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/heads/feat/* ]] || [[ "${{ github.ref }}" == refs/heads/feat/* ]]; then
+          elif [[ "${{ github.ref }}" == refs/heads/feat/* ]] || [[ "${{ github.ref }}" == refs/heads/dev/* ]]; then
             echo "environment=development" >> $GITHUB_OUTPUT
             echo "should-deploy=true" >> $GITHUB_OUTPUT
           else
