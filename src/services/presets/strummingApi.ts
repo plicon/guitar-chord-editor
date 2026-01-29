@@ -1,12 +1,26 @@
 // API client for strumming pattern CRUD
-// TODO: Add Cloudflare Access headers when authentication is enabled
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL;
+const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID;
+const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET;
+
+// Helper to get Cloudflare Access headers for admin endpoints
+function getAdminHeaders(extraHeaders = {}) {
+  return {
+    "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
+    "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+    ...extraHeaders,
+  };
+}
 
 export async function getStrummingPatterns({ admin = false } = {}) {
   const url = admin ? `${ADMIN_BASE}/presets/strumming` : `${API_BASE}/presets/strumming`;
-  const res = await fetch(url, { credentials: "include" });
+  const options = admin 
+    ? { credentials: "include", headers: getAdminHeaders() }
+    : { credentials: "include" };
+  
+  const res = await fetch(url, options);
   if (!res.ok) throw new Error("Failed to fetch patterns");
   const text = await res.text();
   try {
@@ -20,9 +34,9 @@ export async function getStrummingPatterns({ admin = false } = {}) {
 export async function createStrummingPattern(data) {
   const res = await fetch(`${ADMIN_BASE}/presets/strumming`, {
     method: "POST",
-    headers: {
+    headers: getAdminHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(data),
   });
@@ -33,9 +47,9 @@ export async function createStrummingPattern(data) {
 export async function updateStrummingPattern(id, data) {
   const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
     method: "PUT",
-    headers: {
+    headers: getAdminHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(data),
   });
@@ -46,6 +60,7 @@ export async function updateStrummingPattern(id, data) {
 export async function deleteStrummingPattern(id) {
   const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
     method: "DELETE",
+    headers: getAdminHeaders(),
     credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to delete pattern");
