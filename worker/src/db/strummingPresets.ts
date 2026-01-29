@@ -2,7 +2,15 @@
  * Database operations for strumming presets
  */
 
-import type { StrummingPreset, StrummingPresetRow, PaginationParams, ListResponse } from '../types';
+import type {
+  StrummingPreset,
+  StrummingPresetRow,
+  PaginationParams,
+  ListResponse,
+  CreateStrummingPresetRequest,
+  UpdateStrummingPresetRequest,
+} from '../types';
+import { generateId } from '../utils/id';
 
 /**
  * Convert database row to API response format
@@ -61,6 +69,97 @@ export async function getStrummingPreset(
     .first<StrummingPresetRow>();
 
   return result ? rowToPreset(result) : null;
+}
+
+/**
+ * Create a new strumming preset
+ */
+export async function createStrummingPreset(
+  db: D1Database,
+  data: CreateStrummingPresetRequest
+): Promise<StrummingPreset> {
+  const id = generateId();
+  const now = Date.now();
+
+  await db
+    .prepare(
+      `INSERT INTO strumming_presets (
+        id, name, pattern, description, created_at
+      ) VALUES (?, ?, ?, ?, ?)`
+    )
+    .bind(
+      id,
+      data.name,
+      JSON.stringify(data.pattern),
+      data.description || null,
+      now
+    )
+    .run();
+
+  const preset = await getStrummingPreset(db, id);
+  if (!preset) {
+    throw new Error('Failed to create strumming preset');
+  }
+
+  return preset;
+}
+
+/**
+ * Update an existing strumming preset
+ */
+export async function updateStrummingPreset(
+  db: D1Database,
+  id: string,
+  data: UpdateStrummingPresetRequest
+): Promise<StrummingPreset | null> {
+  const existing = await getStrummingPreset(db, id);
+  if (!existing) {
+    return null;
+  }
+
+  const updates: string[] = [];
+  const values: unknown[] = [];
+
+  if (data.name !== undefined) {
+    updates.push('name = ?');
+    values.push(data.name);
+  }
+  if (data.pattern !== undefined) {
+    updates.push('pattern = ?');
+    values.push(JSON.stringify(data.pattern));
+  }
+  if (data.description !== undefined) {
+    updates.push('description = ?');
+    values.push(data.description);
+  }
+
+  if (updates.length === 0) {
+    return existing;
+  }
+
+  values.push(id);
+
+  await db
+    .prepare(`UPDATE strumming_presets SET ${updates.join(', ')} WHERE id = ?`)
+    .bind(...values)
+    .run();
+
+  return getStrummingPreset(db, id);
+}
+
+/**
+ * Delete a strumming preset
+ */
+export async function deleteStrummingPreset(
+  db: D1Database,
+  id: string
+): Promise<boolean> {
+  const result = await db
+    .prepare('DELETE FROM strumming_presets WHERE id = ?')
+    .bind(id)
+    .run();
+
+  return result.meta.changes > 0;
 }
 
 /**

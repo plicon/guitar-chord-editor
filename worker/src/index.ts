@@ -6,8 +6,13 @@
  */
 
 import type { Env } from './types';
-import { handleCharts } from './routes/charts';
-import { handleChordPresets, handleStrummingPresets } from './routes/presets';
+import { handleCharts, handleAdminCharts } from './routes/charts';
+import {
+  handleChordPresets,
+  handleStrummingPresets,
+  handleAdminChordPresets,
+  handleAdminStrummingPresets,
+} from './routes/presets';
 import {
   healthCheckResponse,
   errorResponse,
@@ -67,6 +72,10 @@ export default {
         if (pathParts[1] === 'charts') {
           response = await handleCharts(request, env, pathParts);
         }
+        // /api/admin/charts/*
+        else if (pathParts[1] === 'admin' && pathParts[2] === 'charts') {
+          response = await handleAdminCharts(request, env, pathParts);
+        }
         // /api/presets/chords/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'chords') {
           response = await handleChordPresets(request, env, pathParts);
@@ -74,6 +83,22 @@ export default {
         // /api/presets/strumming/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'strumming') {
           response = await handleStrummingPresets(request, env, pathParts);
+        }
+        // /api/admin/presets/chords/*
+        else if (
+          pathParts[1] === 'admin' &&
+          pathParts[2] === 'presets' &&
+          pathParts[3] === 'chords'
+        ) {
+          response = await handleAdminChordPresets(request, env, pathParts);
+        }
+        // /api/admin/presets/strumming/*
+        else if (
+          pathParts[1] === 'admin' &&
+          pathParts[2] === 'presets' &&
+          pathParts[3] === 'strumming'
+        ) {
+          response = await handleAdminStrummingPresets(request, env, pathParts);
         }
         // Unknown API route
         else {

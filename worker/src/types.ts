@@ -132,6 +132,40 @@ export interface UpdateChartRequest {
   notes?: string;
 }
 
+export interface CreateChordPresetRequest {
+  name: string;
+  frets: (number | 'x' | null)[];
+  fingers: (number | null)[];
+  barreInfo?: {
+    fret: number;
+    fromString: number;
+    toString: number;
+  } | null;
+}
+
+export interface UpdateChordPresetRequest {
+  name?: string;
+  frets?: (number | 'x' | null)[];
+  fingers?: (number | null)[];
+  barreInfo?: {
+    fret: number;
+    fromString: number;
+    toString: number;
+  } | null;
+}
+
+export interface CreateStrummingPresetRequest {
+  name: string;
+  pattern: Beat[];
+  description?: string;
+}
+
+export interface UpdateStrummingPresetRequest {
+  name?: string;
+  pattern?: Beat[];
+  description?: string;
+}
+
 // ============================================================================
 // Utility Types
 // ============================================================================
