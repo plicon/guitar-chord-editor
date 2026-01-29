@@ -666,22 +666,6 @@ export const openApiSpec = {
           }
         }
       }
-        responses: {
-          '204': {
-            description: 'Chord chart deleted successfully'
-          },
-          '404': {
-            description: 'Chord chart not found',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   components: {
