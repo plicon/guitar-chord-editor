@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, master, 'feature/*', 'dev/*']
+    branches: [main, master, 'feat/*', 'dev/*']
   pull_request:
-    branches: [main, master, 'feature/*', 'dev/*']
+    branches: [main, master, 'feat/*', 'dev/*']
 
 jobs:
   # Lint and Type Check
