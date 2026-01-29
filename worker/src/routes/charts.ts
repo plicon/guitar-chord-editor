@@ -50,7 +50,7 @@ export async function handleCharts(
 }
 
 /**
- * Handle /api/admin/charts routes (write-only)
+ * Handle /api/admin/charts routes (CRUD)
  */
 export async function handleAdminCharts(
   request: Request,
@@ -58,6 +58,22 @@ export async function handleAdminCharts(
   pathParts: string[]
 ): Promise<Response> {
   const method = request.method;
+
+  // GET /api/admin/charts (list/search)
+  if (pathParts.length === 3 && method === 'GET') {
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q');
+    const limit = parseInt(url.searchParams.get('limit') || '50');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+
+    if (query) {
+      const result = await searchCharts(env.DB, query, { limit, offset });
+      return jsonResponse(result);
+    }
+
+    const result = await listCharts(env.DB, { limit, offset });
+    return jsonResponse(result);
+  }
 
   // PUT /api/admin/charts/:id
   if (pathParts.length === 4 && method === 'PUT') {
@@ -106,5 +122,5 @@ export async function handleAdminCharts(
     }
   }
 
-  return methodNotAllowedResponse(['POST', 'PUT', 'DELETE']);
+  return methodNotAllowedResponse(['GET', 'POST', 'PUT', 'DELETE']);
 }
