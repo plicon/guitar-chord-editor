@@ -119,7 +119,7 @@ export async function handleStrummingPresets(
 }
 
 /**
- * Handle /api/admin/presets/chords routes (write-only)
+ * Handle /api/admin/presets/chords routes (CRUD)
  */
 export async function handleAdminChordPresets(
   request: Request,
@@ -187,6 +187,22 @@ export async function handleAdminStrummingPresets(
 ): Promise<Response> {
   const method = request.method;
 
+  // GET /api/admin/presets/strumming (list/search)
+  if (pathParts.length === 4 && method === 'GET') {
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q');
+    const limit = parseInt(url.searchParams.get('limit') || '100');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+
+    if (query) {
+      const result = await searchStrummingPresets(env.DB, query, { limit, offset });
+      return jsonResponse(result);
+    }
+
+    const result = await listStrummingPresets(env.DB, { limit, offset });
+    return jsonResponse(result);
+  }
+
   // PUT /api/admin/presets/strumming/:id
   if (pathParts.length === 5 && method === 'PUT') {
     const id = pathParts[4];
@@ -233,5 +249,5 @@ export async function handleAdminStrummingPresets(
     }
   }
 
-  return methodNotAllowedResponse(['POST', 'PUT', 'DELETE']);
+  return methodNotAllowedResponse(['GET', 'POST', 'PUT', 'DELETE']);
 }
