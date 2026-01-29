@@ -15,9 +15,25 @@ import {
 } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { getBeatLabel } from "../types/strumming";
+import type { StrummingPattern, StrumBeat } from "../types/strumming";
+
+// Backend preset structure from API
+interface BackendPresetPattern {
+  bars: number;
+  timeSignature: string;
+  subdivision: number;
+  pattern: (string | null)[];
+}
+
+interface BackendPreset {
+  id: string;
+  name: string;
+  description?: string;
+  pattern: BackendPresetPattern;
+}
 
 // Convert backend StrummingPreset format to frontend StrummingPattern format
-function transformPresetToPattern(preset: any) {
+function transformPresetToPattern(preset: BackendPreset): StrummingPattern | null {
   // Backend returns: { id, name, description, pattern: {bars, timeSignature, subdivision, pattern: []} }
   // Frontend expects: { bars, beatsPerBar, timeSignature, subdivision, beats: [{stroke, noteValue, beatType}] }
   
@@ -48,7 +64,7 @@ function transformPresetToPattern(preset: any) {
 }
 
 // Convert frontend StrummingPattern format to backend StrummingPreset format
-function transformPatternToPreset(pattern: any) {
+function transformPatternToPreset(pattern: StrummingPattern) {
   // Frontend has: { bars, beatsPerBar, timeSignature, subdivision, beats: [{stroke, noteValue, beatType}] }
   // Backend expects: { pattern: {bars, timeSignature, subdivision, pattern: [stroke values]} }
   return {
@@ -56,7 +72,7 @@ function transformPatternToPreset(pattern: any) {
       bars: pattern.bars,
       timeSignature: pattern.timeSignature,
       subdivision: pattern.subdivision,
-      pattern: pattern.beats.map((beat: any) => beat.stroke),
+      pattern: pattern.beats.map((beat: StrumBeat) => beat.stroke),
     },
   };
 }
@@ -81,7 +97,7 @@ export default function AdminStrummingPatternsPage() {
     const times = new Set<string>();
     const subs = new Set<number>();
     
-    patterns.forEach((pattern: any) => {
+    patterns.forEach((pattern: BackendPreset) => {
       if (pattern.pattern?.timeSignature) {
         times.add(pattern.pattern.timeSignature);
       }
@@ -102,7 +118,7 @@ export default function AdminStrummingPatternsPage() {
       return [];
     }
     
-    return patterns.filter((pattern: any) => {
+    return patterns.filter((pattern: BackendPreset) => {
       // If no filters, show all
       if (filterTime === "all" && filterSubdivision === "all") {
         return true;
@@ -116,12 +132,10 @@ export default function AdminStrummingPatternsPage() {
   }, [patterns, filterTime, filterSubdivision]);
 
   useEffect(() => {
-    // Debug: log patterns value and type
-    // eslint-disable-next-line no-console
     console.log("patterns value:", patterns, Array.isArray(patterns));
   }, [patterns]);
 
-  const handleStartEdit = (pattern: any) => {
+  const handleStartEdit = (pattern: BackendPreset) => {
     setEditingId(pattern.id);
     // Remove time signature from name (e.g., "Basic Down (4/4)" -> "Basic Down")
     const nameWithoutTiming = pattern.name.replace(/\s*\([^)]+\)\s*$/, '');

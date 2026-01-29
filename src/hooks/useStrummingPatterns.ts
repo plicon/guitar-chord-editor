@@ -2,8 +2,23 @@ import { useEffect, useState } from "react";
 import { getStrummingPatterns, createStrummingPattern, updateStrummingPattern, deleteStrummingPattern } from "../services/presets/strummingApi";
 import { getBeatLabel } from "../types/strumming";
 
+// Backend preset structure from API
+interface BackendPresetPattern {
+  bars: number;
+  timeSignature: string;
+  subdivision: number;
+  pattern: (string | null)[];
+}
+
+interface BackendPreset {
+  id: string;
+  name: string;
+  description?: string;
+  pattern: BackendPresetPattern;
+}
+
 // Convert backend StrummingPreset format to frontend StrummingPattern format
-function transformPresetToPattern(preset: any) {
+function transformPresetToPattern(preset: BackendPreset) {
   const { pattern } = preset;
   const beatsPerBar = pattern.timeSignature === "6/8" ? 6 : parseInt(pattern.timeSignature.split("/")[0]);
   
