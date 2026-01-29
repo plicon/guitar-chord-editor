@@ -27,6 +27,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Lint OpenAPI spec
+        run: npm run lint:openapi
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 
