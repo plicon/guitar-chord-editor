@@ -1,0 +1,647 @@
+/**
+ * OpenAPI 3.1 Specification for FretKit API
+ * 
+ * This file defines the complete API specification for the FretKit worker.
+ * The spec is served at /api/docs/openapi.json and powers the interactive
+ * API documentation UI at /api/docs
+ */
+
+export const openApiSpec = {
+  openapi: '3.1.0',
+  info: {
+    title: 'FretKit API',
+    version: '1.0.0',
+    description: 'REST API for managing guitar chord charts and presets. Built with Cloudflare Workers and D1.',
+    contact: {
+      name: 'FretKit',
+      url: 'https://fretkit.io'
+    }
+  },
+  servers: [
+    {
+      url: '/api',
+      description: 'API Base Path'
+    }
+  ],
+  paths: {
+    '/health': {
+      get: {
+        summary: 'Health Check',
+        description: 'Check if the API is running and get version information',
+        operationId: 'healthCheck',
+        tags: ['System'],
+        responses: {
+          '200': {
+            description: 'API is healthy and operational',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: {
+                      type: 'string',
+                      example: 'ok',
+                      description: 'Health status indicator'
+                    },
+                    timestamp: {
+                      type: 'string',
+                      format: 'date-time',
+                      example: '2026-01-29T10:30:00.000Z',
+                      description: 'Current server timestamp'
+                    },
+                    version: {
+                      type: 'string',
+                      example: '1.0.0',
+                      description: 'API version'
+                    }
+                  },
+                  required: ['status', 'timestamp', 'version']
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/presets/chords': {
+      get: {
+        summary: 'List Chord Presets',
+        description: 'Get all available chord presets from the database. Returns common chord shapes with fingering information.',
+        operationId: 'listChordPresets',
+        tags: ['Presets'],
+        responses: {
+          '200': {
+            description: 'List of chord presets retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/ChordPreset'
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/presets/chords/{id}': {
+      get: {
+        summary: 'Get Chord Preset',
+        description: 'Retrieve a specific chord preset by its ID',
+        operationId: 'getChordPreset',
+        tags: ['Presets'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Unique identifier of the chord preset',
+            schema: {
+              type: 'string',
+              example: 'c-major-1'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Chord preset found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordPreset'
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Chord preset not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/presets/strumming': {
+      get: {
+        summary: 'List Strumming Patterns',
+        description: 'Get all available strumming pattern presets from the database',
+        operationId: 'listStrummingPresets',
+        tags: ['Presets'],
+        responses: {
+          '200': {
+            description: 'List of strumming pattern presets retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/StrummingPreset'
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/presets/strumming/{id}': {
+      get: {
+        summary: 'Get Strumming Pattern',
+        description: 'Retrieve a specific strumming pattern preset by its ID',
+        operationId: 'getStrummingPreset',
+        tags: ['Presets'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Unique identifier of the strumming pattern preset',
+            schema: {
+              type: 'string',
+              example: 'basic-down'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Strumming pattern found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/StrummingPreset'
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Strumming pattern not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/charts': {
+      get: {
+        summary: 'List Chord Charts',
+        description: 'Get all saved chord charts for the current user',
+        operationId: 'listCharts',
+        tags: ['Charts'],
+        responses: {
+          '200': {
+            description: 'List of chord charts retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/ChordChart'
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      },
+      post: {
+        summary: 'Create Chord Chart',
+        description: 'Save a new chord chart to the database',
+        operationId: 'createChart',
+        tags: ['Charts'],
+        requestBody: {
+          required: true,
+          description: 'Chord chart data to save',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ChordChartInput'
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Chord chart created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordChart'
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Invalid request body',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/charts/{id}': {
+      get: {
+        summary: 'Get Chord Chart',
+        description: 'Retrieve a specific chord chart by its ID',
+        operationId: 'getChart',
+        tags: ['Charts'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Unique identifier of the chord chart',
+            schema: {
+              type: 'string',
+              format: 'uuid'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Chord chart found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordChart'
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Chord chart not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      },
+      put: {
+        summary: 'Update Chord Chart',
+        description: 'Update an existing chord chart',
+        operationId: 'updateChart',
+        tags: ['Charts'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Unique identifier of the chord chart',
+            schema: {
+              type: 'string',
+              format: 'uuid'
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          description: 'Updated chord chart data',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ChordChartInput'
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Chord chart updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ChordChart'
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Chord chart not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Invalid request body',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      },
+      delete: {
+        summary: 'Delete Chord Chart',
+        description: 'Delete a chord chart from the database',
+        operationId: 'deleteChart',
+        tags: ['Charts'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Unique identifier of the chord chart',
+            schema: {
+              type: 'string',
+              format: 'uuid'
+            }
+          }
+        ],
+        responses: {
+          '204': {
+            description: 'Chord chart deleted successfully'
+          },
+          '404': {
+            description: 'Chord chart not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      ChordPreset: {
+        type: 'object',
+        description: 'A preset chord shape with fingering information',
+        properties: {
+          id: {
+            type: 'string',
+            example: 'c-major-1',
+            description: 'Unique identifier for the chord preset'
+          },
+          name: {
+            type: 'string',
+            example: 'C Major',
+            description: 'Display name of the chord'
+          },
+          frets: {
+            type: 'array',
+            description: 'Fret positions for each string (low E to high e). "x" = muted, null = open',
+            items: {
+              oneOf: [
+                { type: 'number', minimum: 0, maximum: 24 },
+                { type: 'string', enum: ['x'] },
+                { type: 'null' }
+              ]
+            },
+            example: [null, 3, 2, 0, 1, 0]
+          },
+          fingers: {
+            type: 'array',
+            description: 'Finger numbers for each string (0-4, null for open/muted)',
+            items: {
+              oneOf: [
+                { type: 'number', minimum: 0, maximum: 4 },
+                { type: 'null' }
+              ]
+            },
+            example: [null, 3, 2, null, 1, null],
+            nullable: true
+          },
+          barreInfo: {
+            type: 'object',
+            description: 'Barre chord information if applicable',
+            properties: {
+              fret: {
+                type: 'number',
+                description: 'Fret where the barre is placed'
+              },
+              fromString: {
+                type: 'number',
+                description: 'Starting string (1-6)',
+                minimum: 1,
+                maximum: 6
+              },
+              toString: {
+                type: 'number',
+                description: 'Ending string (1-6)',
+                minimum: 1,
+                maximum: 6
+              }
+            },
+            nullable: true
+          }
+        },
+        required: ['id', 'name', 'frets']
+      },
+      StrummingPreset: {
+        type: 'object',
+        description: 'A preset strumming pattern',
+        properties: {
+          id: {
+            type: 'string',
+            example: 'basic-down',
+            description: 'Unique identifier for the strumming pattern'
+          },
+          name: {
+            type: 'string',
+            example: 'Basic Down',
+            description: 'Display name of the strumming pattern'
+          },
+          pattern: {
+            type: 'object',
+            description: 'Strumming pattern configuration',
+            properties: {
+              bars: {
+                type: 'number',
+                example: 1,
+                description: 'Number of bars in the pattern'
+              },
+              timeSignature: {
+                type: 'string',
+                example: '4/4',
+                description: 'Time signature'
+              },
+              subdivision: {
+                type: 'string',
+                example: '1/4',
+                description: 'Note subdivision'
+              },
+              pattern: {
+                type: 'array',
+                description: 'Array of strum directions (D=down, U=up, -=rest)',
+                items: {
+                  type: 'string',
+                  enum: ['D', 'U', '-']
+                },
+                example: ['D', 'D', 'D', 'D']
+              }
+            },
+            required: ['bars', 'timeSignature', 'subdivision', 'pattern']
+          }
+        },
+        required: ['id', 'name', 'pattern']
+      },
+      ChordChart: {
+        type: 'object',
+        description: 'A complete chord chart/song',
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+            description: 'Unique identifier for the chart'
+          },
+          title: {
+            type: 'string',
+            example: 'My Song',
+            description: 'Title of the chord chart'
+          },
+          artist: {
+            type: 'string',
+            example: 'Artist Name',
+            description: 'Artist or author name',
+            nullable: true
+          },
+          data: {
+            type: 'object',
+            description: 'Chart data (structure varies)',
+            additionalProperties: true
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'When the chart was created'
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'When the chart was last updated'
+          }
+        },
+        required: ['id', 'title', 'data', 'createdAt', 'updatedAt']
+      },
+      ChordChartInput: {
+        type: 'object',
+        description: 'Input data for creating or updating a chord chart',
+        properties: {
+          title: {
+            type: 'string',
+            example: 'My Song',
+            description: 'Title of the chord chart'
+          },
+          artist: {
+            type: 'string',
+            example: 'Artist Name',
+            description: 'Artist or author name',
+            nullable: true
+          },
+          data: {
+            type: 'object',
+            description: 'Chart data containing chords, lyrics, etc.',
+            additionalProperties: true
+          }
+        },
+        required: ['title', 'data']
+      },
+      Error: {
+        type: 'object',
+        description: 'Error response',
+        properties: {
+          error: {
+            type: 'string',
+            description: 'Error message',
+            example: 'Not Found'
+          },
+          status: {
+            type: 'number',
+            description: 'HTTP status code',
+            example: 404
+          },
+          details: {
+            description: 'Additional error details (only in development)',
+            nullable: true
+          }
+        },
+        required: ['error', 'status']
+      }
+    }
+  },
+  tags: [
+    {
+      name: 'System',
+      description: 'System health and status endpoints'
+    },
+    {
+      name: 'Presets',
+      description: 'Chord and strumming pattern presets'
+    },
+    {
+      name: 'Charts',
+      description: 'User-created chord charts management'
+    }
+  ]
+};
