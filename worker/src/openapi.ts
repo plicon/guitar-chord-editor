@@ -64,49 +64,50 @@ export const openApiSpec = {
       }
     },
     '/presets/chords': {
-      get: {
-        summary: 'List Chord Presets',
-        description: 'Get all available chord presets from the database. Returns common chord shapes with fingering information.',
-        operationId: 'listChordPresets',
-        tags: ['Presets'],
-        responses: {
-          '200': {
-            description: 'List of chord presets retrieved successfully',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/ChordPreset'
+              }
+            },
+            '/charts/{id}': {
+              get: {
+                summary: 'Get Chord Chart',
+                description: 'Retrieve a specific chord chart by its ID',
+                operationId: 'getChart',
+                tags: ['Charts'],
+                parameters: [
+                  {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    description: 'Unique identifier of the chord chart',
+                    schema: {
+                      type: 'string',
+                      format: 'uuid'
+                    }
+                  }
+                ],
+                responses: {
+                  '200': {
+                    description: 'Chord chart found',
+                    content: {
+                      'application/json': {
+                        schema: {
+                          $ref: '#/components/schemas/ChordChart'
+                        }
+                      }
+                    }
+                  },
+                  '404': {
+                    description: 'Chord chart not found',
+                    content: {
+                      'application/json': {
+                        schema: {
+                          $ref: '#/components/schemas/Error'
+                        }
+                      }
+                    }
                   }
                 }
               }
-            }
-          },
-          '500': {
-            description: 'Internal server error',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Error'
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    '/presets/chords/{id}': {
-      get: {
-        summary: 'Get Chord Preset',
-        description: 'Retrieve a specific chord preset by its ID',
-        operationId: 'getChordPreset',
-        tags: ['Presets'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
+            },
             description: 'Unique identifier of the chord preset',
             schema: {
               type: 'string',
@@ -244,6 +245,7 @@ export const openApiSpec = {
             }
           }
         }
+      }
     },
     '/charts/{id}': {
       get: {
@@ -268,8 +270,26 @@ export const openApiSpec = {
             description: 'Chord chart found',
             content: {
               'application/json': {
-      },
-      '/admin/charts': {
+                schema: {
+                  $ref: '#/components/schemas/ChordChart'
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Chord chart not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/admin/charts': {
         post: {
           summary: 'Create Chord Chart',
           description: 'Save a new chord chart to the database (admin)',
