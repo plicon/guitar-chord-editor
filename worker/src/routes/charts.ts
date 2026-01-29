@@ -103,7 +103,7 @@ export async function handleAdminCharts(
       return notFoundResponse('Chart');
     }
 
-    return jsonResponse({ success: true }, 204);
+    return new Response(null, { status: 204 });
   }
 
   // POST /api/admin/charts

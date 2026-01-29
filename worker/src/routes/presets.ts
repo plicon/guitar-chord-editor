@@ -214,7 +214,7 @@ export async function handleAdminStrummingPresets(
       return notFoundResponse('Strumming preset');
     }
 
-    return jsonResponse({ success: true }, 204);
+    return new Response(null, { status: 204 });
   }
 
   // POST /api/admin/presets/strumming
