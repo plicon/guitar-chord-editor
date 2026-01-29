@@ -7,6 +7,16 @@ const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET;
 
 // Helper to get Cloudflare Access headers for admin endpoints
 function getAdminHeaders(extraHeaders = {}) {
+  // Debug: log if credentials are available
+  if (!CF_ACCESS_CLIENT_ID || !CF_ACCESS_CLIENT_SECRET) {
+    console.error("Missing Cloudflare Access credentials:", {
+      hasClientId: !!CF_ACCESS_CLIENT_ID,
+      hasClientSecret: !!CF_ACCESS_CLIENT_SECRET,
+      clientIdLength: CF_ACCESS_CLIENT_ID?.length,
+      secretLength: CF_ACCESS_CLIENT_SECRET?.length,
+    });
+  }
+  
   return {
     "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
     "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
@@ -19,6 +29,16 @@ export async function getStrummingPatterns({ admin = false } = {}) {
   const options = admin 
     ? { credentials: "include", headers: getAdminHeaders() }
     : { credentials: "include" };
+  
+  // Debug: log connection details
+  console.log("Fetching strumming patterns:", {
+    url,
+    admin,
+    hasClientId: !!CF_ACCESS_CLIENT_ID,
+    hasClientSecret: !!CF_ACCESS_CLIENT_SECRET,
+    clientIdPreview: CF_ACCESS_CLIENT_ID?.substring(0, 10) + "...",
+    headers: admin ? Object.keys(options.headers) : [],
+  });
   
   const res = await fetch(url, options);
   if (!res.ok) throw new Error("Failed to fetch patterns");
