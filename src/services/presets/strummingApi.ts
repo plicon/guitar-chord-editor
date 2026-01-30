@@ -10,6 +10,8 @@ function getAdminHeaders(extraHeaders = {}) {
   return {
     "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
     "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
     ...extraHeaders,
   };
 }
@@ -17,7 +19,11 @@ function getAdminHeaders(extraHeaders = {}) {
 export async function getStrummingPatterns({ admin = false } = {}) {
   const url = admin ? `${ADMIN_BASE}/presets/strumming` : `${API_BASE}/presets/strumming`;
   const options = admin 
-    ? { credentials: "include" as const, headers: getAdminHeaders() }
+    ? { 
+        credentials: "include" as const, 
+        headers: getAdminHeaders(),
+        cache: "no-store" as const
+      }
     : { credentials: "include" as const };
   
   const res = await fetch(url, options);
