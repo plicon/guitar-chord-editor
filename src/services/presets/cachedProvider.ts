@@ -70,34 +70,14 @@ export class CachedPresetProvider implements PresetProvider {
   }
 
   async listStrummingPresets(timeSignature?: string): Promise<StrummingPreset[]> {
-    if (!this.config.enabled) {
-      return this.provider.listStrummingPresets(timeSignature);
-    }
-
-    const cacheKey = timeSignature
-      ? `${this.config.storageKey}_strumming_presets_${timeSignature}`
-      : `${this.config.storageKey}_strumming_presets_all`;
-    
-    const cached = this.getFromCache<StrummingPreset[]>(cacheKey);
-
-    if (cached) {
-      console.log('Using cached strumming presets');
-      return cached;
-    }
-
-    console.log('Fetching strumming presets from API');
-    const presets = await this.provider.listStrummingPresets(timeSignature);
-    this.saveToCache(cacheKey, presets);
-    return presets;
+    // Don't cache strumming presets - always fetch fresh data
+    return this.provider.listStrummingPresets(timeSignature);
   }
 
   async getStrummingPreset(id: string): Promise<StrummingPreset | null> {
-    if (!this.config.enabled) {
-      return this.provider.getStrummingPreset(id);
-    }
-
-    const cacheKey = `${this.config.storageKey}_strumming_preset_${id}`;
-    const cached = this.getFromCache<StrummingPreset>(cacheKey);
+    // Don't cache strumming presets - always fetch fresh data
+    return this.provider.getStrummingPreset(id);
+  }
 
     if (cached) {
       return cached;
