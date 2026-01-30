@@ -18,7 +18,7 @@
 			"binding": "fretkit_db_staging",
 			"database_name": "fretkit-db-staging",
 			"database_id": "99f36e70-f499-4023-8bf8-1ac8f6c15a1e"
-		},
+		}
 	],
 	"observability": {
 		"enabled": false,
