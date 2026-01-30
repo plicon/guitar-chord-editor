@@ -5,6 +5,20 @@ import { ChordChart, ChordChartMetadata } from "@/types/chordChart";
 import { StorageProvider } from "./types";
 import { APP_CONFIG } from "@/config/appConfig";
 
+const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID;
+const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET;
+
+// Helper to get Cloudflare Access headers for admin endpoints
+function getAdminHeaders(extraHeaders = {}) {
+  return {
+    "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
+    "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    ...extraHeaders,
+  };
+}
+
 export interface D1StorageConfig {
   apiUrl: string;
 }
@@ -39,9 +53,9 @@ export class D1StorageProvider implements StorageProvider {
     // Try to update first, then create if not found
     const response = await fetch(`${this.apiUrl}/admin/charts/${chart.id}`, {
       method: "PUT",
-      headers: {
+      headers: getAdminHeaders({
         "Content-Type": "application/json",
-      },
+      }),
       body: JSON.stringify(apiChart),
     });
 
@@ -49,9 +63,9 @@ export class D1StorageProvider implements StorageProvider {
       // Chart doesn't exist, create it
       const createResponse = await fetch(`${this.apiUrl}/admin/charts`, {
         method: "POST",
-        headers: {
+        headers: getAdminHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify(apiChart),
       });
 
@@ -89,11 +103,11 @@ export class D1StorageProvider implements StorageProvider {
 
   async listCharts(): Promise<ChordChartMetadata[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/charts?limit=100`, {
+      const response = await fetch(`${this.apiUrl}/admin/charts?limit=100`, {
         method: "GET",
-        headers: {
+        headers: getAdminHeaders({
           "Content-Type": "application/json",
-        },
+        }),
       });
 
       if (!response.ok) {
@@ -118,6 +132,7 @@ export class D1StorageProvider implements StorageProvider {
   async deleteChart(id: string): Promise<void> {
     const response = await fetch(`${this.apiUrl}/admin/charts/${id}`, {
       method: "DELETE",
+      headers: getAdminHeaders(),
     });
 
     if (!response.ok && response.status !== 404) {

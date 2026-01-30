@@ -25,8 +25,11 @@ export function getCorsHeaders(
     ? options.origin
     : [options.origin];
   
+  // Check if wildcard is in the allowed origins
+  const hasWildcard = allowedOrigins.includes('*') || options.origin === '*';
+  
   const isAllowed =
-    options.origin === '*' ||
+    hasWildcard ||
     allowedOrigins.some(
       (allowed) => allowed === '*' || origin === allowed || origin.endsWith(allowed)
     );
@@ -36,7 +39,8 @@ export function getCorsHeaders(
   }
 
   const headers: Record<string, string> = {
-    'Access-Control-Allow-Origin': options.origin === '*' ? '*' : origin,
+    // When credentials are true, we must send the actual origin, not '*'
+    'Access-Control-Allow-Origin': options.credentials && origin ? origin : (hasWildcard ? '*' : origin),
     'Access-Control-Allow-Methods': (
       options.methods || DEFAULT_METHODS
     ).join(', '),

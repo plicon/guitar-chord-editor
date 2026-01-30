@@ -32,7 +32,12 @@ function getCorsConfig(env: Env) {
   const allowedOrigins =
     env.ENVIRONMENT === 'production'
       ? ['https://fretkit.io', 'https://www.fretkit.io']
-      : ['http://localhost:5173', 'http://localhost:3000', '*'];
+      : [
+          'http://localhost:5173', 
+          'http://localhost:3000', 
+          'https://fretkit.pages.dev', // Cloudflare Pages production
+          '*' // Allow all preview deployments in non-production
+        ];
 
   return {
     origin: allowedOrigins,
