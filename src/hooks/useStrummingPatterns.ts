@@ -25,12 +25,12 @@ function transformPresetToPattern(preset: BackendPreset) {
   return {
     bars: pattern.bars,
     beatsPerBar,
-    timeSignature: pattern.timeSignature,
-    subdivision: pattern.subdivision,
+    timeSignature: pattern.timeSignature as import("../types/strumming").TimeSignature,
+    subdivision: pattern.subdivision as import("../types/strumming").Subdivision,
     beats: pattern.pattern.map((stroke: string | null, index: number) => ({
-      stroke,
+      stroke: stroke as import("../types/strumming").StrokeType,
       noteValue: "full" as const,
-      beatType: getBeatLabel(index, pattern.subdivision),
+      beatType: getBeatLabel(index, pattern.subdivision as import("../types/strumming").Subdivision),
     })),
   };
 }

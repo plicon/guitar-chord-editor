@@ -118,3 +118,6 @@ export const hasStrummingContent = (pattern: StrummingPattern | null): boolean =
   if (!pattern) return false;
   return pattern.beats.some((beat) => beat.stroke !== null);
 };
+
+// NOTE: StrummingPreset is defined in src/types/presets.ts
+// The preset provider types reference it from there to avoid circular dependencies

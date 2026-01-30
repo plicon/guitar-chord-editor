@@ -49,3 +49,14 @@ export const isChordEdited = (chord: ChordDiagram): boolean => {
     chord.openStrings.length > 0
   );
 };
+
+// Preset format for chord fingerings (used by preset providers)
+export interface ChordPreset {
+  name: string;
+  startFret: number;
+  fingers: FingerPosition[];
+  barres: Barre[];
+  mutedStrings: number[];
+  openStrings: number[];
+  fingerLabels: FingerLabel[];
+}

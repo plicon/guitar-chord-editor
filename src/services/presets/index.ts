@@ -1,7 +1,7 @@
 // Preset Provider Factory and Convenience Functions
 import type { PresetProvider, PresetProviderConfig } from './types';
 import type { ChordPreset } from '@/types/chord';
-import type { StrummingPreset } from '@/types/strumming';
+import type { StrummingPreset } from '@/types/presets';
 import { CloudflareD1PresetProvider } from './cloudflareD1Provider';
 import { CachedPresetProvider } from './cachedProvider';
 import { APP_CONFIG } from '@/config/appConfig';
