@@ -79,17 +79,6 @@ export class CachedPresetProvider implements PresetProvider {
     return this.provider.getStrummingPreset(id);
   }
 
-    if (cached) {
-      return cached;
-    }
-
-    const preset = await this.provider.getStrummingPreset(id);
-    if (preset) {
-      this.saveToCache(cacheKey, preset);
-    }
-    return preset;
-  }
-
   // Clear all cached presets
   clearCache(): void {
     const keys = Object.keys(localStorage);
