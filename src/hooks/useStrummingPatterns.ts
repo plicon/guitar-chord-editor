@@ -41,14 +41,8 @@ export function useStrummingPatterns({ admin = false } = {}) {
   useEffect(() => {
     getStrummingPatterns({ admin })
       .then((response) => {
-        console.log("API returned:", response);
         // Extract data array from paginated response
         const data = response.data || response;
-        console.log("First pattern:", data[0]); // Debug: log structure of first pattern
-        if (data[0]) {
-          console.log("First pattern.pattern:", data[0].pattern);
-          console.log("First pattern.pattern.pattern:", data[0].pattern.pattern);
-        }
         setPatterns(Array.isArray(data) ? data : []);
       })
       .catch((err) => {

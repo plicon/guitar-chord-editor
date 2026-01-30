@@ -20,15 +20,6 @@ export async function getStrummingPatterns({ admin = false } = {}) {
     ? { credentials: "include" as const, headers: getAdminHeaders() }
     : { credentials: "include" as const };
   
-  // Debug: log actual header values being sent
-  if (admin) {
-    console.log("Request to:", url);
-    console.log("Headers being sent:", {
-      "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
-      "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET ? `${CF_ACCESS_CLIENT_SECRET.substring(0, 10)}...` : undefined,
-    });
-  }
-  
   const res = await fetch(url, options);
   if (!res.ok) throw new Error("Failed to fetch patterns");
   const text = await res.text();
