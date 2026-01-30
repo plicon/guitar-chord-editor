@@ -1,11 +1,12 @@
 import { ChordChart, ChordChartMetadata } from "@/types/chordChart";
-import { StorageProvider, StorageConfig, S3Config } from "./types";
+import { StorageProvider, StorageConfig, S3Config, D1Config } from "./types";
 import { LocalStorageProvider } from "./localStorageProvider";
 import { S3StorageProvider } from "./s3StorageProvider";
+import { D1StorageProvider } from "./d1StorageProvider";
 import { APP_CONFIG } from "@/config/appConfig";
 import { validateChartJson } from "./chartSchema";
 
-export type { StorageProvider, StorageConfig, S3Config };
+export type { StorageProvider, StorageConfig, S3Config, D1Config };
 
 // Create storage provider based on configuration
 const createStorageProvider = (): StorageProvider => {
@@ -13,6 +14,10 @@ const createStorageProvider = (): StorageProvider => {
 
   if (config?.provider === "s3" && config.s3) {
     return new S3StorageProvider(config.s3);
+  }
+
+  if (config?.provider === "d1" && config.d1) {
+    return new D1StorageProvider(config.d1);
   }
 
   // Default to localStorage

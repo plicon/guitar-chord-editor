@@ -1,7 +1,8 @@
 // Cloudflare D1 Preset Provider
 import type { PresetProvider } from './types';
 import type { ChordPreset } from '@/types/chord';
-import type { StrummingPreset } from '@/types/strumming';
+import type { StrummingPreset } from '@/types/presets';
+import type { TimeSignature, Subdivision } from '@/types/strumming';
 
 export interface CloudflareApiConfig {
   apiUrl: string;
@@ -290,10 +291,10 @@ export class CloudflareD1PresetProvider implements PresetProvider {
     // App format: { name, pattern: [...], bars, timeSignature, subdivision }
     return {
       name: apiPreset.name,
-      pattern: apiPreset.pattern.pattern,
-      bars: apiPreset.pattern.bars,
-      timeSignature: apiPreset.pattern.timeSignature,
-      subdivision: apiPreset.pattern.subdivision,
+      pattern: apiPreset.pattern.pattern.map(p => p as "up" | "down" | null),
+      bars: apiPreset.pattern.bars as 1 | 2,
+      timeSignature: apiPreset.pattern.timeSignature as TimeSignature,
+      subdivision: parseInt(apiPreset.pattern.subdivision) as Subdivision,
     };
   }
 }

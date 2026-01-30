@@ -10,8 +10,9 @@ export interface StorageProvider {
 }
 
 export interface StorageConfig {
-  provider: "local" | "s3";
+  provider: "local" | "s3" | "d1";
   s3?: S3Config;
+  d1?: D1Config;
 }
 
 export interface S3Config {
@@ -21,4 +22,8 @@ export interface S3Config {
   accessKeyId: string;
   secretAccessKey: string;
   prefix?: string; // Optional folder prefix for charts
+}
+
+export interface D1Config {
+  apiUrl: string; // Cloudflare Worker API URL
 }

@@ -1,16 +1,17 @@
-import { S3Config } from "@/services/storage/types";
+import { S3Config, D1Config } from "@/services/storage/types";
 
 // Application configuration
 // Modify these values to customize branding and URLs
 
 export interface StorageConfig {
-  provider: "local" | "s3";
+  provider: "local" | "s3" | "d1";
   s3?: S3Config;
+  d1?: D1Config;
 }
 
 // Helper to safely get storage configuration from environment variables
 const getStorageConfig = (): StorageConfig => {
-  const provider = (import.meta.env.VITE_STORAGE_PROVIDER || "local") as "local" | "s3";
+  const provider = (import.meta.env.VITE_STORAGE_PROVIDER || "local") as "local" | "s3" | "d1";
   
   if (provider === "s3") {
     const endpoint = import.meta.env.VITE_S3_ENDPOINT;
@@ -36,6 +37,24 @@ const getStorageConfig = (): StorageConfig => {
         accessKeyId,
         secretAccessKey,
         prefix: import.meta.env.VITE_S3_PREFIX || "chord-charts",
+      },
+    };
+  }
+  
+  if (provider === "d1") {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    
+    if (!apiUrl) {
+      console.warn(
+        "D1 storage selected but VITE_API_URL not configured. Falling back to localStorage."
+      );
+      return { provider: "local" };
+    }
+    
+    return {
+      provider: "d1",
+      d1: {
+        apiUrl,
       },
     };
   }

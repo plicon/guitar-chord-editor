@@ -15,7 +15,7 @@ import {
 } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { getBeatLabel } from "../types/strumming";
-import type { StrummingPattern, StrumBeat } from "../types/strumming";
+import type { StrummingPattern, StrumBeat, TimeSignature, Subdivision, StrokeType } from "../types/strumming";
 
 // Backend preset structure from API
 interface BackendPresetPattern {
@@ -49,16 +49,17 @@ function transformPresetToPattern(preset: BackendPreset): StrummingPattern | nul
   }
   
   const beatsPerBar = pattern.timeSignature === "6/8" ? 6 : parseInt(pattern.timeSignature.split("/")[0]);
+  const subdivision = (pattern.subdivision || 4) as Subdivision;
   
   return {
     bars: pattern.bars || 1,
     beatsPerBar,
-    timeSignature: pattern.timeSignature,
-    subdivision: pattern.subdivision || 4,
+    timeSignature: pattern.timeSignature as TimeSignature,
+    subdivision,
     beats: pattern.pattern.map((stroke: string | null, index: number) => ({
-      stroke,
+      stroke: stroke as StrokeType,
       noteValue: "full" as const,
-      beatType: getBeatLabel(index, pattern.subdivision),
+      beatType: getBeatLabel(index, subdivision),
     })),
   };
 }

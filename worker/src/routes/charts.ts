@@ -28,7 +28,19 @@ export async function handleCharts(
 ): Promise<Response> {
   const method = request.method;
 
-  // GET /api/charts
+  // GET /api/charts/:id - Get single chart
+  if (pathParts.length === 3 && method === 'GET') {
+    const id = pathParts[2];
+    const chart = await getChart(env.DB, id);
+
+    if (!chart) {
+      return notFoundResponse('Chart');
+    }
+
+    return jsonResponse(chart);
+  }
+
+  // GET /api/charts - List or search charts
   if (pathParts.length === 2 && method === 'GET') {
     const url = new URL(request.url);
     const query = url.searchParams.get('q');

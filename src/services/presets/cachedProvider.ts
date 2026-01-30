@@ -3,7 +3,7 @@
 
 import type { PresetProvider, CacheConfig } from './types';
 import type { ChordPreset } from '@/types/chord';
-import type { StrummingPreset } from '@/types/strumming';
+import type { StrummingPreset } from '@/types/presets';
 import { DEFAULT_CACHE_CONFIG } from './types';
 
 interface CachedData<T> {

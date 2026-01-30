@@ -2,7 +2,7 @@
 // Allows easy swapping between different preset backends (D1, Postgres, etc.)
 
 import type { ChordPreset } from '@/types/chord';
-import type { StrummingPreset } from '@/types/strumming';
+import type { StrummingPreset } from '@/types/presets';
 
 export interface PresetProvider {
   name: string;
