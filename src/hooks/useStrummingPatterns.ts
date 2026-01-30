@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStrummingPatterns, createStrummingPattern, updateStrummingPattern, deleteStrummingPattern } from "../services/presets/strummingApi";
 import { getBeatLabel } from "../types/strumming";
-import { clearPresetCache } from "../services/presets";
 
 // Backend preset structure from API
 interface BackendPresetPattern {
@@ -55,22 +54,16 @@ export function useStrummingPatterns({ admin = false } = {}) {
   async function createPattern(data) {
     const newPattern = await createStrummingPattern(data);
     setPatterns((prev) => [...prev, newPattern]);
-    // Clear cache so regular frontend gets fresh data
-    clearPresetCache();
   }
 
   async function updatePattern(id, data) {
     const updated = await updateStrummingPattern(id, data);
     setPatterns((prev) => prev.map((p) => (p.id === id ? updated : p)));
-    // Clear cache so regular frontend gets fresh data
-    clearPresetCache();
   }
 
   async function deletePattern(id) {
     await deleteStrummingPattern(id);
     setPatterns((prev) => prev.filter((p) => p.id !== id));
-    // Clear cache so regular frontend gets fresh data
-    clearPresetCache();
   }
 
   return { patterns, createPattern, updatePattern, deletePattern };
