@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useStrummingPatterns } from "../hooks/useStrummingPatterns";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Button } from "../components/ui/button";
-import { Plus, Pencil, Trash2, Home } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -182,6 +182,12 @@ export default function AdminStrummingPatternsPage() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Admin Dashboard
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/">
                   <Home className="w-4 h-4 mr-2" />
