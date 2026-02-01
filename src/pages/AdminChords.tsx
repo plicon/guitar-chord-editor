@@ -97,7 +97,7 @@ export default function AdminChordsPage() {
   }, []);
 
   const convertApiPresetToChord = (apiPreset: ApiChordPreset): ChordDiagram => {
-    const safeJsonParse = (value: any, fallback: any = []) => {
+    const safeJsonParse = (value: unknown, fallback: unknown[] = []) => {
       // If already an object/array, return as-is
       if (typeof value === 'object' && value !== null) return value;
       // If string, parse it
