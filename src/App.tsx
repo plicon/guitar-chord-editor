@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AdminIndexPage from "./pages/AdminIndex";
 import AdminStrummingPatternsPage from "./pages/AdminStrummingPatterns";
+import AdminChordsPage from "./pages/AdminChords";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +21,9 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/admin" element={<AdminStrummingPatternsPage />} />
+            <Route path="/admin" element={<AdminIndexPage />} />
+            <Route path="/admin/strumming-patterns" element={<AdminStrummingPatternsPage />} />
+            <Route path="/admin/chords" element={<AdminChordsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
