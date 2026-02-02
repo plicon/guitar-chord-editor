@@ -78,6 +78,14 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const startY = 50;
   const nutHeight = 5;
 
+  // Sync internal state when chord prop changes
+  useEffect(() => {
+    setEditedChord({
+      ...chord,
+      fingerLabels: chord.fingerLabels || [],
+    });
+  }, [chord]);
+
   // Update suggestions when chord name changes
   useEffect(() => {
     let isMounted = true;
