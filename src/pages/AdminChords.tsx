@@ -59,7 +59,7 @@ export default function AdminChordsPage() {
     const checkPresets = async () => {
       try {
         const response = await searchChordPresetsApi(searchQuery);
-        const presetNames = new Set(
+        const presetNames = new Set<string>(
           response.data.map((p: ApiChordPreset) => p.name.toLowerCase())
         );
         if (isMounted) {
