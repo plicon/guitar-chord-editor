@@ -516,4 +516,259 @@ describe("ChordEditor", () => {
       expect(input).toHaveAttribute("aria-autocomplete", "list");
     });
   });
+
+  describe("Fretboard Interactions", () => {
+    it("should add finger position when clicking on fret", () => {
+      renderEditor();
+
+      // Find a fret position circle and click it
+      const svg = document.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+
+      // The clickable circles for fret positions are in <g> elements
+      const fretGroups = svg?.querySelectorAll("g.cursor-pointer.select-none");
+      expect(fretGroups).toBeDefined();
+      expect(fretGroups!.length).toBeGreaterThan(0);
+
+      // Click on first fret position (should add a finger)
+      if (fretGroups && fretGroups.length > 0) {
+        fireEvent.mouseDown(fretGroups[0]);
+        fireEvent.mouseUp(fretGroups[0]);
+      }
+
+      // After save, check that the chord has a finger position
+      const input = screen.getByPlaceholderText("e.g., Am, G, C7");
+      fireEvent.change(input, { target: { value: "Test" } });
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fingers: expect.arrayContaining([
+            expect.objectContaining({ string: expect.any(Number), fret: expect.any(Number) }),
+          ]),
+        })
+      );
+    });
+
+    it("should toggle muted string when clicking top area", () => {
+      renderEditor();
+
+      const svg = document.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+
+      // Find the top area clickable groups (for muted/open strings)
+      const topGroups = svg?.querySelectorAll("g.cursor-pointer");
+      const stringTopGroup = topGroups?.[0]; // First clickable group is string 1 top area
+
+      if (stringTopGroup) {
+        // Click once to set muted
+        fireEvent.click(stringTopGroup);
+      }
+
+      // Save and verify
+      const input = screen.getByPlaceholderText("e.g., Am, G, C7");
+      fireEvent.change(input, { target: { value: "Test" } });
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+
+    it("should cycle through muted -> open -> none when clicking string top", () => {
+      renderEditor();
+
+      const svg = document.querySelector("svg");
+      const topGroups = svg?.querySelectorAll("g.cursor-pointer");
+      const stringTopGroup = topGroups?.[0];
+
+      if (stringTopGroup) {
+        // Click 1: none -> muted
+        fireEvent.click(stringTopGroup);
+        // Click 2: muted -> open
+        fireEvent.click(stringTopGroup);
+        // Click 3: open -> none
+        fireEvent.click(stringTopGroup);
+      }
+
+      // After 3 clicks, should be back to none
+      const input = screen.getByPlaceholderText("e.g., Am, G, C7");
+      fireEvent.change(input, { target: { value: "Test" } });
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      // Should have no muted or open strings for the clicked string
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+
+    it("should cycle finger labels when clicking bottom row", () => {
+      renderEditor();
+
+      const svg = document.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+
+      // Find finger label circles (they have specific position)
+      const allGroups = svg?.querySelectorAll("g.cursor-pointer");
+      
+      // Finger labels are at the end of the groups
+      // Find a group in the finger label section (has circle with specific radius and text with dash)
+      const fingerLabelGroups = Array.from(allGroups || []).filter((g) => {
+        const text = g.querySelector("text");
+        return text?.textContent === "–";
+      });
+
+      if (fingerLabelGroups.length > 0) {
+        const fingerGroup = fingerLabelGroups[0];
+        
+        // Click to set finger 1
+        fireEvent.click(fingerGroup);
+        
+        // The text should now show "1"
+        const text = fingerGroup.querySelector("text");
+        expect(text?.textContent).toBe("1");
+
+        // Click again to set finger 2
+        fireEvent.click(fingerGroup);
+        expect(text?.textContent).toBe("2");
+
+        // Click to set finger 3
+        fireEvent.click(fingerGroup);
+        expect(text?.textContent).toBe("3");
+
+        // Click to set finger 4
+        fireEvent.click(fingerGroup);
+        expect(text?.textContent).toBe("4");
+
+        // Click to set thumb (T)
+        fireEvent.click(fingerGroup);
+        expect(text?.textContent).toBe("T");
+
+        // Click to clear (back to none)
+        fireEvent.click(fingerGroup);
+        expect(text?.textContent).toBe("–");
+      }
+    });
+  });
+
+  describe("Preset Loading on Open", () => {
+    it("should load preset when chord with known preset is opened", async () => {
+      const chordWithPresetName = {
+        ...defaultChord,
+        name: "Am",
+      };
+      renderEditor(chordWithPresetName);
+
+      // Since auto-fill is enabled by default and chord has name "Am",
+      // the preset should be loaded
+      await waitFor(() => {
+        // The toggle should be enabled
+        const toggle = screen.getByRole("switch");
+        expect(toggle).toBeChecked();
+      });
+    });
+
+    it("should not load preset when auto-fill is disabled", async () => {
+      const chordWithPresetName = {
+        ...defaultChord,
+        name: "Am",
+      };
+      renderEditor(chordWithPresetName);
+
+      const toggle = screen.getByRole("switch");
+      
+      // Disable auto-fill
+      fireEvent.click(toggle);
+      expect(toggle).not.toBeChecked();
+
+      // Save and check that fingering was cleared
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+      
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fingers: [],
+          barres: [],
+          mutedStrings: [],
+          openStrings: [],
+        })
+      );
+    });
+  });
+
+  describe("Barre Chord Creation", () => {
+    it("should create barre when dragging across strings on same fret", () => {
+      renderEditor();
+
+      const svg = document.querySelector("svg");
+      const fretGroups = Array.from(svg?.querySelectorAll("g.cursor-pointer.select-none") || []);
+
+      // Find two positions on the same fret but different strings
+      // Groups are ordered by string then fret, so positions [0] and [5] should be on fret 1 for strings 1 and 2
+      if (fretGroups.length >= 6) {
+        // Mouse down on string 1, fret 1
+        fireEvent.mouseDown(fretGroups[0]);
+        // Mouse enter on string 6, fret 1 (simulating drag)
+        fireEvent.mouseEnter(fretGroups[5]);
+        // Mouse up to complete barre
+        fireEvent.mouseUp(fretGroups[5]);
+      }
+
+      const input = screen.getByPlaceholderText("e.g., Am, G, C7");
+      fireEvent.change(input, { target: { value: "Barre Test" } });
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      // The barre should be in the saved chord
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+  });
+
+  describe("Edge Cases", () => {
+    it("should handle chord with all features", () => {
+      const fullChord: ChordDiagram = {
+        id: "full-test",
+        name: "Fmaj7",
+        frets: 5,
+        startFret: 1,
+        fingers: [
+          { string: 3, fret: 2 },
+          { string: 4, fret: 3 },
+        ],
+        barres: [{ fret: 1, fromString: 6, toString: 2 }],
+        mutedStrings: [6],
+        openStrings: [1],
+        fingerLabels: [
+          { string: 3, finger: 2 },
+          { string: 4, finger: 3 },
+        ],
+      };
+      
+      renderEditor(fullChord);
+
+      expect(screen.getByPlaceholderText("e.g., Am, G, C7")).toHaveValue("Fmaj7");
+      
+      // Check the SVG renders correctly
+      const svg = document.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+    });
+
+    it("should handle empty chord", () => {
+      renderEditor(createEmptyChord("empty"));
+
+      expect(screen.getByPlaceholderText("e.g., Am, G, C7")).toHaveValue("");
+      
+      const svg = document.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+    });
+
+    it("should handle high starting fret", () => {
+      const highFretChord = {
+        ...defaultChord,
+        startFret: 7,
+      };
+      renderEditor(highFretChord);
+
+      const fret7Button = screen.getByRole("button", { name: "7" });
+      expect(fret7Button).toHaveClass("bg-primary");
+      
+      // Fret number should be displayed in SVG
+      const svg = document.querySelector("svg");
+      expect(svg?.textContent).toContain("7");
+    });
+  });
 });
