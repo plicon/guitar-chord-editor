@@ -877,8 +877,7 @@ export const openApiSpec = {
                   type: 'number',
                   minimum: 1,
                   maximum: 4,
-                  description: 'Finger number (1-4)',
-                  nullable: true
+                  description: 'Finger number (1-4)'
                 }
               },
               required: ['string', 'fret']
@@ -914,8 +913,7 @@ export const openApiSpec = {
                   type: 'number',
                   minimum: 1,
                   maximum: 4,
-                  description: 'Finger number',
-                  nullable: true
+                  description: 'Finger number'
                 }
               },
               required: ['fret', 'fromString', 'toString']
