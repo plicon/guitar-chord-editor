@@ -5,7 +5,7 @@ import { Label } from "../components/ui/label";
 import { ArrowLeft, Home, Save, Trash2, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import type { ChordDiagram, FingerPosition } from "../types/chord";
+import type { ChordDiagram, FingerPosition, Barre, FingerLabel } from "../types/chord";
 import { createEmptyChord } from "../types/chord";
 import { ChordEditor } from "../components/ChordEditor";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
@@ -14,16 +14,16 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AppFooter } from "../components/AppFooter";
 
-// Backend API response format
+// Backend API response format (now matches frontend!)
 interface ApiChordPreset {
   id: string;
   name: string;
   frets: number;
-  fingers: string; // JSON stringified array
-  barres: string; // JSON stringified array
-  mutedStrings: string; // JSON stringified array
-  openStrings: string; // JSON stringified array
-  fingerLabels: string; // JSON stringified array
+  fingers: FingerPosition[];
+  barres: Barre[];
+  mutedStrings: number[];
+  openStrings: number[];
+  fingerLabels: FingerLabel[];
   createdAt: string;
   updatedAt: string;
 }
@@ -97,61 +97,6 @@ export default function AdminChordsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const convertApiPresetToChord = (apiPreset: ApiChordPreset): ChordDiagram => {
-    const safeJsonParse = (value: unknown, fallback: unknown[] = []) => {
-      // If already an object/array, return as-is
-      if (typeof value === 'object' && value !== null) return value;
-      // If string, parse it
-      if (typeof value === 'string') {
-        if (value.trim() === '') return fallback;
-        try {
-          return JSON.parse(value);
-        } catch (e) {
-          console.error('Failed to parse JSON:', value, e);
-          return fallback;
-        }
-      }
-      // If null/undefined, return fallback
-      return fallback;
-    };
-
-    const fingersRaw = safeJsonParse(apiPreset.fingers, []);
-    
-    // Convert fingers from old format [0,2,2,1,2,0] to new format [{string:1,fret:2}...]
-    let fingers: FingerPosition[] = [];
-    if (Array.isArray(fingersRaw)) {
-      if (fingersRaw.length > 0 && typeof fingersRaw[0] === 'number') {
-        // Old format: array of fret numbers per string
-        fingers = fingersRaw
-          .map((fret: number, index: number) => ({
-            string: index + 1,
-            fret: fret,
-          }))
-          .filter((f: FingerPosition) => f.fret > 0);
-      } else {
-        // New format: already objects
-        fingers = fingersRaw as FingerPosition[];
-      }
-    }
-    
-    // Calculate startFret from finger positions
-    const minFret = fingers.length > 0 
-      ? Math.min(...fingers.map((f: FingerPosition) => f.fret))
-      : 1;
-    
-    return {
-      id: "current",
-      name: apiPreset.name,
-      frets: apiPreset.frets,
-      startFret: minFret > 0 ? minFret : 1,
-      fingers: fingers,
-      barres: safeJsonParse(apiPreset.barres, []),
-      mutedStrings: safeJsonParse(apiPreset.mutedStrings, []),
-      openStrings: safeJsonParse(apiPreset.openStrings, []),
-      fingerLabels: safeJsonParse(apiPreset.fingerLabels, []),
-    };
-  };
-
   const handleSuggestionClick = async (suggestion: string) => {
     justSelectedRef.current = true;
     setShowSuggestions(false);
@@ -166,7 +111,24 @@ export default function AdminChordsPage() {
       );
 
       if (preset) {
-        const chord = convertApiPresetToChord(preset);
+        // Convert API preset to ChordDiagram format
+        // Calculate startFret from finger positions
+        const minFret = preset.fingers.length > 0 
+          ? Math.min(...preset.fingers.map((f) => f.fret))
+          : 1;
+
+        const chord: ChordDiagram = {
+          id: "current",
+          name: preset.name,
+          frets: preset.frets,
+          startFret: minFret > 0 ? minFret : 1,
+          fingers: preset.fingers,
+          barres: preset.barres,
+          mutedStrings: preset.mutedStrings,
+          openStrings: preset.openStrings,
+          fingerLabels: preset.fingerLabels,
+        };
+
         setCurrentChord(chord);
         setCurrentPresetId(preset.id);
         setEditorOpen(true);

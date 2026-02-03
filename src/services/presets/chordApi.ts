@@ -1,5 +1,7 @@
 // API client for chord preset CRUD
 
+import type { FingerPosition, Barre, FingerLabel } from "@/types/chord";
+
 const API_BASE = import.meta.env.VITE_API_URL;
 const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL;
 const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID;
@@ -36,11 +38,11 @@ export async function getChordPresetApi(id: string) {
 export async function createChordPresetApi(data: {
   name: string;
   frets: number;
-  fingers: Array<{ string: number; fret: number; finger?: number }>;
-  barres?: Array<{ fret: number; fromString: number; toString: number; finger?: number }>;
+  fingers: FingerPosition[];
+  barres?: Barre[];
   mutedStrings?: number[];
   openStrings?: number[];
-  fingerLabels?: Array<{ string: number; finger: number }>;
+  fingerLabels?: FingerLabel[];
 }) {
   const res = await fetch(`${ADMIN_BASE}/presets/chords`, {
     method: "POST",
@@ -59,11 +61,11 @@ export async function updateChordPresetApi(
   data: {
     name?: string;
     frets?: number;
-    fingers?: Array<{ string: number; fret: number; finger?: number }>;
-    barres?: Array<{ fret: number; fromString: number; toString: number; finger?: number }>;
+    fingers?: FingerPosition[];
+    barres?: Barre[];
     mutedStrings?: number[];
     openStrings?: number[];
-    fingerLabels?: Array<{ string: number; finger: number }>;
+    fingerLabels?: FingerLabel[];
   }
 ) {
   const res = await fetch(`${ADMIN_BASE}/presets/chords/${id}`, {

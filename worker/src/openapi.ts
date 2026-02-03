@@ -848,61 +848,134 @@ export const openApiSpec = {
           },
           name: {
             type: 'string',
-            example: 'C Major',
+            example: 'C',
             description: 'Display name of the chord'
           },
           frets: {
-            type: 'array',
-            description: 'Fret positions for each string (low E to high e). "x" = muted, null = open',
-            items: {
-              oneOf: [
-                { type: 'number', minimum: 0, maximum: 24 },
-                { type: 'string', enum: ['x'] },
-                { type: 'null' }
-              ]
-            },
-            example: [null, 3, 2, 0, 1, 0]
+            type: 'number',
+            example: 5,
+            description: 'Number of frets to display (typically 4-5)'
           },
           fingers: {
             type: 'array',
-            description: 'Finger numbers for each string (0-4, null for open/muted)',
+            description: 'Array of finger positions on the fretboard',
             items: {
-              oneOf: [
-                { type: 'number', minimum: 0, maximum: 4 },
-                { type: 'null' }
-              ]
-            },
-            example: [null, 3, 2, null, 1, null]
-          },
-          barreInfo: {
-            oneOf: [
-              {
-                type: 'object',
-                description: 'Barre chord information if applicable',
-                properties: {
-                  fret: {
-                    type: 'number',
-                    description: 'Fret where the barre is placed'
-                  },
-                  fromString: {
-                    type: 'number',
-                    description: 'Starting string (1-6)',
-                    minimum: 1,
-                    maximum: 6
-                  },
-                  toString: {
-                    type: 'number',
-                    description: 'Ending string (1-6)',
-                    minimum: 1,
-                    maximum: 6
-                  }
+              type: 'object',
+              properties: {
+                string: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 6,
+                  description: 'String number (1=high E, 6=low E)'
+                },
+                fret: {
+                  type: 'number',
+                  minimum: 1,
+                  description: 'Fret number'
+                },
+                finger: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 4,
+                  description: 'Finger number (1-4)',
+                  nullable: true
                 }
               },
-              { type: 'null' }
+              required: ['string', 'fret']
+            },
+            example: [
+              { string: 2, fret: 3 },
+              { string: 4, fret: 2 }
             ]
+          },
+          barres: {
+            type: 'array',
+            description: 'Array of barre chords',
+            items: {
+              type: 'object',
+              properties: {
+                fret: {
+                  type: 'number',
+                  description: 'Fret where the barre is placed'
+                },
+                fromString: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 6,
+                  description: 'Starting string'
+                },
+                toString: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 6,
+                  description: 'Ending string'
+                },
+                finger: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 4,
+                  description: 'Finger number',
+                  nullable: true
+                }
+              },
+              required: ['fret', 'fromString', 'toString']
+            },
+            example: []
+          },
+          mutedStrings: {
+            type: 'array',
+            description: 'String numbers that are muted (X)',
+            items: {
+              type: 'number',
+              minimum: 1,
+              maximum: 6
+            },
+            example: [6]
+          },
+          openStrings: {
+            type: 'array',
+            description: 'String numbers that are open (O)',
+            items: {
+              type: 'number',
+              minimum: 1,
+              maximum: 6
+            },
+            example: [1, 3]
+          },
+          fingerLabels: {
+            type: 'array',
+            description: 'Finger number labels shown at bottom',
+            items: {
+              type: 'object',
+              properties: {
+                string: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 6
+                },
+                finger: {
+                  type: 'number',
+                  minimum: 0,
+                  maximum: 4,
+                  description: '0 for thumb (T), 1-4 for fingers'
+                }
+              },
+              required: ['string', 'finger']
+            },
+            example: []
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'ISO 8601 timestamp of creation'
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'ISO 8601 timestamp of last update'
           }
         },
-        required: ['id', 'name', 'frets']
+        required: ['id', 'name', 'frets', 'fingers', 'barres', 'mutedStrings', 'openStrings', 'fingerLabels', 'createdAt', 'updatedAt']
       },
       StrummingPreset: {
         type: 'object',
