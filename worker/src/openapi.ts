@@ -6,11 +6,13 @@
  * API documentation UI at /api/docs
  */
 
+import { WORKER_VERSION } from './config/version';
+
 export const openApiSpec = {
   openapi: '3.1.0',
   info: {
     title: 'FretKit API',
-    version: '1.0.0',
+    version: WORKER_VERSION,
     description: 'REST API for managing guitar chord charts and presets. Built with Cloudflare Workers and D1.',
     contact: {
       name: 'FretKit',

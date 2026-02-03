@@ -3,6 +3,7 @@
  */
 
 import type { ErrorResponse } from '../types';
+import { WORKER_VERSION } from '../config/version';
 
 export function jsonResponse<T>(data: T, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -42,6 +43,6 @@ export function healthCheckResponse(): Response {
   return jsonResponse({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: WORKER_VERSION,
   });
 }

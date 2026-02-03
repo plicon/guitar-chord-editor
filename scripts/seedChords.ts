@@ -39,6 +39,18 @@ interface ChordPreset {
   fingerLabels?: { string: number; finger: number }[];
 }
 
+// Helper function to auto-generate fingerLabels from fingers
+function addFingerLabels(preset: ChordPreset): ChordPreset {
+  const fingerLabels = preset.fingers
+    .filter(f => f.finger !== undefined)
+    .map(f => ({ string: f.string, finger: f.finger! }));
+  
+  return {
+    ...preset,
+    fingerLabels: fingerLabels.length > 0 ? fingerLabels : preset.fingerLabels || [],
+  };
+}
+
 // Sample chord presets to seed
 const chordPresets: ChordPreset[] = [
   // ========== MAJOR CHORDS ==========
@@ -53,7 +65,11 @@ const chordPresets: ChordPreset[] = [
     mutedStrings: [6],
     openStrings: [1, 3],
     barres: [],
-    fingerLabels: [],
+    fingerLabels: [
+      { string: 2, finger: 1 },
+      { string: 4, finger: 2 },
+      { string: 5, finger: 3 },
+    ],
   },
   {
     name: "G",
@@ -513,7 +529,7 @@ const chordPresets: ChordPreset[] = [
 ];
 
 async function seedChords() {
-  const API_BASE = process.env.VITE_ADMIN_API_URL || "https://dev.api.fretkit.io/api/admin";
+  const API_BASE = (process.env.VITE_ADMIN_API_URL || "https://dev.api.fretkit.io/api/admin").replace(/\/$/, '');
   const CF_ACCESS_CLIENT_ID = process.env.VITE_CF_ACCESS_CLIENT_ID;
   const CF_ACCESS_CLIENT_SECRET = process.env.VITE_CF_ACCESS_CLIENT_SECRET;
 
@@ -530,6 +546,9 @@ async function seedChords() {
 
   for (const preset of chordPresets) {
     try {
+      // Auto-generate fingerLabels from fingers
+      const presetWithLabels = addFingerLabels(preset);
+      
       const response = await fetch(`${API_BASE}/presets/chords`, {
         method: "POST",
         headers: {
@@ -538,7 +557,7 @@ async function seedChords() {
           "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
         },
         credentials: "include",
-        body: JSON.stringify(preset),
+        body: JSON.stringify(presetWithLabels),
       });
 
       if (!response.ok) {
