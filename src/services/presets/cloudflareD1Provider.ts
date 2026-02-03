@@ -99,7 +99,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
 
       // If not found by ID, try searching by name
       response = await fetch(
-        `${this.apiUrl}/presets/chords?q=${encodeURIComponent(nameOrId)}`,
+        `${this.apiUrl}/presets/chords?search=${encodeURIComponent(nameOrId)}`,
         {
           method: 'GET',
           headers: {
