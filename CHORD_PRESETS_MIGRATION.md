@@ -102,6 +102,8 @@ npm run deploy
 ```
 
 ### 3. Seed Database
+# For remote production database
+VITE_ADMIN_API_URL=https://api.fretkit.io/api/admin
 
 ```bash
 cd ..
