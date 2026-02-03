@@ -12,12 +12,14 @@
 		{
 			"binding": "fretkit_db_production",
 			"database_name": "fretkit-db-production",
-			"database_id": "1f1b225b-1977-4f49-a244-4e320dee0374"
+			"database_id": "1f1b225b-1977-4f49-a244-4e320dee0374",
+			"migrations_dir": "worker/migrations"
 		},
 		{
 			"binding": "fretkit_db_staging",
 			"database_name": "fretkit-db-staging",
-			"database_id": "99f36e70-f499-4023-8bf8-1ac8f6c15a1e"
+			"database_id": "99f36e70-f499-4023-8bf8-1ac8f6c15a1e",
+			"migrations_dir": "worker/migrations"
 		}
 	],
 	"observability": {

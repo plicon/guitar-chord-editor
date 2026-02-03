@@ -151,18 +151,22 @@ export const ChordDiagramComponent = ({
             ))}
 
             {/* Barres */}
-            {chord.barres.map((barre, i) => (
-              <rect
-                key={`barre-${i}`}
-                x={startX + (6 - barre.fromString) * stringSpacing - 4}
-                y={startY + (barre.fret - 0.5) * fretSpacing - 6}
-                width={(barre.fromString - barre.toString) * stringSpacing + 8}
-                height={12}
-                rx={6}
-                className={!printMode ? "fill-chord-dot" : undefined}
-                fill={printMode ? colors?.dot : undefined}
-              />
-            ))}
+            {chord.barres.map((barre, i) => {
+              const minString = Math.min(barre.fromString, barre.toString);
+              const maxString = Math.max(barre.fromString, barre.toString);
+              return (
+                <rect
+                  key={`barre-${i}`}
+                  x={startX + (6 - maxString) * stringSpacing - 4}
+                  y={startY + (barre.fret - 0.5) * fretSpacing - 6}
+                  width={(maxString - minString) * stringSpacing + 8}
+                  height={12}
+                  rx={6}
+                  className={!printMode ? "fill-chord-dot" : undefined}
+                  fill={printMode ? colors?.dot : undefined}
+                />
+              );
+            })}
 
             {/* Finger positions */}
             {chord.fingers.map((finger, i) => (

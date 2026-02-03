@@ -36,10 +36,14 @@ export interface StrummingPresetRow {
 export interface ChordPresetRow {
   id: string;
   name: string;
-  frets: string; // JSON array of fret positions like [-1, 3, 2, 0, 1, 0]
-  fingers: string; // JSON array of finger numbers like [-1, 3, 2, 0, 1, 0]
-  barre_info: string | null; // JSON object with {fret, fromString, toString} or NULL
+  frets: number; // Number of frets to display
+  fingers: string; // JSON array of {string, fret, finger?}
+  barres: string | null; // JSON array of {fret, fromString, toString, finger?}
+  muted_strings: string | null; // JSON array of string numbers
+  open_strings: string | null; // JSON array of string numbers
+  finger_labels: string | null; // JSON array of {string, finger}
   created_at: number;
+  updated_at: number;
 }
 
 // ============================================================================
@@ -96,14 +100,32 @@ export interface StrummingPreset {
 export interface ChordPreset {
   id: string;
   name: string;
-  frets: (number | 'x' | null)[];  // Array like [0, 2, 2, 1, 0, 0] or 'x' for muted, null for not played
-  fingers: (number | null)[]; // Array of finger numbers
-  barreInfo?: {
-    fret: number;
-    fromString: number;
-    toString: number;
-  } | null;
+  frets: number; // Number of frets to display (typically 4-5)
+  fingers: FingerPosition[];
+  barres: Barre[];
+  mutedStrings: number[];
+  openStrings: number[];
+  fingerLabels: FingerLabel[];
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface FingerPosition {
+  string: number; // 1-6 (1 = high E, 6 = low E)
+  fret: number; // Fret number relative to startFret
+  finger?: number; // 1-4 for finger number
+}
+
+export interface Barre {
+  fret: number;
+  fromString: number;
+  toString: number;
+  finger?: number;
+}
+
+export interface FingerLabel {
+  string: number; // 1-6
+  finger: number; // 1-4 or 0 for thumb (T)
 }
 
 // ============================================================================
@@ -134,24 +156,22 @@ export interface UpdateChartRequest {
 
 export interface CreateChordPresetRequest {
   name: string;
-  frets: (number | 'x' | null)[];
-  fingers: (number | null)[];
-  barreInfo?: {
-    fret: number;
-    fromString: number;
-    toString: number;
-  } | null;
+  frets: number;
+  fingers: FingerPosition[];
+  barres?: Barre[];
+  mutedStrings?: number[];
+  openStrings?: number[];
+  fingerLabels?: FingerLabel[];
 }
 
 export interface UpdateChordPresetRequest {
   name?: string;
-  frets?: (number | 'x' | null)[];
-  fingers?: (number | null)[];
-  barreInfo?: {
-    fret: number;
-    fromString: number;
-    toString: number;
-  } | null;
+  frets?: number;
+  fingers?: FingerPosition[];
+  barres?: Barre[];
+  mutedStrings?: number[];
+  openStrings?: number[];
+  fingerLabels?: FingerLabel[];
 }
 
 export interface CreateStrummingPresetRequest {

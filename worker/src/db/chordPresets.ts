@@ -19,10 +19,14 @@ function rowToPreset(row: ChordPresetRow): ChordPreset {
   return {
     id: row.id,
     name: row.name,
-    frets: JSON.parse(row.frets),
+    frets: row.frets,
     fingers: JSON.parse(row.fingers),
-    barreInfo: row.barre_info ? JSON.parse(row.barre_info) : undefined,
+    barres: row.barres ? JSON.parse(row.barres) : [],
+    mutedStrings: row.muted_strings ? JSON.parse(row.muted_strings) : [],
+    openStrings: row.open_strings ? JSON.parse(row.open_strings) : [],
+    fingerLabels: row.finger_labels ? JSON.parse(row.finger_labels) : [],
     createdAt: new Date(row.created_at).toISOString(),
+    updatedAt: new Date(row.updated_at).toISOString(),
   };
 }
 
@@ -85,15 +89,19 @@ export async function createChordPreset(
   await db
     .prepare(
       `INSERT INTO chord_presets (
-        id, name, frets, fingers, barre_info, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?)`
+        id, name, frets, fingers, barres, muted_strings, open_strings, finger_labels, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id,
       data.name,
-      JSON.stringify(data.frets),
+      data.frets,
       JSON.stringify(data.fingers),
-      data.barreInfo ? JSON.stringify(data.barreInfo) : null,
+      data.barres ? JSON.stringify(data.barres) : JSON.stringify([]),
+      data.mutedStrings ? JSON.stringify(data.mutedStrings) : JSON.stringify([]),
+      data.openStrings ? JSON.stringify(data.openStrings) : JSON.stringify([]),
+      data.fingerLabels ? JSON.stringify(data.fingerLabels) : JSON.stringify([]),
+      now,
       now
     )
     .run();
@@ -128,20 +136,36 @@ export async function updateChordPreset(
   }
   if (data.frets !== undefined) {
     updates.push('frets = ?');
-    values.push(JSON.stringify(data.frets));
+    values.push(data.frets);
   }
   if (data.fingers !== undefined) {
     updates.push('fingers = ?');
     values.push(JSON.stringify(data.fingers));
   }
-  if (data.barreInfo !== undefined) {
-    updates.push('barre_info = ?');
-    values.push(data.barreInfo ? JSON.stringify(data.barreInfo) : null);
+  if (data.barres !== undefined) {
+    updates.push('barres = ?');
+    values.push(JSON.stringify(data.barres));
+  }
+  if (data.mutedStrings !== undefined) {
+    updates.push('muted_strings = ?');
+    values.push(JSON.stringify(data.mutedStrings));
+  }
+  if (data.openStrings !== undefined) {
+    updates.push('open_strings = ?');
+    values.push(JSON.stringify(data.openStrings));
+  }
+  if (data.fingerLabels !== undefined) {
+    updates.push('finger_labels = ?');
+    values.push(JSON.stringify(data.fingerLabels));
   }
 
   if (updates.length === 0) {
     return existing;
   }
+
+  // Always update the updated_at timestamp
+  updates.push('updated_at = ?');
+  values.push(Date.now());
 
   values.push(id);
 
