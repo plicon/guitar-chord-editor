@@ -167,7 +167,6 @@ export default function AdminChordsPage() {
 
       if (preset) {
         const chord = convertApiPresetToChord(preset);
-        console.log('Loaded chord from preset:', chord);
         setCurrentChord(chord);
         setCurrentPresetId(preset.id);
         setEditorOpen(true);
