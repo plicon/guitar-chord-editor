@@ -5,7 +5,7 @@ import { Label } from "../components/ui/label";
 import { ArrowLeft, Home, Save, Trash2, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import type { ChordDiagram } from "../types/chord";
+import type { ChordDiagram, FingerPosition } from "../types/chord";
 import { createEmptyChord } from "../types/chord";
 import { ChordEditor } from "../components/ChordEditor";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
@@ -115,10 +115,28 @@ export default function AdminChordsPage() {
       return fallback;
     };
 
-    const fingers = safeJsonParse(apiPreset.fingers, []);
+    const fingersRaw = safeJsonParse(apiPreset.fingers, []);
+    
+    // Convert fingers from old format [0,2,2,1,2,0] to new format [{string:1,fret:2}...]
+    let fingers: FingerPosition[] = [];
+    if (Array.isArray(fingersRaw)) {
+      if (fingersRaw.length > 0 && typeof fingersRaw[0] === 'number') {
+        // Old format: array of fret numbers per string
+        fingers = fingersRaw
+          .map((fret: number, index: number) => ({
+            string: index + 1,
+            fret: fret,
+          }))
+          .filter((f: FingerPosition) => f.fret > 0);
+      } else {
+        // New format: already objects
+        fingers = fingersRaw as FingerPosition[];
+      }
+    }
+    
     // Calculate startFret from finger positions
     const minFret = fingers.length > 0 
-      ? Math.min(...fingers.map((f: { fret: number }) => f.fret))
+      ? Math.min(...fingers.map((f: FingerPosition) => f.fret))
       : 1;
     
     return {
@@ -149,6 +167,7 @@ export default function AdminChordsPage() {
 
       if (preset) {
         const chord = convertApiPresetToChord(preset);
+        console.log('Loaded chord from preset:', chord);
         setCurrentChord(chord);
         setCurrentPresetId(preset.id);
         setEditorOpen(true);

@@ -37,12 +37,19 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [autoFillPresets, setAutoFillPresets] = useState(true);
   const [availablePresets, setAvailablePresets] = useState<Set<string>>(new Set());
   const justSelectedRef = useRef(false);
+  const justOpenedRef = useRef(false);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   // Sync editedChord when chord prop changes (e.g., when opening with a preset)
   useEffect(() => {
     if (open) {
+      console.log('ChordEditor opened with chord:', chord);
+      justOpenedRef.current = true;
       setEditedChord({
+        ...chord,
+        fingerLabels: chord.fingerLabels || [],
+      });
+      console.log('Set editedChord to:', {
         ...chord,
         fingerLabels: chord.fingerLabels || [],
       });
@@ -51,6 +58,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       setShowSuggestions(false);
       // Focus save button instead of input
       setTimeout(() => {
+        inputRef.current?.blur();
         saveButtonRef.current?.focus();
       }, 100);
     }
@@ -104,6 +112,18 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       justSelectedRef.current = false;
       return;
     }
+    
+    // Don't show suggestions when the dialog just opened
+    if (justOpenedRef.current) {
+      justOpenedRef.current = false;
+      return;
+    }
+    
+    // Don't show suggestions when the dialog is closed
+    if (!open) {
+      return;
+    }
+    
     const filtered = filterChordSuggestions(editedChord.name);
     setSuggestions(filtered);
     setSelectedIndex(0);
@@ -132,7 +152,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
     return () => {
       isMounted = false;
     };
-  }, [editedChord.name]);
+  }, [editedChord.name, open]);
 
   // Handle click outside to close suggestions
   useEffect(() => {
