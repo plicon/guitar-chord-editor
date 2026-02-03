@@ -13,13 +13,14 @@ export interface CloudflareApiConfig {
 interface ApiChordPreset {
   id: string;
   name: string;
-  frets: (number | 'x' | null)[];
-  fingers?: (number | null)[];
-  barreInfo?: {
-    fret: number;
-    fromString: number;
-    toString: number;
-  } | null;
+  frets: number;
+  fingers: { string: number; fret: number; finger?: number }[];
+  barres: { fret: number; fromString: number; toString: number; finger?: number }[];
+  mutedStrings: number[];
+  openStrings: number[];
+  fingerLabels: { string: number; finger: number }[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ApiStrummingPreset {
@@ -219,65 +220,20 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   private convertApiChordPresetToAppFormat(apiPreset: ApiChordPreset): ChordPreset {
-    // API format: { id, name, frets, fingers, barreInfo }
-    // App format: { name, startFret, fingers, barres, mutedStrings, openStrings, fingerLabels }
-    
-    const frets = apiPreset.frets as (number | 'x' | null)[];
-    const fingerNumbers = apiPreset.fingers as (number | null)[] | undefined;
-    
-    // Calculate startFret (lowest non-zero fret)
-    const numericFrets = frets.filter((f): f is number => typeof f === 'number' && f > 0);
-    const startFret = numericFrets.length > 0 ? Math.min(...numericFrets) : 1;
-    
-    // Build finger positions
-    const fingers = frets
-      .map((fret, stringIndex) => {
-        if (typeof fret === 'number' && fret > 0) {
-          return { string: 6 - stringIndex, fret }; // Convert to 1-based string index
-        }
-        return null;
-      })
-      .filter((f): f is { string: number; fret: number } => f !== null);
-    
-    // Build barres
-    const barres = apiPreset.barreInfo
-      ? [{
-          fret: apiPreset.barreInfo.fret,
-          fromString: apiPreset.barreInfo.fromString,
-          toString: apiPreset.barreInfo.toString,
-        }]
-      : [];
-    
-    // Identify muted and open strings
-    const mutedStrings = frets
-      .map((fret, index) => (fret === 'x' ? 6 - index : null))
-      .filter((s): s is number => s !== null);
-    
-    const openStrings = frets
-      .map((fret, index) => (fret === 0 ? 6 - index : null))
-      .filter((s): s is number => s !== null);
-    
-    // Build finger labels
-    const fingerLabels = fingerNumbers
-      ? frets
-          .map((fret, stringIndex) => {
-            const finger = fingerNumbers[stringIndex];
-            if (typeof fret === 'number' && fret > 0 && finger) {
-              return { string: 6 - stringIndex, finger };
-            }
-            return null;
-          })
-          .filter((f): f is { string: number; finger: number } => f !== null)
-      : [];
+    // After migration, API format matches app format
+    // Just calculate startFret from finger positions
+    const fingerFrets = apiPreset.fingers.map(f => f.fret).filter(f => f > 0);
+    const startFret = fingerFrets.length > 0 ? Math.min(...fingerFrets) : 1;
     
     return {
       name: apiPreset.name,
+      frets: apiPreset.frets,
       startFret,
-      fingers,
-      barres,
-      mutedStrings,
-      openStrings,
-      fingerLabels,
+      fingers: apiPreset.fingers,
+      barres: apiPreset.barres,
+      mutedStrings: apiPreset.mutedStrings,
+      openStrings: apiPreset.openStrings,
+      fingerLabels: apiPreset.fingerLabels,
     };
   }
 
