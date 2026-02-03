@@ -57,7 +57,7 @@ export async function handleChordPresets(
   // GET /api/presets/chords
   if (pathParts.length === 3 && method === 'GET') {
     const url = new URL(request.url);
-    const query = url.searchParams.get('q');
+    const query = url.searchParams.get('search');
     const limit = parseInt(url.searchParams.get('limit') || '100');
     const offset = parseInt(url.searchParams.get('offset') || '0');
 

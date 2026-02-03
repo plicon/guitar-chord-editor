@@ -80,21 +80,74 @@ export const openApiSpec = {
     },
     '/presets/chords': {
       get: {
-        summary: 'List Chord Presets',
-        description: 'Get all available chord presets from the database. Returns common chord shapes with fingering information.',
+        summary: 'List or Search Chord Presets',
+        description: 'Get all available chord presets from the database or search by name. Returns common chord shapes with fingering information.',
         operationId: 'listChordPresets',
         tags: ['Presets'],
         security: [],
+        parameters: [
+          {
+            name: 'search',
+            in: 'query',
+            required: false,
+            description: 'Search query to filter presets by name (case-insensitive, supports partial matches)',
+            schema: {
+              type: 'string'
+            },
+            example: 'C'
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Maximum number of results to return',
+            schema: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 1000,
+              default: 100
+            }
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            required: false,
+            description: 'Number of results to skip (for pagination)',
+            schema: {
+              type: 'integer',
+              minimum: 0,
+              default: 0
+            }
+          }
+        ],
         responses: {
           '200': {
             description: 'List of chord presets retrieved successfully',
             content: {
               'application/json': {
                 schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/ChordPreset'
-                  }
+                  type: 'object',
+                  properties: {
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/ChordPreset'
+                      }
+                    },
+                    total: {
+                      type: 'integer',
+                      description: 'Total number of matching presets'
+                    },
+                    limit: {
+                      type: 'integer',
+                      description: 'Maximum results per page'
+                    },
+                    offset: {
+                      type: 'integer',
+                      description: 'Current offset'
+                    }
+                  },
+                  required: ['data', 'total', 'limit', 'offset']
                 }
               }
             }
