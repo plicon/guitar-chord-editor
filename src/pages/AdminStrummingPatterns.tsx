@@ -15,6 +15,7 @@ import {
 } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { getBeatLabel } from "../types/strumming";
+import { AppFooter } from "../components/AppFooter";
 import type { StrummingPattern, StrumBeat, TimeSignature, Subdivision, StrokeType } from "../types/strumming";
 
 // Backend preset structure from API
@@ -370,6 +371,8 @@ export default function AdminStrummingPatternsPage() {
         </ul>
       )}
       </div>
+
+      <AppFooter className="mt-8" />
     </>
   );
 }

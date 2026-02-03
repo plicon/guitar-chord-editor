@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { ChartMetadataSection } from "@/components/ChartMetadataSection";
 import { ChordGridSection } from "@/components/ChordGridSection";
 import { PreviewDialog } from "@/components/PreviewDialog";
+import { AppFooter } from "@/components/AppFooter";
 import { Download, Eye } from "lucide-react";
 import { useChartState } from "@/hooks/useChartState";
 import { useChordDragAndDrop } from "@/hooks/useChordDragAndDrop";
@@ -184,6 +185,8 @@ const Index = () => {
           strummingPattern={state.strummingPattern}
         />
       </div>
+
+      <AppFooter />
     </div>
   );
 };
