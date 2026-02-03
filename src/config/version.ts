@@ -7,4 +7,4 @@
  * - PATCH: Bug fixes and small changes (auto-increment per commit)
  */
 
-export const APP_VERSION = "1.1.2";
+export const APP_VERSION = "1.1.3";
