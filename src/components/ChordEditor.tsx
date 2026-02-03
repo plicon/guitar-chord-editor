@@ -37,6 +37,24 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [autoFillPresets, setAutoFillPresets] = useState(true);
   const [availablePresets, setAvailablePresets] = useState<Set<string>>(new Set());
   const justSelectedRef = useRef(false);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Sync editedChord when chord prop changes (e.g., when opening with a preset)
+  useEffect(() => {
+    if (open) {
+      setEditedChord({
+        ...chord,
+        fingerLabels: chord.fingerLabels || [],
+      });
+      // Clear suggestions to prevent dropdown from showing
+      setSuggestions([]);
+      setShowSuggestions(false);
+      // Focus save button instead of input
+      setTimeout(() => {
+        saveButtonRef.current?.focus();
+      }, 100);
+    }
+  }, [open, chord]);
 
   const handleAutoFillToggle = async (checked: boolean) => {
     setAutoFillPresets(checked);
@@ -726,7 +744,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Chord</Button>
+            <Button ref={saveButtonRef} onClick={handleSave}>Save Chord</Button>
           </div>
         </div>
       </DialogContent>
