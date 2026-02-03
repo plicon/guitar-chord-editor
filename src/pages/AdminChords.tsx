@@ -12,6 +12,7 @@ import { filterChordSuggestions } from "@/data/chordSuggestions";
 import { searchChordPresetsApi, createChordPresetApi, updateChordPresetApi, deleteChordPresetApi } from "@/services/presets/chordApi";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { AppFooter } from "../components/AppFooter";
 
 // Backend API response format
 interface ApiChordPreset {
@@ -442,6 +443,8 @@ export default function AdminChordsPage() {
           onSave={handleSaveChord}
         />
       )}
+
+      <AppFooter className="mt-8" />
     </>
   );
 }

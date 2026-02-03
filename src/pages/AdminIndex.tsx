@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { Home, Music, Guitar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { AppFooter } from "../components/AppFooter";
 
 export default function AdminIndexPage() {
   return (
@@ -94,6 +95,8 @@ export default function AdminIndexPage() {
           </Card>
         </div>
       </div>
+
+      <AppFooter className="mt-8" />
     </>
   );
 }
