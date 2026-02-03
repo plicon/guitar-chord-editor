@@ -120,7 +120,7 @@ export default function AdminChordsPage() {
         const chord: ChordDiagram = {
           id: "current",
           name: preset.name,
-          frets: preset.frets,
+          frets: preset.frets || 5,
           startFret: minFret > 0 ? minFret : 1,
           fingers: preset.fingers,
           barres: preset.barres,

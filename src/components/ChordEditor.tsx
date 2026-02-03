@@ -46,6 +46,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       justOpenedRef.current = true;
       setEditedChord({
         ...chord,
+        frets: chord.frets || 5,
         fingerLabels: chord.fingerLabels || [],
       });
       // Clear suggestions to prevent dropdown from showing
@@ -68,6 +69,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       if (preset) {
         setEditedChord({
           ...editedChord,
+          frets: preset.frets || 5,
           startFret: preset.startFret,
           fingers: preset.fingers,
           barres: preset.barres,
@@ -180,6 +182,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       setEditedChord({
         ...editedChord,
         name: suggestion,
+        frets: preset.frets || 5,
         startFret: preset.startFret,
         fingers: preset.fingers,
         barres: preset.barres,

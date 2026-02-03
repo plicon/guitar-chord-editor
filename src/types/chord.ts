@@ -53,6 +53,7 @@ export const isChordEdited = (chord: ChordDiagram): boolean => {
 // Preset format for chord fingerings (used by preset providers)
 export interface ChordPreset {
   name: string;
+  frets: number;
   startFret: number;
   fingers: FingerPosition[];
   barres: Barre[];
