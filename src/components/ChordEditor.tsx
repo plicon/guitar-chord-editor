@@ -43,13 +43,8 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   // Sync editedChord when chord prop changes (e.g., when opening with a preset)
   useEffect(() => {
     if (open) {
-      console.log('ChordEditor opened with chord:', chord);
       justOpenedRef.current = true;
       setEditedChord({
-        ...chord,
-        fingerLabels: chord.fingerLabels || [],
-      });
-      console.log('Set editedChord to:', {
         ...chord,
         fingerLabels: chord.fingerLabels || [],
       });
