@@ -20,6 +20,7 @@ function rowToPreset(row: ChordPresetRow): ChordPreset {
     id: row.id,
     name: row.name,
     frets: row.frets,
+    startFret: row.start_fret,
     fingers: JSON.parse(row.fingers),
     barres: row.barres ? JSON.parse(row.barres) : [],
     mutedStrings: row.muted_strings ? JSON.parse(row.muted_strings) : [],
@@ -89,13 +90,14 @@ export async function createChordPreset(
   await db
     .prepare(
       `INSERT INTO chord_presets (
-        id, name, frets, fingers, barres, muted_strings, open_strings, finger_labels, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        id, name, frets, start_fret, fingers, barres, muted_strings, open_strings, finger_labels, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id,
       data.name,
       data.frets,
+      data.startFret || 1,
       JSON.stringify(data.fingers),
       data.barres ? JSON.stringify(data.barres) : JSON.stringify([]),
       data.mutedStrings ? JSON.stringify(data.mutedStrings) : JSON.stringify([]),
@@ -137,6 +139,10 @@ export async function updateChordPreset(
   if (data.frets !== undefined) {
     updates.push('frets = ?');
     values.push(data.frets);
+  }
+  if (data.startFret !== undefined) {
+    updates.push('start_fret = ?');
+    values.push(data.startFret);
   }
   if (data.fingers !== undefined) {
     updates.push('fingers = ?');

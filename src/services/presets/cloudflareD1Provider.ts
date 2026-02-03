@@ -14,6 +14,7 @@ interface ApiChordPreset {
   id: string;
   name: string;
   frets: number;
+  startFret: number;
   fingers: { string: number; fret: number; finger?: number }[];
   barres: { fret: number; fromString: number; toString: number; finger?: number }[];
   mutedStrings: number[];
@@ -220,15 +221,11 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   private convertApiChordPresetToAppFormat(apiPreset: ApiChordPreset): ChordPreset {
-    // After migration, API format matches app format
-    // Just calculate startFret from finger positions
-    const fingerFrets = apiPreset.fingers.map(f => f.fret).filter(f => f > 0);
-    const startFret = fingerFrets.length > 0 ? Math.min(...fingerFrets) : 1;
-    
+    // API format matches app format - just pass through with startFret from API
     return {
       name: apiPreset.name,
       frets: apiPreset.frets,
-      startFret,
+      startFret: apiPreset.startFret,
       fingers: apiPreset.fingers,
       barres: apiPreset.barres,
       mutedStrings: apiPreset.mutedStrings,

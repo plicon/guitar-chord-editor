@@ -111,17 +111,11 @@ export default function AdminChordsPage() {
       );
 
       if (preset) {
-        // Convert API preset to ChordDiagram format
-        // Calculate startFret from finger positions
-        const minFret = preset.fingers.length > 0 
-          ? Math.min(...preset.fingers.map((f) => f.fret))
-          : 1;
-
         const chord: ChordDiagram = {
           id: "current",
           name: preset.name,
           frets: preset.frets || 5,
-          startFret: minFret > 0 ? minFret : 1,
+          startFret: preset.startFret || 1,
           fingers: preset.fingers,
           barres: preset.barres,
           mutedStrings: preset.mutedStrings,
@@ -194,6 +188,7 @@ export default function AdminChordsPage() {
     const chordData = {
       name: chord.name,
       frets: chord.frets,
+      startFret: chord.startFret,
       fingers: chord.fingers,
       barres: chord.barres || [],
       mutedStrings: chord.mutedStrings || [],
