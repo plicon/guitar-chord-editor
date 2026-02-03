@@ -31,6 +31,7 @@ interface Barre {
 interface ChordPreset {
   name: string;
   frets: number;
+  startFret?: number;
   fingers: FingerPosition[];
   barres?: Barre[];
   mutedStrings?: number[];

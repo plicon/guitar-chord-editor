@@ -37,6 +37,7 @@ export interface ChordPresetRow {
   id: string;
   name: string;
   frets: number; // Number of frets to display
+  start_fret: number; // Starting fret position on neck
   fingers: string; // JSON array of {string, fret, finger?}
   barres: string | null; // JSON array of {fret, fromString, toString, finger?}
   muted_strings: string | null; // JSON array of string numbers
@@ -101,6 +102,7 @@ export interface ChordPreset {
   id: string;
   name: string;
   frets: number; // Number of frets to display (typically 4-5)
+  startFret: number; // Starting fret position on neck (1 for open position)
   fingers: FingerPosition[];
   barres: Barre[];
   mutedStrings: number[];
@@ -157,6 +159,7 @@ export interface UpdateChartRequest {
 export interface CreateChordPresetRequest {
   name: string;
   frets: number;
+  startFret?: number;
   fingers: FingerPosition[];
   barres?: Barre[];
   mutedStrings?: number[];
@@ -167,6 +170,7 @@ export interface CreateChordPresetRequest {
 export interface UpdateChordPresetRequest {
   name?: string;
   frets?: number;
+  startFret?: number;
   fingers?: FingerPosition[];
   barres?: Barre[];
   mutedStrings?: number[];

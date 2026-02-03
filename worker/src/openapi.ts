@@ -909,6 +909,11 @@ export const openApiSpec = {
             example: 5,
             description: 'Number of frets to display (typically 4-5)'
           },
+          startFret: {
+            type: 'number',
+            example: 1,
+            description: 'Starting fret position on the guitar neck (1 for open position)'
+          },
           fingers: {
             type: 'array',
             description: 'Array of finger positions on the fretboard',
