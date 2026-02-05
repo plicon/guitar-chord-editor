@@ -65,23 +65,28 @@ database_id = "YOUR_DATABASE_ID_HERE"  # ← Paste here
 ```bash
 cd worker
 
-# Apply initial schema
-npx wrangler d1 migrations apply fretkit-db-production --remote -c wrangler.toml --env production
+# Apply migrations to production
+npx wrangler d1 migrations apply DB --env production --remote
 ```
 
 **Output:**
 ```
-✅ Successfully applied 2 migration(s)
+✅ Successfully applied 3 migration(s)
 ```
+
+This will create:
+- Schema (tables, indexes)
+- Seed strumming patterns (14 presets)
+- Seed chord presets (600 chords)
 
 ### Step 5: Verify Database
 
 ```bash
 # Check tables
-npx wrangler d1 execute fretkit-db-production --remote -c wrangler.toml --env production \
+npx wrangler d1 execute DB --env production --remote \
   --command "SELECT name FROM sqlite_master WHERE type='table'"
 
-# Should show: chord_charts, strumming_presets, chord_presets
+# Should show: charts, strumming_presets, chord_presets
 ```
 
 ---

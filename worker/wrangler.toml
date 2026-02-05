@@ -3,16 +3,15 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# D1 Database binding used for Development
-[[d1_databases]]
+# Development environment (default)
+[env.development]
+name = "fretkit-worker-development"
+vars = { ENVIRONMENT = "development" }
+[[env.development.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db"
 database_id = "d9c128f4-06c6-471b-9e84-ffbd4a0f280b"
 migrations_dir = "migrations"
-
-# Environment variables
-[vars]
-ENVIRONMENT = "development"
 
 # Production environment
 [env.production]

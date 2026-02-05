@@ -163,7 +163,7 @@ npm run dev
 
 ### Seed Initial Data
 
-The local dev server automatically applies migrations, including seed data from `migrations/0002_seed_presets.sql`.
+The local dev server automatically applies migrations, including seed data from `migrations/0002_seed_strumming_presets.sql` and `migrations/0003_seed_chord_presets.sql`.
 
 To add all 1600+ chords:
 

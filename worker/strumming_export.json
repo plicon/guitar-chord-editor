@@ -1,0 +1,122 @@
+[
+  {
+    "results": [
+      {
+        "id": "basic_down_4_4",
+        "name": "Basic Down (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",null,\"down\",null,\"down\",null]}",
+        "description": "Down on every beat: 1, 2, 3, 4",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "old_faithful_4_4",
+        "name": "Old Faithful (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",\"up\",null,\"up\",\"down\",null]}",
+        "description": "Old Faithful by Justin Guitar",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "shoot_em_up_4_4",
+        "name": "Shoot 'Em Up (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",null,\"down\",\"up\",\"down\",\"up\"]}",
+        "description": "Shoot 'em up by Justin Guitar",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "old_faithful_shuffle_4_4",
+        "name": "Old Faithful Shuffle (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",\"up\",null,\"up\",\"down\",null]}",
+        "description": "Old Faithful in shuffle by Justin Guitar",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "the_push_4_4",
+        "name": "The Push (4/4)",
+        "pattern": "{\"bars\":2,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",null,\"down\",\"up\",null,\"up\",null,\"up\",\"down\",null,\"down\",\"up\",\"down\",null]}",
+        "description": "The Push by Justin Guitar",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "2_bar_alternating_4_4",
+        "name": "2-Bar Alternating (4/4)",
+        "pattern": "{\"bars\":2,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",\"up\",\"down\",\"up\",\"down\",\"up\",\"down\",\"up\",\"down\",null,\"down\",\"up\",null,\"up\",\"down\",null]}",
+        "description": "Alternating emphasis over 2 bars",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "waltz_strum_3_4",
+        "name": "Waltz Strum (3/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"3/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",\"up\",\"down\",\"up\"]}",
+        "description": "Classic waltz pattern",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "6_8_folk_strum",
+        "name": "6/8 Folk Strum",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"6/8\",\"subdivision\":3,\"pattern\":[\"down\",null,\"up\",null,null,null,\"down\",null,\"up\",null,null,null,\"down\",null,\"up\",null,null,null]}",
+        "description": "Common 6/8 pattern",
+        "created_at": 1769625425000
+      },
+      {
+        "id": "d9e0fc66-e3a1-45d2-9f4a-4571e94e204d",
+        "name": "Basic (6/8)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"6/8\",\"subdivision\":3,\"pattern\":[\"down\",null,null,\"down\",null,null,\"down\",null,null,\"down\",null,null,\"down\",null,null,\"down\",null,null]}",
+        "description": "Mute all the string with the fretting hand and focus on the strumming and groove",
+        "created_at": 1769861402619
+      },
+      {
+        "id": "314dc073-b957-4aee-b183-ed671b22c1b7",
+        "name": "Shoot 'Em Ups (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",null,\"down\",\"up\",\"down\",\"up\"]}",
+        "description": "By Justin Guitar",
+        "created_at": 1769861503280
+      },
+      {
+        "id": "d264142a-e55a-4c60-bbcd-037f91b80569",
+        "name": "Basic 16ths (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":4,\"pattern\":[\"down\",null,\"down\",\"up\",\"down\",null,\"down\",null,\"down\",\"up\",\"down\",null,\"down\",null,\"down\",null]}",
+        "description": "by Justin Guitar",
+        "created_at": 1769861607992
+      },
+      {
+        "id": "3f52045e-a859-412d-9701-ec3a6dfddd2a",
+        "name": "Tasty 6/8 shuffled (6/8)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"6/8\",\"subdivision\":3,\"pattern\":[\"down\",null,null,null,null,\"up\",\"down\",null,null,\"down\",null,null,null,null,\"up\",\"down\",null,null]}",
+        "description": "By Justin Guitar",
+        "created_at": 1769861674914
+      },
+      {
+        "id": "2847c142-a470-4b20-bda1-e5474845c5f4",
+        "name": "Rollin' and Tumblin' (4/4)",
+        "pattern": "{\"bars\":1,\"timeSignature\":\"4/4\",\"subdivision\":4,\"pattern\":[\"down\",null,\"down\",null,null,\"up\",\"down\",\"up\",\"down\",null,\"down\",null,null,\"up\",\"down\",\"up\"]}",
+        "description": "By Justin Guitar",
+        "created_at": 1769861731620
+      },
+      {
+        "id": "78313419-4ab1-4b5d-9024-6c3d9ad63990",
+        "name": "Saturday Night (4/4)",
+        "pattern": "{\"bars\":2,\"timeSignature\":\"4/4\",\"subdivision\":2,\"pattern\":[\"down\",null,\"down\",null,\"down\",null,\"down\",null,null,null,\"down\",null,\"down\",null,\"down\",null]}",
+        "description": "By Herman Brood",
+        "created_at": 1769862623475
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "WEUR",
+      "served_by_colo": "AMS",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.1551
+      },
+      "duration": 0.1551,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 77824,
+      "rows_read": 14,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]
