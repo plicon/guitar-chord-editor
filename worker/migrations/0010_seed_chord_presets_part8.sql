@@ -1,0 +1,14 @@
+-- Seed chord presets (part 8 of 8)
+-- Chords 701 to 708
+
+INSERT INTO chord_presets (id, name, frets, start_fret, fingers, barres, muted_strings, open_strings, finger_labels, symbols, steps, notes, instructions, created_at, updated_at) VALUES
+  ('_flat11_guitar_chord__flat_dominant_11th', 'B11 guitar chord (B Dominant 11th)', 5, 2, '[{"string":2,"fret":1,"finger":4},{"string":3,"fret":1,"finger":3},{"string":5,"fret":1,"finger":2}]', NULL, '[4,6]', '[1]', NULL, '11', '1-3-5-b7-9-11', 'B-D#-F#-A-C#-E', 'Use your pinky to press the B (2nd),
+  ('_flat13_guitar_chord__flat_dominant_13th', 'B13 guitar chord (B Dominant 13th)', 5, 1, '[{"string":1,"fret":4,"finger":4},{"string":4,"fret":1,"finger":1},{"string":5,"fret":2,"finger":2}]', '[{"fret":2,"fromString":2,"toString":3}]', '[6]', '[2,3]', NULL, '13', '1-3-5-b7-9-13', 'B-D#-F#-A-C#-G#', 'Stretch out your pinky to the 4th fret of the E (1st),
+  ('_flat9_flat5_guitar_chord__flat_dominat_9th_flat_5th', 'B9b5 guitar chord (B Dominat 9th, Flat 5th)', 5, 2, '[{"string":2,"fret":1,"finger":4},{"string":3,"fret":1,"finger":3},{"string":5,"fret":1,"finger":2}]', '[{"fret":1,"fromString":1,"toString":4}]', '[6]', '[1,4]', NULL, '9b5, 7(b5,9),
+  ('_flat9_sharp5_guitar_chord__flat_dominat_9th_sharp_5th', 'B9#5 guitar chord (B Dominat 9th, Sharp 5th)', 5, 1, '[{"string":1,"fret":3,"finger":4},{"string":4,"fret":1,"finger":1},{"string":5,"fret":2,"finger":2}]', '[{"fret":2,"fromString":2,"toString":3}]', '[6]', '[2,3]', NULL, '9#5, 7(#5,9),
+  ('_flat13_sharp11_guitar_chord__flat_dominant_13th_added_sharp_11th', 'B13#11 guitar chord (B Dominant 13th, Added Sharp 11th)', 5, 3, '[{"string":1,"fret":2,"finger":4},{"string":2,"fret":2,"finger":3},{"string":4,"fret":1,"finger":2}]', '[{"fret":2,"fromString":2,"toString":5}]', '[6]', '[3,5]', NULL, '13#11, 13+11, 7(9,#11,13),
+  ('_flat13_flat9_guitar_chord__flat_dominant_13th_flat_9th', 'B13b9 guitar chord (B Dominant 13th, Flat 9th)', 5, 2, '[{"string":1,"fret":3,"finger":4},{"string":3,"fret":1,"finger":3},{"string":5,"fret":1,"finger":2}]', '[{"fret":1,"fromString":1,"toString":4}]', '[6]', '[2,4]', NULL, '13b9, 13-9, 7(b9,13),
+  ('_flat11_flat9_guitar_chord__flat_dominant_11th_flat_9th', 'B11b9 guitar chord (B Dominant 11th, Flat 9th)', 5, 1, '[{"string":2,"fret":1,"finger":1},{"string":3,"fret":2,"finger":4},{"string":4,"fret":2,"finger":3},{"string":5,"fret":2,"finger":2}]', NULL, '[6]', '[1]', NULL, '11b9, 7sus4(b9),
+  ('_flatsus2sus4_guitar_chord__flat_suspended_2nd_suspended_4th', 'Bsus2sus4 guitar chord (B Suspended 2nd, Suspended 4th)', 5, 4, '[{"string":3,"fret":1,"finger":4}]', '[{"fret":2,"fromString":2,"toString":5}]', '[6]', '[1,2,4,5]', NULL, 'sus2sus4', '1-2-4-5', 'B-C#-E-F#', 'Barre the 2nd fret with your index finger, extending over the 1st to the 5th strings | Press down on the G (3rd);
+
+-- Inserted 8 chord presets
