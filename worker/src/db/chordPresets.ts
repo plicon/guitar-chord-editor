@@ -26,6 +26,10 @@ function rowToPreset(row: ChordPresetRow): ChordPreset {
     mutedStrings: row.muted_strings ? JSON.parse(row.muted_strings) : [],
     openStrings: row.open_strings ? JSON.parse(row.open_strings) : [],
     fingerLabels: row.finger_labels ? JSON.parse(row.finger_labels) : [],
+    symbols: row.symbols || undefined,
+    steps: row.steps || undefined,
+    notes: row.notes || undefined,
+    instructions: row.instructions || undefined,
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
   };

@@ -43,6 +43,10 @@ export interface ChordPresetRow {
   muted_strings: string | null; // JSON array of string numbers
   open_strings: string | null; // JSON array of string numbers
   finger_labels: string | null; // JSON array of {string, finger}
+  symbols: string | null; // Chord symbols (e.g., "M, maj" or "m7, min7")
+  steps: string | null; // Scale steps (e.g., "1-3-5" or "1-3-5-7")
+  notes: string | null; // Chord notes (e.g., "C-E-G")
+  instructions: string | null; // Finger placement instructions
   created_at: number;
   updated_at: number;
 }
@@ -108,6 +112,10 @@ export interface ChordPreset {
   mutedStrings: number[];
   openStrings: number[];
   fingerLabels: FingerLabel[];
+  symbols?: string; // Chord symbols (e.g., "M, maj" or "m7, min7")
+  steps?: string; // Scale steps (e.g., "1-3-5" or "1-3-5-7")
+  notes?: string; // Chord notes (e.g., "C-E-G")
+  instructions?: string; // Finger placement instructions
   createdAt: string;
   updatedAt: string;
 }
