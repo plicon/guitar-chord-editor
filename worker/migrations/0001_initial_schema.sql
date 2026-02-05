@@ -29,10 +29,19 @@ CREATE TABLE IF NOT EXISTS strumming_presets (
 CREATE TABLE IF NOT EXISTS chord_presets (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  frets TEXT NOT NULL, -- JSON array of fret positions [-1=muted, 0=open, 1-24=fret numbers]
-  fingers TEXT NOT NULL, -- JSON array of finger numbers [0=none, 1-4=finger, -1=muted/not played]
-  barre_info TEXT, -- JSON object {fret, fromString, toString} for barre chords, NULL if no barre
-  created_at INTEGER NOT NULL -- Unix timestamp in milliseconds
+  frets INTEGER NOT NULL DEFAULT 5, -- Number of frets to display
+  start_fret INTEGER NOT NULL DEFAULT 1, -- Starting fret number (1 for open position)
+  fingers TEXT NOT NULL, -- JSON array of {string, fret, finger?}
+  barres TEXT, -- JSON array of {fret, fromString, toString, finger?}
+  muted_strings TEXT, -- JSON array of string numbers that are muted
+  open_strings TEXT, -- JSON array of string numbers that are open
+  finger_labels TEXT, -- JSON array of {string, finger}
+  symbols TEXT, -- Chord symbols (e.g., "M, maj" or "maj7, M7")
+  steps TEXT, -- Scale steps (e.g., "1-3-5" or "1-3-5-7")
+  notes TEXT, -- Chord notes (e.g., "C-E-G")
+  instructions TEXT, -- Finger placement instructions
+  created_at INTEGER NOT NULL, -- Unix timestamp in milliseconds
+  updated_at INTEGER NOT NULL  -- Unix timestamp in milliseconds
 );
 
 -- Indexes for common queries
