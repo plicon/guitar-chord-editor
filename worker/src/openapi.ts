@@ -1022,6 +1022,26 @@ export const openApiSpec = {
             },
             example: []
           },
+          symbols: {
+            type: 'string',
+            description: 'Chord symbols (e.g., "M, maj" for major, "m7, min7" for minor 7th)',
+            example: 'M, maj'
+          },
+          steps: {
+            type: 'string',
+            description: 'Scale steps that make up the chord (e.g., "1-3-5" for major triad, "1-3-5-7" for major 7th)',
+            example: '1-3-5'
+          },
+          notes: {
+            type: 'string',
+            description: 'Musical notes in the chord (e.g., "C-E-G" for C major)',
+            example: 'C-E-G'
+          },
+          instructions: {
+            type: 'string',
+            description: 'Step-by-step finger placement instructions for playing the chord',
+            example: 'Press the B (2nd) string on the 1st fret with your index finger | With your middle finger, press down on the D (4th) string at the 2nd fret | Position your ring finger on the A (5th) string at the 3rd fret and press down | Now, strum all the strings starting from the 5th string'
+          },
           createdAt: {
             type: 'string',
             format: 'date-time',
@@ -1033,7 +1053,7 @@ export const openApiSpec = {
             description: 'ISO 8601 timestamp of last update'
           }
         },
-        required: ['id', 'name', 'frets', 'fingers', 'barres', 'mutedStrings', 'openStrings', 'fingerLabels', 'createdAt', 'updatedAt']
+        required: ['id', 'name', 'frets', 'startFret', 'fingers', 'barres', 'mutedStrings', 'openStrings', 'fingerLabels', 'createdAt', 'updatedAt']
       },
       StrummingPreset: {
         type: 'object',
