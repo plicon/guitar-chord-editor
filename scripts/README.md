@@ -40,14 +40,14 @@ python3 all-guitar-chords_create-export.py
 
 ### 2. `convertCsvToSeedSql.py`
 
-Converts `guitar_chords.csv` to SQL migration file format.
+Converts `guitar_chords.csv` to multiple SQL migration files.
 
 **Features:**
 - Generates URL-safe IDs from chord names
 - Calculates `startFret` from finger positions
 - Adjusts fret numbers to be relative to `startFret`
 - Creates properly escaped SQL INSERT statements
-- Organizes chords by category (Major, Minor, 7th, Other)
+- **Splits into multiple files** to avoid SQLite size limits (100 chords per file)
 
 **Usage:**
 ```bash
@@ -55,7 +55,15 @@ cd scripts
 python3 convertCsvToSeedSql.py
 ```
 
-**Output:** `../worker/migrations/0003_seed_chord_presets.sql`
+**Output:** Multiple migration files:
+- `../worker/migrations/0003_seed_chord_presets_part1.sql` (chords 1-100)
+- `../worker/migrations/0004_seed_chord_presets_part2.sql` (chords 101-200)
+- `../worker/migrations/0005_seed_chord_presets_part3.sql` (chords 201-300)
+- `../worker/migrations/0006_seed_chord_presets_part4.sql` (chords 301-400)
+- `../worker/migrations/0007_seed_chord_presets_part5.sql` (chords 401-500)
+- `../worker/migrations/0008_seed_chord_presets_part6.sql` (chords 501-600)
+
+**Note:** Splitting into multiple files avoids the `SQLITE_TOOBIG` error that occurs when a single migration file exceeds SQLite's statement size limit (~724 lines with 600 chords).
 
 ### 3. `exportStrummingPresets.py`
 

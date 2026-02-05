@@ -127,7 +127,10 @@ def generate_insert(chord: dict) -> str:
 def main():
     script_dir = Path(__file__).parent
     csv_path = script_dir / 'guitar_chords.csv'
-    output_path = script_dir.parent / 'worker' / 'migrations' / '0006_seed_all_chord_presets.sql'
+    migrations_dir = script_dir.parent / 'worker' / 'migrations'
+    
+    # Configuration
+    CHORDS_PER_FILE = 100  # Split into files of 100 chords each
     
     print(f"Reading CSV from: {csv_path}")
     
@@ -149,34 +152,40 @@ def main():
     
     print(f"Categories: {len(major)} major, {len(minor)} minor, {len(seventh)} seventh, {len(other)} other")
     
-    # Generate SQL
-    sql = f"""-- Seed all chord presets from all-guitar-chords.com
--- Generated from guitar_chords.csv on {datetime.now().strftime('%Y-%m-%d')}
--- Total chords: {len(chords)}
-
-"""
+    # Calculate number of files needed
+    total_files = (len(chords) + CHORDS_PER_FILE - 1) // CHORDS_PER_FILE
     
-    def insert_chords(chords_list: list, comment: str) -> str:
-        if not chords_list:
-            return ''
+    # Generate multiple migration files
+    for file_idx in range(total_files):
+        start_idx = file_idx * CHORDS_PER_FILE
+        end_idx = min((file_idx + 1) * CHORDS_PER_FILE, len(chords))
+        chunk = chords[start_idx:end_idx]
         
-        result = f"-- {comment}\n"
-        result += "INSERT INTO chord_presets (id, name, frets, start_fret, fingers, barres, muted_strings, open_strings, finger_labels, symbols, steps, notes, instructions, created_at, updated_at) VALUES\n"
-        result += ',\n'.join(generate_insert(c) for c in chords_list)
-        result += ';\n\n'
-        return result
+        # File numbering starts at 0003
+        file_num = 3 + file_idx
+        output_path = migrations_dir / f'{file_num:04d}_seed_chord_presets_part{file_idx + 1}.sql'
+        
+        # Generate SQL for this chunk
+        sql = f"""-- Seed chord presets (part {file_idx + 1} of {total_files})
+-- Generated from guitar_chords.csv on {datetime.now().strftime('%Y-%m-%d')}
+-- Chords {start_idx + 1} to {end_idx}
+
+INSERT INTO chord_presets (id, name, frets, start_fret, fingers, barres, muted_strings, open_strings, finger_labels, symbols, steps, notes, instructions, created_at, updated_at) VALUES
+"""
+        sql += ',\n'.join(generate_insert(c) for c in chunk)
+        sql += ';\n\n'
+        sql += f"-- Inserted {len(chunk)} chord presets\n"
+        
+        # Write output
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(sql)
+        
+        print(f"✅ Generated {output_path.name} with {len(chunk)} chords")
     
-    sql += insert_chords(major, f"Major chords ({len(major)})")
-    sql += insert_chords(minor, f"Minor chords ({len(minor)})")
-    sql += insert_chords(seventh, f"Seventh chords ({len(seventh)})")
-    sql += insert_chords(other, f"Other chords ({len(other)})")
-    
-    # Write output
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(sql)
-    
-    print(f"\n✅ Generated SQL seed file: {output_path}")
-    print(f"   Total inserts: {len(chords)}")
+    print(f"\n📊 Summary:")
+    print(f"   Total chords: {len(chords)}")
+    print(f"   Split into {total_files} migration files")
+    print(f"   Migrations: {3:04d} to {3 + total_files - 1:04d}")
     
     # Statistics
     with_barres = sum(1 for c in chords if c['barres'])
