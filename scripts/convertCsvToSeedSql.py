@@ -28,12 +28,16 @@ def generate_id(name: str) -> str:
             .replace('+', '_plus')
             .replace(',', ''))
 
-def calculate_start_fret(fingers: list) -> int:
-    """Calculate the starting fret from finger positions"""
-    if not fingers:
-        return 1
+def calculate_start_fret(fingers: list, barres: list = None) -> int:
+    """Calculate the starting fret from finger positions and barres"""
+    fret_numbers = []
     
-    fret_numbers = [f['fret'] for f in fingers if f['fret'] > 0]
+    # Add finger frets
+    fret_numbers.extend([f['fret'] for f in fingers if f['fret'] > 0])
+    
+    # Add barre frets
+    if barres:
+        fret_numbers.extend([b['fret'] for b in barres if b.get('fret') and b['fret'] > 0])
     
     if not fret_numbers:
         return 1  # All open strings
@@ -95,8 +99,8 @@ def convert_row(row: dict) -> dict:
     muted_strings = json.loads(row['muted_strings']) if row['muted_strings'] else []
     open_strings = json.loads(row['open_strings']) if row['open_strings'] else []
     
-    # Calculate start fret
-    start_fret = calculate_start_fret(fingers)
+    # Calculate start fret (including barres)
+    start_fret = calculate_start_fret(fingers, barres)
     
     # Adjust finger positions to be relative to start fret
     adjusted_fingers = [
@@ -107,13 +111,23 @@ def convert_row(row: dict) -> dict:
         for f in fingers
     ]
     
+    # Adjust barre positions to be relative to start fret
+    adjusted_barres = [
+        {
+            **b,
+            'fret': b['fret'] - start_fret + 1 if b.get('fret') else None
+        }
+        for b in barres
+        if b.get('fret') is not None
+    ]
+    
     return {
         'id': chord_id,
         'name': name,
         'frets': 5,
         'start_fret': start_fret,
         'fingers': adjusted_fingers,
-        'barres': barres,
+        'barres': adjusted_barres,
         'muted_strings': muted_strings,
         'open_strings': open_strings,
         'symbols': row.get('symbols', ''),
