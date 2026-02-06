@@ -221,16 +221,30 @@ export class CloudflareD1PresetProvider implements PresetProvider {
   }
 
   private convertApiChordPresetToAppFormat(apiPreset: ApiChordPreset): ChordPreset {
-    // API format matches app format - just pass through with startFret from API
+    // Normalize barres: ensure fromString >= toString (app convention)
+    const normalizedBarres = (apiPreset.barres || []).map(b => ({
+      ...b,
+      fromString: Math.max(b.fromString, b.toString),
+      toString: Math.min(b.fromString, b.toString),
+    }));
+
+    // Derive fingerLabels from fingers when not provided by the API
+    let fingerLabels = apiPreset.fingerLabels || [];
+    if (fingerLabels.length === 0 && apiPreset.fingers?.length > 0) {
+      fingerLabels = apiPreset.fingers
+        .filter(f => f.finger !== undefined && f.finger !== null)
+        .map(f => ({ string: f.string, finger: f.finger! }));
+    }
+
     return {
       name: apiPreset.name,
       frets: apiPreset.frets,
       startFret: apiPreset.startFret,
       fingers: apiPreset.fingers,
-      barres: apiPreset.barres,
+      barres: normalizedBarres,
       mutedStrings: apiPreset.mutedStrings,
       openStrings: apiPreset.openStrings,
-      fingerLabels: apiPreset.fingerLabels,
+      fingerLabels,
     };
   }
 

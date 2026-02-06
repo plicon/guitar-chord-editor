@@ -272,7 +272,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       } else {
         // Check if there's a barre at this position
         const barreIndex = editedChord.barres.findIndex(
-          (b) => b.fret === fret && string >= b.toString && string <= b.fromString
+          (b) => b.fret === fret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
         );
         
         if (barreIndex >= 0) {
@@ -384,7 +384,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   const isInBarre = (string: number, fret: number) => {
     return editedChord.barres.some(
-      (b) => b.fret === fret && string >= b.toString && string <= b.fromString
+      (b) => b.fret === fret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
     );
   };
 
@@ -634,17 +634,21 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               ))}
 
               {/* Existing Barres */}
-              {editedChord.barres.map((barre, i) => (
-                <rect
-                  key={`barre-${i}`}
-                  x={startX + (6 - barre.fromString) * stringSpacing - 6}
-                  y={startY + (barre.fret - 0.5) * fretSpacing - 8}
-                  width={(barre.fromString - barre.toString) * stringSpacing + 12}
-                  height={16}
-                  rx={8}
-                  className="fill-chord-dot"
-                />
-              ))}
+              {editedChord.barres.map((barre, i) => {
+                const maxStr = Math.max(barre.fromString, barre.toString);
+                const minStr = Math.min(barre.fromString, barre.toString);
+                return (
+                  <rect
+                    key={`barre-${i}`}
+                    x={startX + (6 - maxStr) * stringSpacing - 6}
+                    y={startY + (barre.fret - 0.5) * fretSpacing - 8}
+                    width={(maxStr - minStr) * stringSpacing + 12}
+                    height={16}
+                    rx={8}
+                    className="fill-chord-dot"
+                  />
+                );
+              })}
 
               {/* Drag Preview Barre */}
               {dragPreview && (

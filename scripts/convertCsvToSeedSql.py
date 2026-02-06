@@ -144,7 +144,13 @@ def generate_insert(chord: dict) -> str:
     barres_json = 'NULL' if not chord['barres'] else f"'{escape_sql(json.dumps(chord['barres'], separators=(',', ':')))}'"
     muted_json = 'NULL' if not chord['muted_strings'] else f"'{escape_sql(json.dumps(chord['muted_strings'], separators=(',', ':')))}'"
     open_json = 'NULL' if not chord['open_strings'] else f"'{escape_sql(json.dumps(chord['open_strings'], separators=(',', ':')))}'"
-    finger_labels_json = 'NULL'
+    # Generate finger_labels from fingers data
+    finger_labels = [
+        {'string': f['string'], 'finger': f['finger']}
+        for f in chord['fingers']
+        if 'finger' in f and f['finger'] is not None
+    ]
+    finger_labels_json = f"'{escape_sql(json.dumps(finger_labels, separators=(',', ':')))}'" if finger_labels else 'NULL'
     
     symbols = f"'{escape_sql(chord['symbols'])}'" if chord.get('symbols') else 'NULL'
     steps = f"'{escape_sql(chord['steps'])}'" if chord.get('steps') else 'NULL'
