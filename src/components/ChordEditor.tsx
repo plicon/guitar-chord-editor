@@ -594,18 +594,19 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
                 />
               )}
 
-              {/* Fret number if not at nut */}
-              {editedChord.startFret > 1 && (
+              {/* Fret numbers on the left */}
+              {[1, 2, 3, 4, 5].map((fret) => (
                 <text
+                  key={`fret-num-${fret}`}
                   x={startX - 15}
-                  y={startY + fretSpacing * 0.7}
+                  y={startY + (fret - 0.5) * fretSpacing + 4}
                   className="fill-muted-foreground"
-                  fontSize={12}
+                  fontSize={11}
                   textAnchor="middle"
                 >
-                  {editedChord.startFret}
+                  {editedChord.startFret + fret - 1}
                 </text>
-              )}
+              ))}
 
               {/* Strings */}
               {[0, 1, 2, 3, 4, 5].map((i) => (
