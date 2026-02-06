@@ -431,11 +431,15 @@ def main():
         positions, strum_info = parse_positions_from_bullets(bullets)
         
         # Calculate muted and open strings
-        # Get all strings that have finger positions
+        # Get all strings that have finger positions or are covered by barres
         fretted_strings = set()
         for pos in positions:
             if pos.get("type") == "finger" and pos.get("string"):
                 fretted_strings.add(pos["string"])
+            elif pos.get("type") == "barre" and pos.get("fromString") and pos.get("toString"):
+                # Add all strings covered by the barre
+                for string_num in range(pos["fromString"], pos["toString"] + 1):
+                    fretted_strings.add(string_num)
         
         # Calculate muted strings
         muted_strings = []
