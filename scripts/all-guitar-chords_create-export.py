@@ -269,19 +269,46 @@ def parse_positions_from_bullets(bullets: list[str]):
         
         if "barre" in text:
             # Parse barre information
-            m = re.search(r"barre.*?(\d+(?:st|nd|rd|th))\s*fret", b, re.I)
+            # Look for patterns like:
+            # - "barre... 1st fret"
+            # - "barre... across the 1st fret"
+            # - "barre... on the 1st fret"
+            m = re.search(r"barre.*?(?:across|on|using)?\s*(?:the\s+)?(\d+(?:st|nd|rd|th))\s*fret", b, re.I)
             fret_ord = m.group(1) if m else None
             fret_num = ordinal_to_number(fret_ord) if fret_ord else None
             
             # Try to find which strings are barred
+            # Look for patterns like:
+            # - "from the 1st to the 2nd strings"
+            # - "covering the 2nd to the 4th strings"
+            # - "extending over the 1st to the 5th strings"
+            # - "extending over all the strings"
+            # - "1st to the 2nd strings"
             from_str = None
             to_str = None
-            m2 = re.search(r"from.*?(\d+(?:st|nd|rd|th)).*?to.*?(\d+(?:st|nd|rd|th))", b, re.I)
-            if not m2:
-                m2 = re.search(r"(\d+(?:st|nd|rd|th)).*?to.*?(\d+(?:st|nd|rd|th))", b, re.I)
-            if m2:
-                from_str = ordinal_to_number(m2.group(1))
-                to_str = ordinal_to_number(m2.group(2))
+            
+            # Check for "all the strings" pattern
+            if re.search(r"(?:over|across|extending\s+over|covering)\s+all\s+(?:the\s+)?strings", b, re.I):
+                from_str = 1
+                to_str = 6
+            else:
+                # Try patterns with "from X to Y"
+                m2 = re.search(r"from(?:\s+the)?\s+(\d+(?:st|nd|rd|th)).*?to(?:\s+the)?\s+(\d+(?:st|nd|rd|th))\s+string", b, re.I)
+                if not m2:
+                    # Try patterns with "covering/extending X to Y"
+                    m2 = re.search(r"(?:covering|extending\s+over)(?:\s+the)?\s+(\d+(?:st|nd|rd|th)).*?to(?:\s+the)?\s+(\d+(?:st|nd|rd|th))\s+string", b, re.I)
+                if not m2:
+                    # Try simple "X to Y" pattern
+                    m2 = re.search(r"(?:the\s+)?(\d+(?:st|nd|rd|th)).*?to(?:\s+the)?\s+(\d+(?:st|nd|rd|th))\s+string", b, re.I)
+                
+                if m2:
+                    from_str = ordinal_to_number(m2.group(1))
+                    to_str = ordinal_to_number(m2.group(2))
+                else:
+                    # If no string range specified, default to all strings (1-6)
+                    # This handles cases like "Place a barre using your index finger on the 1st fret"
+                    from_str = 1
+                    to_str = 6
             
             positions.append({
                 "type": "barre",
