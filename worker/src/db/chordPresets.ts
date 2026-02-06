@@ -203,7 +203,7 @@ export async function deleteChordPreset(
 }
 
 /**
- * Search chord presets by name
+ * Search chord presets by name (starts with query)
  */
 export async function searchChordPresets(
   db: D1Database,
@@ -212,7 +212,7 @@ export async function searchChordPresets(
 ): Promise<ListResponse<ChordPreset>> {
   const limit = params.limit || 100;
   const offset = params.offset || 0;
-  const searchPattern = `%${query}%`;
+  const searchPattern = `${query}%`;
 
   // Get total count
   const countResult = await db
