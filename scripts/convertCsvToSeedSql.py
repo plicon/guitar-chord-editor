@@ -45,11 +45,26 @@ def escape_sql(s: str) -> str:
     """Escape single quotes for SQL"""
     return s.replace("'", "''")
 
+def simplify_chord_name(full_name: str) -> str:
+    """Simplify chord name by extracting just the chord symbol.
+    
+    Examples:
+        'C guitar chord (C Major)' -> 'C'
+        'Cadd9 guitar chord (C Major added 9th)' -> 'Cadd9'
+        'C#/Db guitar chord (C#/Db Major)' -> 'C#/Db'
+    """
+    # Pattern: "<ChordSymbol> guitar chord (<Description>)"
+    match = re.match(r'^(.+?)\s+guitar chord\s+\(', full_name)
+    if match:
+        return match.group(1)
+    return full_name  # Return original if pattern doesn't match
+
 def convert_row(row: dict) -> dict:
     """Convert CSV row to ChordPreset format"""
     # Clean name - remove newlines and extra spaces
-    name = ' '.join(row['chord_label'].split())
-    chord_id = generate_id(name)
+    full_name = ' '.join(row['chord_label'].split())
+    name = simplify_chord_name(full_name)
+    chord_id = generate_id(full_name)
     
     # Parse positions
     positions = json.loads(row['parsed_positions'])
