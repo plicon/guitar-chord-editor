@@ -29,7 +29,16 @@ def generate_id(name: str) -> str:
             .replace(',', ''))
 
 def calculate_start_fret(fingers: list, barres: list = None) -> int:
-    """Calculate the starting fret from finger positions and barres"""
+    """Calculate the centered starting fret for display purposes.
+    
+    The start_fret determines which fret range (start_fret to start_fret+4) 
+    is shown in the 5-fret diagram. The chord is centered within this range.
+    
+    Examples:
+        - Chord uses frets 1,2,3: span=3, start_fret=1 (shows 1-5, centered with 1 empty after)
+        - Chord uses frets 4,5,6: span=3, start_fret=3 (shows 3-7, centered with 1 empty before/after)
+        - Chord uses frets 3,4,5,6: span=4, start_fret=3 (shows 3-7, with 1 empty after)
+    """
     fret_numbers = []
     
     # Add finger frets
@@ -43,7 +52,22 @@ def calculate_start_fret(fingers: list, barres: list = None) -> int:
         return 1  # All open strings
     
     min_fret = min(fret_numbers)
-    return 1 if min_fret == 1 else min_fret
+    max_fret = max(fret_numbers)
+    span = max_fret - min_fret + 1
+    
+    # If chord includes fret 1 or spans 5+ frets, start at the minimum fret
+    if min_fret == 1 or span >= 5:
+        return 1 if min_fret == 1 else min_fret
+    
+    # Center the chord in the 5-fret diagram
+    # For span of 3: 1 empty before, for span of 4: 0 empty before
+    empty_frets = 5 - span
+    padding_before = empty_frets // 2
+    
+    # Calculate start_fret, but never go below 1
+    centered_start = max(1, min_fret - padding_before)
+    
+    return centered_start
 
 def escape_sql(s: str) -> str:
     """Escape single quotes for SQL"""
@@ -99,35 +123,19 @@ def convert_row(row: dict) -> dict:
     muted_strings = json.loads(row['muted_strings']) if row['muted_strings'] else []
     open_strings = json.loads(row['open_strings']) if row['open_strings'] else []
     
-    # Calculate start fret (including barres)
+    # Calculate centered start fret for display (based on absolute fret positions)
     start_fret = calculate_start_fret(fingers, barres)
     
-    # Adjust finger positions to be relative to start fret
-    adjusted_fingers = [
-        {
-            **f,
-            'fret': 0 if f['fret'] == 0 else f['fret'] - start_fret + 1
-        }
-        for f in fingers
-    ]
-    
-    # Adjust barre positions to be relative to start fret
-    adjusted_barres = [
-        {
-            **b,
-            'fret': b['fret'] - start_fret + 1 if b.get('fret') else None
-        }
-        for b in barres
-        if b.get('fret') is not None
-    ]
+    # Store absolute fret positions (no adjustment needed)
+    # The frontend will use start_fret to determine which frets to display (start_fret to start_fret+4)
     
     return {
         'id': chord_id,
         'name': name,
         'frets': 5,
         'start_fret': start_fret,
-        'fingers': adjusted_fingers,
-        'barres': adjusted_barres,
+        'fingers': fingers,  # Store absolute positions
+        'barres': barres,    # Store absolute positions
         'muted_strings': muted_strings,
         'open_strings': open_strings,
         'symbols': row.get('symbols', ''),

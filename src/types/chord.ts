@@ -12,12 +12,12 @@ export interface ChordDiagram {
 
 export interface FingerPosition {
   string: number; // 1-6 (1 = high E, 6 = low E)
-  fret: number; // 1-5 (relative to startFret)
+  fret: number; // Absolute fret number on the guitar neck (e.g., 1-12)
   finger?: number; // 1-4 for finger number
 }
 
 export interface Barre {
-  fret: number;
+  fret: number; // Absolute fret number on the guitar neck
   fromString: number;
   toString: number;
   finger?: number;

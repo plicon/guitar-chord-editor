@@ -163,11 +163,13 @@ export const ChordDiagramComponent = ({
             {chord.barres.map((barre, i) => {
               const minString = Math.min(barre.fromString, barre.toString);
               const maxString = Math.max(barre.fromString, barre.toString);
+              // Convert absolute fret position to diagram-relative position
+              const diagramFret = barre.fret - chord.startFret + 1;
               return (
                 <rect
                   key={`barre-${i}`}
                   x={startX + (6 - maxString) * stringSpacing - 4}
-                  y={startY + (barre.fret + fretOffset - 0.5) * fretSpacing - 6}
+                  y={startY + (diagramFret + fretOffset - 0.5) * fretSpacing - 6}
                   width={(maxString - minString) * stringSpacing + 8}
                   height={12}
                   rx={6}
@@ -178,16 +180,20 @@ export const ChordDiagramComponent = ({
             })}
 
             {/* Finger positions */}
-            {chord.fingers.map((finger, i) => (
-              <circle
-                key={`finger-${i}`}
-                cx={startX + (6 - finger.string) * stringSpacing}
-                cy={startY + (finger.fret + fretOffset - 0.5) * fretSpacing}
-                r={stringSpacing / 3}
-                className={!printMode ? "fill-chord-dot" : undefined}
-                fill={printMode ? colors?.dot : undefined}
-              />
-            ))}
+            {chord.fingers.map((finger, i) => {
+              // Convert absolute fret position to diagram-relative position
+              const diagramFret = finger.fret - chord.startFret + 1;
+              return (
+                <circle
+                  key={`finger-${i}`}
+                  cx={startX + (6 - finger.string) * stringSpacing}
+                  cy={startY + (diagramFret + fretOffset - 0.5) * fretSpacing}
+                  r={stringSpacing / 3}
+                  className={!printMode ? "fill-chord-dot" : undefined}
+                  fill={printMode ? colors?.dot : undefined}
+                />
+              );
+            })}
 
             {/* Muted strings (X) */}
             {chord.mutedStrings.map((string) => (
