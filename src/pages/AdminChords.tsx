@@ -337,6 +337,11 @@ export default function AdminChordsPage() {
                 }
               }}
               autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-lpignore="true"
               aria-autocomplete="list"
               aria-expanded={showSuggestions}
               className="w-full"
