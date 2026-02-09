@@ -63,7 +63,8 @@ export class CloudflareD1PresetProvider implements PresetProvider {
 
   async listChordPresets(): Promise<ChordPreset[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/presets/chords`, {
+      // Fetch all presets in one request (used for prefetch cache)
+      const response = await fetch(`${this.apiUrl}/presets/chords?limit=5000`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
