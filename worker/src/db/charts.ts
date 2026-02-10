@@ -45,14 +45,14 @@ export async function listCharts(
 
   // Get total count
   const countResult = await db
-    .prepare('SELECT COUNT(*) as count FROM chord_charts')
+    .prepare('SELECT COUNT(*) as count FROM charts')
     .first<{ count: number }>();
   
   const total = countResult?.count || 0;
 
   // Get paginated results
   const results = await db
-    .prepare('SELECT * FROM chord_charts ORDER BY updated_at DESC LIMIT ? OFFSET ?')
+    .prepare('SELECT * FROM charts ORDER BY updated_at DESC LIMIT ? OFFSET ?')
     .bind(limit, offset)
     .all<ChordChartRow>();
 
@@ -72,7 +72,7 @@ export async function getChart(
   id: string
 ): Promise<ChordChart | null> {
   const result = await db
-    .prepare('SELECT * FROM chord_charts WHERE id = ?')
+    .prepare('SELECT * FROM charts WHERE id = ?')
     .bind(id)
     .first<ChordChartRow>();
 
@@ -91,7 +91,7 @@ export async function createChart(
 
   await db
     .prepare(
-      `INSERT INTO chord_charts (
+      `INSERT INTO charts (
         id, title, artist, key, time_signature, tempo,
         chords, strumming_pattern, notes, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -178,7 +178,7 @@ export async function updateChart(
   values.push(id);
 
   await db
-    .prepare(`UPDATE chord_charts SET ${updates.join(', ')} WHERE id = ?`)
+    .prepare(`UPDATE charts SET ${updates.join(', ')} WHERE id = ?`)
     .bind(...values)
     .run();
 
@@ -193,7 +193,7 @@ export async function deleteChart(
   id: string
 ): Promise<boolean> {
   const result = await db
-    .prepare('DELETE FROM chord_charts WHERE id = ?')
+    .prepare('DELETE FROM charts WHERE id = ?')
     .bind(id)
     .run();
 
@@ -215,7 +215,7 @@ export async function searchCharts(
   // Get total count
   const countResult = await db
     .prepare(
-      'SELECT COUNT(*) as count FROM chord_charts WHERE title LIKE ? OR artist LIKE ?'
+      'SELECT COUNT(*) as count FROM charts WHERE title LIKE ? OR artist LIKE ?'
     )
     .bind(searchPattern, searchPattern)
     .first<{ count: number }>();
@@ -225,7 +225,7 @@ export async function searchCharts(
   // Get paginated results
   const results = await db
     .prepare(
-      'SELECT * FROM chord_charts WHERE title LIKE ? OR artist LIKE ? ORDER BY updated_at DESC LIMIT ? OFFSET ?'
+      'SELECT * FROM charts WHERE title LIKE ? OR artist LIKE ? ORDER BY updated_at DESC LIMIT ? OFFSET ?'
     )
     .bind(searchPattern, searchPattern, limit, offset)
     .all<ChordChartRow>();

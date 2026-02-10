@@ -15,15 +15,35 @@ export interface D1StorageConfig {
 export class D1StorageProvider implements StorageProvider {
   name = "Cloudflare D1";
   private apiUrl: string;
+  private cfAccessClientId: string;
+  private cfAccessClientSecret: string;
 
   constructor(config: D1StorageConfig) {
     this.apiUrl = config.apiUrl;
+    this.cfAccessClientId = import.meta.env.VITE_CF_ACCESS_CLIENT_ID || "";
+    this.cfAccessClientSecret = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET || "";
+  }
+
+  /**
+   * Get headers including CF-Access service auth when configured
+   */
+  private getHeaders(includeContentType = true): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (includeContentType) {
+      headers["Content-Type"] = "application/json";
+    }
+    if (this.cfAccessClientId && this.cfAccessClientSecret) {
+      headers["CF-Access-Client-Id"] = this.cfAccessClientId;
+      headers["CF-Access-Client-Secret"] = this.cfAccessClientSecret;
+    }
+    return headers;
   }
 
   async isAvailable(): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/health`, {
         method: "GET",
+        headers: this.getHeaders(false),
       });
       return response.ok;
     } catch (error) {
@@ -39,9 +59,7 @@ export class D1StorageProvider implements StorageProvider {
     // Try to update first, then create if not found
     const response = await fetch(`${this.apiUrl}/admin/charts/${chart.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: this.getHeaders(),
       body: JSON.stringify(apiChart),
     });
 
@@ -49,9 +67,7 @@ export class D1StorageProvider implements StorageProvider {
       // Chart doesn't exist, create it
       const createResponse = await fetch(`${this.apiUrl}/admin/charts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: this.getHeaders(),
         body: JSON.stringify(apiChart),
       });
 
@@ -67,9 +83,7 @@ export class D1StorageProvider implements StorageProvider {
     try {
       const response = await fetch(`${this.apiUrl}/charts/${id}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: this.getHeaders(),
       });
 
       if (!response.ok) {
@@ -91,9 +105,7 @@ export class D1StorageProvider implements StorageProvider {
     try {
       const response = await fetch(`${this.apiUrl}/charts?limit=100`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: this.getHeaders(),
       });
 
       if (!response.ok) {
@@ -118,6 +130,7 @@ export class D1StorageProvider implements StorageProvider {
   async deleteChart(id: string): Promise<void> {
     const response = await fetch(`${this.apiUrl}/admin/charts/${id}`, {
       method: "DELETE",
+      headers: this.getHeaders(false),
     });
 
     if (!response.ok && response.status !== 404) {
