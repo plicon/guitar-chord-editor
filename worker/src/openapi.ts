@@ -330,20 +330,72 @@ export const openApiSpec = {
     '/charts': {
       get: {
         summary: 'List Chord Charts',
-        description: 'Get all saved chord charts for the current user',
+        description: 'Get all saved chord charts with optional search and pagination',
         operationId: 'listCharts',
         tags: ['Charts'],
         security: [],
+        parameters: [
+          {
+            name: 'q',
+            in: 'query',
+            required: false,
+            description: 'Search query to filter charts by title or artist (case-insensitive, partial match)',
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Maximum number of results to return',
+            schema: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 200,
+              default: 50
+            }
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            required: false,
+            description: 'Number of results to skip (for pagination)',
+            schema: {
+              type: 'integer',
+              minimum: 0,
+              default: 0
+            }
+          }
+        ],
         responses: {
           '200': {
-            description: 'List of chord charts retrieved successfully',
+            description: 'Paginated list of chord charts',
             content: {
               'application/json': {
                 schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/ChordChart'
-                  }
+                  type: 'object',
+                  properties: {
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/ChordChart'
+                      }
+                    },
+                    total: {
+                      type: 'integer',
+                      description: 'Total number of matching charts'
+                    },
+                    limit: {
+                      type: 'integer',
+                      description: 'Maximum results per page'
+                    },
+                    offset: {
+                      type: 'integer',
+                      description: 'Current offset'
+                    }
+                  },
+                  required: ['data', 'total', 'limit', 'offset']
                 }
               }
             }
