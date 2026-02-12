@@ -17,7 +17,7 @@ vi.mock("jspdf", () => ({
 
 describe("usePdfExport", () => {
   let mockCanvas: HTMLCanvasElement;
-  let mockPdf: { addImage: Mock; save: Mock };
+  let mockPdf: { addImage: Mock; save: Mock; addPage: Mock };
   let mockRef: { current: HTMLDivElement | null };
   let mockElement: HTMLDivElement;
 
@@ -45,6 +45,7 @@ describe("usePdfExport", () => {
     mockPdf = {
       addImage: vi.fn(),
       save: vi.fn(),
+      addPage: vi.fn(),
     };
     (jsPDF as unknown as Mock).mockImplementation(() => mockPdf);
   });
@@ -99,7 +100,7 @@ describe("usePdfExport", () => {
     );
 
     // Verify PDF was saved with correct filename
-    expect(mockPdf.save).toHaveBeenCalledWith("Test Chart.pdf");
+    expect(mockPdf.save).toHaveBeenCalledWith("test-chart.pdf");
   });
 
   it("should use default filename when title is empty", async () => {
@@ -147,14 +148,14 @@ describe("usePdfExport", () => {
     await act(async () => {
       await result.current.handleDownloadPDF();
     });
-    expect(mockPdf.save).toHaveBeenCalledWith("First Title.pdf");
+    expect(mockPdf.save).toHaveBeenCalledWith("first-title.pdf");
 
     // Change title and generate again
     rerender({ title: "Second Title" });
     await act(async () => {
       await result.current.handleDownloadPDF();
     });
-    expect(mockPdf.save).toHaveBeenCalledWith("Second Title.pdf");
+    expect(mockPdf.save).toHaveBeenCalledWith("second-title.pdf");
   });
 
   it("should memoize handleDownloadPDF based on title and ref", () => {
