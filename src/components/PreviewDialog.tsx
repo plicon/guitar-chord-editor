@@ -18,6 +18,8 @@ interface PreviewDialogProps {
   description: string;
   rows: ChordDiagram[][];
   rowSubtitles: string[];
+  sectionIndices?: number[];
+  sectionTitles?: string[];
   strummingPattern: StrummingPattern | null;
   onDownloadPDF: () => void;
 }
@@ -29,6 +31,8 @@ export const PreviewDialog = ({
   description,
   rows,
   rowSubtitles,
+  sectionIndices,
+  sectionTitles,
   strummingPattern,
   onDownloadPDF,
 }: PreviewDialogProps) => {
@@ -47,6 +51,8 @@ export const PreviewDialog = ({
             description={description}
             rows={rows}
             rowSubtitles={rowSubtitles}
+            sectionIndices={sectionIndices}
+            sectionTitles={sectionTitles}
             strummingPattern={strummingPattern}
           />
         </div>
