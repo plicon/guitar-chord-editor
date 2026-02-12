@@ -331,7 +331,8 @@ export default function AdminChordsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => {
+              onFocus={(e) => {
+                e.target.select();
                 if (suggestions.length > 0) {
                   setShowSuggestions(true);
                 }
