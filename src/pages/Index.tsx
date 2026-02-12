@@ -13,7 +13,7 @@ import { SongSectionView } from "@/components/SongSectionView";
 import { Download, Eye, Plus } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { usePdfExport } from "@/hooks/usePdfExport";
-import { SectionType, SectionTypeLabels, Song } from "@/types/song";
+import { SectionType, SectionTypeLabels, Song, SongSection } from "@/types/song";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +58,20 @@ function songToRows(song: Song): { rows: ChordDiagram[][], rowSubtitles: string[
 
 
 // Sortable section wrapper for drag and drop
-function SortableSection({ section, sectionIndex, ...props }: any) {
+interface SortableSectionProps {
+  section: SongSection;
+  sectionIndex: number;
+  onToggleCollapsed: (sectionId: string) => void;
+  onUpdateSection: (sectionId: string, updates: Partial<SongSection>) => void;
+  onRemoveSection: (sectionId: string) => void;
+  onAddRow: (sectionId: string) => void;
+  onRemoveRow: (sectionId: string, rowId: string) => void;
+  onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
+  onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
+  dragHandleProps?: ReturnType<typeof useSortable>['listeners'];
+}
+
+function SortableSection({ section, sectionIndex, dragHandleProps, ...props }: SortableSectionProps) {
   const {
     attributes,
     listeners,

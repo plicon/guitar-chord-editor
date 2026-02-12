@@ -13,7 +13,7 @@ vi.mock("sonner", () => ({
 }));
 
 describe("useSongState", () => {
-  let localStorageMock: any;
+  let localStorageMock: Storage;
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -30,7 +30,7 @@ export interface SongSectionViewProps {
   onRemoveRow: (sectionId: string, rowId: string) => void;
   onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
   onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
-  dragHandleProps?: any;
+  dragHandleProps?: Record<string, unknown>;
 }
 
 export function SongSectionView({
