@@ -3,17 +3,19 @@ import { Button } from "@/components/ui/button";
 import { ChordDiagram } from "@/types/chord";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
+import { PrintableSongSheet } from "@/components/PrintableSongSheet";
 import { StrummingPatternEditor } from "@/components/StrummingPatternEditor";
 import { SavedChartsDialog } from "@/components/SavedChartsDialog";
 import { AppHeader } from "@/components/AppHeader";
 import { ChartMetadataSection } from "@/components/ChartMetadataSection";
 import { PreviewDialog } from "@/components/PreviewDialog";
+import { PreviewSongDialog } from "@/components/PreviewSongDialog";
 import { AppFooter } from "@/components/AppFooter";
 import { SongSectionView } from "@/components/SongSectionView";
 import { Download, Eye, Plus } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { usePdfExport } from "@/hooks/usePdfExport";
-import { SectionType, SectionTypeLabels, Song, SongSection } from "@/types/song";
+import { SectionType, SectionTypeLabels, Song, SongSection, SectionRow } from "@/types/song";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,10 +69,11 @@ interface SortableSectionProps {
   onToggleCollapsed: (sectionId: string) => void;
   onUpdateSection: (sectionId: string, updates: Partial<SongSection>) => void;
   onRemoveSection: (sectionId: string) => void;
-  onAddRow: (sectionId: string) => void;
+  onAddRow: (sectionId: string, rowType: 'chord-row' | 'tab-row') => void;
   onRemoveRow: (sectionId: string, rowId: string) => void;
   onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
   onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
+  onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   dragHandleProps?: ReturnType<typeof useSortable>['listeners'];
 }
 
@@ -256,12 +259,15 @@ const Index = () => {
                         onToggleCollapsed={actions.toggleSectionCollapsed}
                         onUpdateSection={actions.updateSection}
                         onRemoveSection={actions.removeSection}
-                        onAddRow={(sectionId: string) => actions.addRowToSection(sectionId, 4)}
+                        onAddRow={(sectionId: string, rowType: 'chord-row' | 'tab-row') => 
+                          actions.addRowToSection(sectionId, rowType, 4)
+                        }
                         onRemoveRow={actions.removeRowFromSection}
                         onChordClick={handleChordClick}
                         onUpdateRowSubtitle={(sectionId: string, rowId: string, subtitle: string) => {
                           actions.updateRowInSection(sectionId, rowId, { subtitle });
                         }}
+                        onUpdateRow={actions.updateRowInSection}
                       />
                     ))}
                   </div>
@@ -304,16 +310,10 @@ const Index = () => {
       )}
 
       {/* Preview Dialog */}
-      <PreviewDialog
+      <PreviewSongDialog
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        title={state.title}
-        description={state.description}
-        rows={rows}
-        rowSubtitles={rowSubtitles}
-        sectionIndices={sectionIndices}
-        sectionTitles={sectionTitles}
-        strummingPattern={state.strummingPattern}
+        song={currentSong}
         onDownloadPDF={handleDownloadPDF}
       />
 
@@ -338,15 +338,9 @@ const Index = () => {
 
       {/* Hidden printable content - always mounted for reliable PDF export */}
       <div className="fixed left-[-9999px] top-0">
-        <PrintableSheet
+        <PrintableSongSheet
           ref={hiddenPrintRef}
-          title={state.title}
-          description={state.description}
-          rows={rows}
-          rowSubtitles={rowSubtitles}
-          sectionIndices={sectionIndices}
-          sectionTitles={sectionTitles}
-          strummingPattern={state.strummingPattern}
+          song={currentSong}
         />
       </div>
 

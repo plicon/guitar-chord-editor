@@ -15,8 +15,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 interface ChordRowProps {
   chords: ChordDiagram[];
   rowIndex: number;
-  subtitle?: string;
-  onSubtitleChange?: (value: string) => void;
   onChordClick: (index: number) => void;
   onRemove: () => void;
   showRemove?: boolean;
@@ -26,8 +24,6 @@ interface ChordRowProps {
 export const ChordRow = ({
   chords,
   rowIndex,
-  subtitle = "",
-  onSubtitleChange,
   onChordClick,
   onRemove,
   showRemove = false,
@@ -99,15 +95,7 @@ export const ChordRow = ({
   );
 
   return (
-    <div className="relative group space-y-2" ref={setNodeRef}>
-      {/* Subtitle Input */}
-      <Input
-        value={subtitle}
-        onChange={(e) => onSubtitleChange?.(e.target.value)}
-        placeholder="Add a comment for this row (optional)..."
-        className="text-sm h-8 bg-transparent border-dashed"
-      />
-      
+    <div className="relative group" ref={setNodeRef}>
       {shouldScroll ? (
         <ScrollArea className="w-full whitespace-nowrap">
           {chordsContent}

@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { SongSection, SectionRow, SectionTypeLabels } from "@/types/song";
 import { ChordDiagram } from "@/types/chord";
+import { TabMeasure } from "@/types/tab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChordRow } from "@/components/ChordRow";
+import { TabRowEditor } from "@/components/TabRowEditor";
 import { 
   ChevronDown, 
   ChevronRight, 
   Plus, 
   Trash2, 
   Edit2,
-  GripVertical 
+  GripVertical,
+  Music 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,10 +29,11 @@ export interface SongSectionViewProps {
   onToggleCollapsed: (sectionId: string) => void;
   onUpdateSection: (sectionId: string, updates: Partial<SongSection>) => void;
   onRemoveSection: (sectionId: string) => void;
-  onAddRow: (sectionId: string) => void;
+  onAddRow: (sectionId: string, rowType: 'chord-row' | 'tab-row') => void;
   onRemoveRow: (sectionId: string, rowId: string) => void;
   onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
   onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
+  onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   dragHandleProps?: Record<string, unknown>;
 }
 
@@ -43,6 +47,7 @@ export function SongSectionView({
   onRemoveRow,
   onChordClick,
   onUpdateRowSubtitle,
+  onUpdateRow,
   dragHandleProps,
 }: SongSectionViewProps) {
   const [isEditingName, setIsEditingName] = useState(false);
@@ -122,15 +127,28 @@ export function SongSectionView({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onAddRow(section.id)}
-            className="h-7 px-2"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add Row
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Row
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => onAddRow(section.id, 'chord-row')}>
+                <Music className="w-4 h-4 mr-2" />
+                Chord Row
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAddRow(section.id, 'tab-row')}>
+                <GripVertical className="w-4 h-4 mr-2" />
+                Tab Row
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <Button
             variant="ghost"
@@ -149,14 +167,24 @@ export function SongSectionView({
           {section.rows.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p className="mb-2">No rows in this section yet</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onAddRow(section.id)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Row
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Row
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => onAddRow(section.id, 'chord-row')}>
+                    <Music className="w-4 h-4 mr-2" />
+                    Chord Row
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onAddRow(section.id, 'tab-row')}>
+                    <GripVertical className="w-4 h-4 mr-2" />
+                    Tab Row
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             section.rows.map((row, rowIndex) => (
@@ -182,6 +210,40 @@ export function SongSectionView({
                           }
                           onRemove={() => onRemoveRow(section.id, row.id)}
                           showRemove={false}
+                        />
+                      </div>
+                      
+                      {/* Remove Row Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemoveRow(section.id, row.id)}
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+                
+                {row.kind === 'tab-row' && (
+                  <>
+                    {/* Row Subtitle */}
+                    <Input
+                      value={row.subtitle || ''}
+                      onChange={(e) => onUpdateRowSubtitle(section.id, row.id, e.target.value)}
+                      placeholder="Row subtitle (optional)..."
+                      className="text-sm italic h-8"
+                    />
+                    
+                    {/* Tab Row */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1">
+                        <TabRowEditor
+                          measures={row.measures}
+                          onChange={(measures: TabMeasure[]) => 
+                            onUpdateRow(section.id, row.id, { kind: 'tab-row', measures })
+                          }
                         />
                       </div>
                       
