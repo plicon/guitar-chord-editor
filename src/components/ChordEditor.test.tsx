@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChordEditor } from "./ChordEditor";
 import { createEmptyChord, ChordDiagram } from "@/types/chord";
 
@@ -78,14 +79,21 @@ describe("ChordEditor", () => {
     vi.clearAllMocks();
   });
 
+  const createQueryClient = () => new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   const renderEditor = (chord: ChordDiagram = defaultChord) => {
+    const queryClient = createQueryClient();
     return render(
-      <ChordEditor
-        chord={chord}
-        open={true}
-        onClose={mockOnClose}
-        onSave={mockOnSave}
-      />
+      <QueryClientProvider client={queryClient}>
+        <ChordEditor
+          chord={chord}
+          open={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+        />
+      </QueryClientProvider>
     );
   };
 
@@ -98,13 +106,16 @@ describe("ChordEditor", () => {
     });
 
     it("should not render when open is false", () => {
+      const queryClient = createQueryClient();
       render(
-        <ChordEditor
-          chord={defaultChord}
-          open={false}
-          onClose={mockOnClose}
-          onSave={mockOnSave}
-        />
+        <QueryClientProvider client={queryClient}>
+          <ChordEditor
+            chord={defaultChord}
+            open={false}
+            onClose={mockOnClose}
+            onSave={mockOnSave}
+          />
+        </QueryClientProvider>
       );
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
