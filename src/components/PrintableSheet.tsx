@@ -10,11 +10,13 @@ interface PrintableSheetProps {
   description?: string;
   rows: ChordDiagram[][];
   rowSubtitles?: string[];
+  sectionIndices?: number[];
+  sectionTitles?: string[];
   strummingPattern?: StrummingPattern | null;
 }
 
 export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
-  ({ title, description, rows, rowSubtitles = [], strummingPattern }, ref) => {
+  ({ title, description, rows, rowSubtitles = [], sectionIndices = [], sectionTitles = [], strummingPattern }, ref) => {
     // Process rows to keep structure but filter completely empty rows
     // Keep empty chords between filled ones
     const processedRows = rows.map((row, rowIndex) => {
@@ -154,45 +156,83 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
           )}
         </div>
 
-        {/* Chord Rows */}
-        <div className="space-y-4">
+        {/* Chord Rows - Grouped by Section */}
+        <div className="space-y-6">
           {/* Separator if first row has no subtitle */}
           {processedRows.length > 0 && !rowSubtitles[processedRows[0]?.originalIndex]?.trim() && (
             <div className="border-t-2 border-black pt-2" />
           )}
-          {processedRows.map(({ chords, originalIndex }, idx) => {
-            const subtitle = rowSubtitles[originalIndex];
+          {(() => {
+            // Group rows by section
+            const sections: { sectionIndex: number; rows: typeof processedRows }[] = [];
+            processedRows.forEach((row) => {
+              const sectionIndex = sectionIndices[row.originalIndex] ?? 0;
+              const lastSection = sections[sections.length - 1];
+              
+              if (!lastSection || lastSection.sectionIndex !== sectionIndex) {
+                sections.push({ sectionIndex, rows: [row] });
+              } else {
+                lastSection.rows.push(row);
+              }
+            });
             
-            return (
-              <div key={idx} className="space-y-1 relative" style={{ zIndex: 1 }}>
-                {/* Row Subtitle */}
-                {subtitle && subtitle.trim() && (
-                  <div className="bg-gray-100 rounded px-3 py-1.5 mb-1">
-                    <p className="text-sm text-gray-700 font-medium">
-                      {subtitle}
-                    </p>
+            return sections.map(({ sectionIndex, rows: sectionRows }) => {
+              const sectionTitle = sectionTitles[sectionIndex] || '';
+              const isAlternate = sectionIndex % 2 === 1;
+              const bgColor = isAlternate ? 'bg-gray-50' : 'bg-white';
+              const borderColor = isAlternate ? 'border-gray-300' : 'border-gray-200';
+              
+              return (
+                <div key={sectionIndex} className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
+                  {/* Section Title */}
+                  {sectionTitle && (
+                    <div className="px-4 py-3 border-b-2 border-gray-300">
+                      <h2 className="text-lg font-bold text-gray-800">
+                        {sectionTitle}
+                      </h2>
+                    </div>
+                  )}
+                  
+                  {/* All rows in this section */}
+                  <div className="p-4 space-y-4">
+                    {sectionRows.map(({ chords, originalIndex }, rowIdx) => {
+                      const subtitle = rowSubtitles[originalIndex];
+                      
+                      return (
+                        <div key={originalIndex}>
+                          {/* Row Subtitle */}
+                          {subtitle && subtitle.trim() && (
+                            <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-3 py-1.5 mb-2`}>
+                              <p className="text-sm text-gray-700 font-medium">
+                                {subtitle}
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex justify-center gap-3 flex-wrap">
+                            {chords.map((chord) => (
+                              <ChordDiagramComponent
+                                key={chord.id}
+                                chord={chord}
+                                size={diagramSize}
+                                showPlaceholder={!isChordEdited(chord)}
+                                printMode={true}
+                              />
+                            ))}
+                          </div>
+                          {/* Row URL - only show on last row of section */}
+                          {APP_CONFIG.showRowUrl && rowIdx === sectionRows.length - 1 && (
+                            <div className="flex justify-end mt-2">
+                              <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-                <div className="flex justify-center gap-3 flex-wrap">
-                  {chords.map((chord) => (
-                    <ChordDiagramComponent
-                      key={chord.id}
-                      chord={chord}
-                      size={diagramSize}
-                      showPlaceholder={!isChordEdited(chord)}
-                      printMode={true}
-                    />
-                  ))}
                 </div>
-                {/* Row URL */}
-                {APP_CONFIG.showRowUrl && (
-                  <div className="flex justify-end mt-1">
-                    <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
 
         {processedRows.length === 0 && (

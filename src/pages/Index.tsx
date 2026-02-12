@@ -39,21 +39,24 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Helper to convert Song sections to rows format for preview/PDF
-function songToRows(song: Song): { rows: ChordDiagram[][], rowSubtitles: string[] } {
+function songToRows(song: Song): { rows: ChordDiagram[][], rowSubtitles: string[], sectionIndices: number[], sectionTitles: string[] } {
   const rows: ChordDiagram[][] = [];
   const rowSubtitles: string[] = [];
+  const sectionIndices: number[] = [];
+  const sectionTitles: string[] = song.sections.map(s => s.name);
   
-  song.sections.forEach(section => {
+  song.sections.forEach((section, sectionIndex) => {
     section.rows.forEach(row => {
       if (row.kind === 'chord-row') {
         rows.push(row.chords);
-        // Use row subtitle if available, otherwise section name
-        rowSubtitles.push(row.subtitle || section.name);
+        // Only include row-specific subtitles, not section names
+        rowSubtitles.push(row.subtitle || '');
+        sectionIndices.push(sectionIndex);
       }
     });
   });
   
-  return { rows, rowSubtitles };
+  return { rows, rowSubtitles, sectionIndices, sectionTitles };
 }
 
 
@@ -162,7 +165,7 @@ const Index = () => {
 
   // Convert song to rows format for preview/PDF
   const currentSong = actions.getCurrentSong();
-  const { rows, rowSubtitles } = songToRows(currentSong);
+  const { rows, rowSubtitles, sectionIndices, sectionTitles } = songToRows(currentSong);
 
   return (
     <div className="min-h-screen bg-background">
@@ -308,6 +311,8 @@ const Index = () => {
         description={state.description}
         rows={rows}
         rowSubtitles={rowSubtitles}
+        sectionIndices={sectionIndices}
+        sectionTitles={sectionTitles}
         strummingPattern={state.strummingPattern}
         onDownloadPDF={handleDownloadPDF}
       />
@@ -339,6 +344,8 @@ const Index = () => {
           description={state.description}
           rows={rows}
           rowSubtitles={rowSubtitles}
+          sectionIndices={sectionIndices}
+          sectionTitles={sectionTitles}
           strummingPattern={state.strummingPattern}
         />
       </div>

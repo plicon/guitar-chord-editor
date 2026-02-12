@@ -164,14 +164,12 @@ export function SongSectionView({
                 {row.kind === 'chord-row' && (
                   <>
                     {/* Row Subtitle */}
-                    {row.subtitle && (
-                      <Input
-                        value={row.subtitle}
-                        onChange={(e) => onUpdateRowSubtitle(section.id, row.id, e.target.value)}
-                        placeholder="Row subtitle..."
-                        className="text-sm italic h-8"
-                      />
-                    )}
+                    <Input
+                      value={row.subtitle || ''}
+                      onChange={(e) => onUpdateRowSubtitle(section.id, row.id, e.target.value)}
+                      placeholder="Row subtitle (optional)..."
+                      className="text-sm italic h-8"
+                    />
                     
                     {/* Chord Row */}
                     <div className="flex items-start gap-2">
