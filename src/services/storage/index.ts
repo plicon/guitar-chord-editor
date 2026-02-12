@@ -5,6 +5,7 @@ import { S3StorageProvider } from "./s3StorageProvider";
 import { D1StorageProvider } from "./d1StorageProvider";
 import { APP_CONFIG } from "@/config/appConfig";
 import { validateChartJson } from "./chartSchema";
+import { sanitizeFilename } from "@/lib/utils";
 
 export type { StorageProvider, StorageConfig, S3Config, D1Config };
 
@@ -77,7 +78,7 @@ export const downloadChartAsJson = (chart: ChordChart): void => {
   
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${chart.name || "chord-chart"}.json`;
+  a.download = `${sanitizeFilename(chart.name || "chord-chart")}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

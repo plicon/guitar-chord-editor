@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern } from "@/types/strumming";
+import { sanitizeFilename } from "@/lib/utils";
 import { 
   Song, 
   SongSection, 
@@ -28,7 +29,7 @@ const loadSong = async (id: string): Promise<Song | null> => {
 const downloadSongAsJson = (song: Song) => {
   const dataStr = JSON.stringify(song, null, 2);
   const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-  const exportFileDefaultName = `${song.title.replace(/\s+/g, '-').toLowerCase()}.json`;
+  const exportFileDefaultName = `${sanitizeFilename(song.title || 'untitled-song')}.json`;
 
   const linkElement = document.createElement('a');
   linkElement.setAttribute('href', dataUri);

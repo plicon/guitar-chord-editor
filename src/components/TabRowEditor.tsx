@@ -1,8 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { TabMeasure, TabColumn, createEmptyTabMeasure, createEmptyTabColumn, TAB_STRING_NAMES, isValidFret } from "@/types/tab";
+import { TabMeasure, TabColumn, createEmptyTabMeasure, createEmptyTabColumn, TAB_STRING_NAMES, isValidFret, TabTechnique } from "@/types/tab";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const TECHNIQUE_LABELS: Record<TabTechnique, string> = {
+  'h': 'Hammer-on',
+  'p': 'Pull-off',
+  '/': 'Slide up',
+  '\\': 'Slide down',
+  'b': 'Bend',
+  'r': 'Release',
+  '~': 'Vibrato',
+};
 
 interface TabRowEditorProps {
   measures: TabMeasure[];
@@ -41,7 +52,8 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
     measureIndex: number,
     columnIndex: number,
     stringIndex: number,
-    fret: number | null
+    fret: number | null,
+    technique?: 'h' | 'p' | '/' | '\\' | 'b' | 'r' | '~'
   ) => {
     const newMeasures = [...measures];
     const measure = newMeasures[measureIndex];
@@ -51,9 +63,31 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
     column.strings[stringIndex] = {
       ...note,
       fret,
+      technique,
     };
     
     onChange(newMeasures);
+  }, [measures, onChange]);
+
+  const updateTechnique = useCallback((
+    measureIndex: number,
+    columnIndex: number,
+    stringIndex: number,
+    technique: 'h' | 'p' | '/' | '\\' | 'b' | 'r' | '~' | undefined
+  ) => {
+    const newMeasures = [...measures];
+    const measure = newMeasures[measureIndex];
+    const column = measure.columns[columnIndex];
+    const note = column.strings[stringIndex];
+    
+    // Only update technique if there's a fret number
+    if (note.fret !== null) {
+      column.strings[stringIndex] = {
+        ...note,
+        technique,
+      };
+      onChange(newMeasures);
+    }
   }, [measures, onChange]);
 
   const moveSelection = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
@@ -154,13 +188,30 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
       }
       setInputBuffer('');
     }
+    // Technique keys
+    else if (/^[hpbr~]$/.test(e.key) || e.key === '/' || e.key === '\\') {
+      e.preventDefault();
+      const currentNote = measures[measureIndex].columns[columnIndex].strings[stringIndex];
+      if (currentNote.fret !== null) {
+        const technique = e.key as 'h' | 'p' | '/' | '\\' | 'b' | 'r' | '~';
+        updateTechnique(measureIndex, columnIndex, stringIndex, technique);
+        moveSelection('right');
+      }
+      setInputBuffer('');
+    }
+    // Clear technique with 'x'
+    else if (e.key === 'x') {
+      e.preventDefault();
+      updateTechnique(measureIndex, columnIndex, stringIndex, undefined);
+      setInputBuffer('');
+    }
     // Escape - deselect
     else if (e.key === 'Escape') {
       e.preventDefault();
       setSelectedCell(null);
       setInputBuffer('');
     }
-  }, [selectedCell, inputBuffer, moveSelection, updateNote]);
+  }, [selectedCell, inputBuffer, moveSelection, updateNote, updateTechnique, measures]);
 
   // Handle keyboard events
   useEffect(() => {
@@ -227,7 +278,8 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
   }
 
   return (
-    <div className={cn("space-y-4", className)} ref={gridRef}>
+    <TooltipProvider>
+      <div className={cn("space-y-4", className)} ref={gridRef}>
       {measures.map((measure, measureIndex) => (
         <div key={measure.id} className="border rounded-lg p-3 bg-card">
           {/* Measure header */}
@@ -288,13 +340,31 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
                           type="button"
                           onClick={() => handleCellClick(measureIndex, columnIndex, stringIndex)}
                           className={cn(
-                            "inline-block w-8 h-6 text-center border border-transparent rounded",
+                            "inline-block w-8 h-6 text-center border border-transparent rounded relative",
                             "hover:bg-muted hover:border-border transition-colors",
                             "focus:outline-none focus:ring-2 focus:ring-ring",
                             isSelected && "bg-primary/20 border-primary ring-2 ring-primary"
                           )}
                         >
-                          {note.fret !== null ? note.fret : ''}
+                          {note.fret !== null ? (
+                            <>
+                              <span>{note.fret}</span>
+                              {note.technique && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-[10px] text-blue-600 font-bold absolute -top-1 -right-1 cursor-help">
+                                      {note.technique}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{TECHNIQUE_LABELS[note.technique]}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </>
+                          ) : (
+                            ''
+                          )}
                         </button>
                         
                         {/* Column controls - show on hover */}
@@ -330,7 +400,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
           {/* Instructions for selected cell */}
           {selectedCell?.measureIndex === measureIndex && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Type 0-24 to set fret • Space/Del to clear • Arrows to navigate • Tab to move • Esc to deselect
+              Type 0-24 to set fret • h/p/b/r/~/\ to add technique • x to clear technique • Space/Del to clear • Arrows to navigate • Tab to move • Esc to deselect
             </div>
           )}
         </div>
@@ -346,5 +416,6 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
         Add Measure
       </Button>
     </div>
+    </TooltipProvider>
   );
 }

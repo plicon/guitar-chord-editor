@@ -5,6 +5,17 @@ import { TabRowDisplay } from "./TabRowDisplay";
 import { APP_CONFIG } from "@/config/appConfig";
 import { isChordEdited } from "@/types/chord";
 import { hasStrummingContent } from "@/types/strumming";
+import { TabTechnique } from "@/types/tab";
+
+const TECHNIQUE_LABELS: Record<TabTechnique, string> = {
+  'h': 'Hammer-on',
+  'p': 'Pull-off',
+  '/': 'Slide up',
+  '\\': 'Slide down',
+  'b': 'Bend',
+  'r': 'Release',
+  '~': 'Vibrato',
+};
 
 interface PrintableSongSheetProps {
   song: Song;
@@ -17,6 +28,26 @@ interface PrintableSongSheetProps {
 export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetProps>(
   ({ song }, ref) => {
     const showStrumming = hasStrummingContent(song.strummingPattern) && song.strummingPattern;
+
+    // Collect all used techniques from tab rows
+    const usedTechniques = new Set<TabTechnique>();
+    song.sections.forEach(section => {
+      section.rows.forEach(row => {
+        if (row.kind === 'tab-row') {
+          row.measures.forEach(measure => {
+            measure.columns.forEach(column => {
+              column.strings.forEach(note => {
+                if (note.technique) {
+                  usedTechniques.add(note.technique);
+                }
+              });
+            });
+          });
+        }
+      });
+    });
+
+    const hasTechniques = usedTechniques.size > 0;
 
     return (
       <div
@@ -46,11 +77,11 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
         )}
 
         {/* Title and Strumming Pattern */}
-        <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+        <div className={`mb-2 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
-              <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
-              <h1 className="text-4xl font-bold text-gray-900">
+              <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-16 h-16" />
+              <h1 className="text-3xl font-bold text-gray-900">
                 {song.title || "Untitled Song"}
               </h1>
             </div>
@@ -132,8 +163,8 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
         </div>
 
         {/* Sections */}
-        <div className="space-y-6">
-          <div className="border-t-2 border-black pt-2" />
+        <div className="space-y-3">
+          <div className="border-t-2 border-black pt-1" />
           
           {song.sections.map((section, sectionIndex) => {
             const isAlternate = sectionIndex % 2 === 1;
@@ -155,21 +186,21 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
               <div key={section.id} className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
                 {/* Section Title */}
                 {section.name && (
-                  <div className="px-4 py-3 border-b-2 border-gray-300">
-                    <h2 className="text-lg font-bold text-gray-800">
+                  <div className="px-3 py-1.5 border-b-2 border-gray-300">
+                    <h2 className="text-base font-bold text-gray-800">
                       {section.name}
                     </h2>
                   </div>
                 )}
                 
                 {/* Section Rows */}
-                <div className="p-4 space-y-4">
+                <div className="p-2 space-y-2">
                   {visibleRows.map((row) => (
                     <div key={row.id}>
                       {/* Row Subtitle */}
                       {row.subtitle && row.subtitle.trim() && (
-                        <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-3 py-1.5 mb-2`}>
-                          <p className="text-sm text-gray-700 font-medium">
+                        <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-2 py-0.5 mb-0.5`}>
+                          <p className="text-xs text-gray-700 font-medium">
                             {row.subtitle}
                           </p>
                         </div>
@@ -177,7 +208,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                       
                       {/* Chord Row */}
                       {row.kind === 'chord-row' && (
-                        <div className="flex justify-center gap-3 flex-wrap">
+                        <div className="flex justify-center gap-2 flex-wrap">
                           {row.chords
                             .filter(isChordEdited)
                             .map((chord) => (
@@ -194,7 +225,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                       
                       {/* Tab Row */}
                       {row.kind === 'tab-row' && (
-                        <TabRowDisplay measures={row.measures} />
+                        <TabRowDisplay measures={row.measures} printMode={true} />
                       )}
                     </div>
                   ))}
@@ -205,11 +236,28 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
         </div>
 
         {/* Footer */}
-        {APP_CONFIG.showRowUrl && (
-          <div className="mt-6 flex justify-end">
-            <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
-          </div>
-        )}
+        <div className="mt-2 space-y-0.5">
+          {/* Technique Legend */}
+          {hasTechniques && (
+            <div className="flex flex-col gap-0.5 text-[10px] text-gray-600">
+              <div className="font-semibold">Techniques:</div>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                {Array.from(usedTechniques).sort().map(technique => (
+                  <span key={technique}>
+                    <span className="font-mono font-semibold">{technique}</span> = {TECHNIQUE_LABELS[technique]}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* URL */}
+          {APP_CONFIG.showRowUrl && (
+            <div className="flex justify-end">
+              <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
