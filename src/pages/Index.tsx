@@ -1,81 +1,160 @@
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
+import { ChordDiagram } from "@/types/chord";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
 import { StrummingPatternEditor } from "@/components/StrummingPatternEditor";
 import { SavedChartsDialog } from "@/components/SavedChartsDialog";
 import { AppHeader } from "@/components/AppHeader";
 import { ChartMetadataSection } from "@/components/ChartMetadataSection";
-import { ChordGridSection } from "@/components/ChordGridSection";
 import { PreviewDialog } from "@/components/PreviewDialog";
 import { AppFooter } from "@/components/AppFooter";
-import { Download, Eye } from "lucide-react";
-import { useChartState } from "@/hooks/useChartState";
-import { useChordDragAndDrop } from "@/hooks/useChordDragAndDrop";
+import { SongSectionView } from "@/components/SongSectionView";
+import { Download, Eye, Plus } from "lucide-react";
+import { useSongState } from "@/hooks/useSongState";
 import { usePdfExport } from "@/hooks/usePdfExport";
+import { SectionType, SectionTypeLabels, Song } from "@/types/song";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Helper to convert Song sections to rows format for preview/PDF
+function songToRows(song: Song): { rows: ChordDiagram[][], rowSubtitles: string[] } {
+  const rows: ChordDiagram[][] = [];
+  const rowSubtitles: string[] = [];
+  
+  song.sections.forEach(section => {
+    section.rows.forEach(row => {
+      if (row.kind === 'chord-row') {
+        rows.push(row.chords);
+        // Use row subtitle if available, otherwise section name
+        rowSubtitles.push(row.subtitle || section.name);
+      }
+    });
+  });
+  
+  return { rows, rowSubtitles };
+}
+
+
+// Sortable section wrapper for drag and drop
+function SortableSection({ section, sectionIndex, ...props }: any) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <SongSectionView
+        section={section}
+        sectionIndex={sectionIndex}
+        dragHandleProps={listeners}
+        {...props}
+      />
+    </div>
+  );
+}
 
 const Index = () => {
-  const [state, actions] = useChartState();
+  const [state, actions] = useSongState();
   const [editingChord, setEditingChord] = useState<{
-    rowIndex: number;
+    sectionId: string;
+    rowId: string;
     chordIndex: number;
   } | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [strummingEditorOpen, setStrummingEditorOpen] = useState(false);
   const [savedChartsOpen, setSavedChartsOpen] = useState(false);
 
-  // Internal rows state for drag and drop (synced with chart state)
-  const [localRows, setLocalRows] = useState(state.rows);
-  
-  // Keep local rows in sync with chart state
-  if (state.rows !== localRows && !editingChord) {
-    setLocalRows(state.rows);
-  }
+  // dnd-kit sensors for section reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-  const handleRowsChange = useCallback((newRows: ChordDiagram[][]) => {
-    setLocalRows(newRows);
-    // Update the chart state rows through a chord save
-    newRows.forEach((row, rowIndex) => {
-      row.forEach((chord, chordIndex) => {
-        if (state.rows[rowIndex]?.[chordIndex]?.id !== chord.id) {
-          actions.handleSaveChord(chord, rowIndex, chordIndex);
-        }
-      });
-    });
-  }, [state.rows, actions]);
+  const handleSectionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  const {
-    sensors,
-    activeChord,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-  } = useChordDragAndDrop(state.rows, handleRowsChange);
+    if (over && active.id !== over.id) {
+      const oldIndex = state.sections.findIndex(s => s.id === active.id);
+      const newIndex = state.sections.findIndex(s => s.id === over.id);
+      actions.moveSection(oldIndex, newIndex);
+    }
+  };
 
   // Use a dedicated ref for the always-mounted hidden PrintableSheet
   const hiddenPrintRef = useRef<HTMLDivElement>(null);
   const { handleDownloadPDF } = usePdfExport(state.title, hiddenPrintRef);
 
-  const handleChordClick = useCallback((rowIndex: number, chordIndex: number) => {
-    setEditingChord({ rowIndex, chordIndex });
+  const handleChordClick = useCallback((sectionId: string, rowId: string, chordIndex: number) => {
+    setEditingChord({ sectionId, rowId, chordIndex });
   }, []);
 
   const handleSaveChord = useCallback((chord: ChordDiagram) => {
     if (editingChord) {
-      actions.handleSaveChord(chord, editingChord.rowIndex, editingChord.chordIndex);
+      actions.updateChord(
+        editingChord.sectionId,
+        editingChord.rowId,
+        editingChord.chordIndex,
+        chord
+      );
     }
   }, [editingChord, actions]);
 
-  const handleLoadChart = async (id: string) => {
-    await actions.handleLoadChart(id);
+  const handleLoadSong = async (id: string) => {
+    await actions.handleLoadSong(id);
     setSavedChartsOpen(false);
   };
+
+  // Get current chord for editing
+  const currentChord = editingChord ? (() => {
+    const section = state.sections.find(s => s.id === editingChord.sectionId);
+    const row = section?.rows.find(r => r.id === editingChord.rowId);
+    if (row && row.kind === 'chord-row') {
+      return row.chords[editingChord.chordIndex];
+    }
+    return null;
+  })() : null;
+
+  // Convert song to rows format for preview/PDF
+  const currentSong = actions.getCurrentSong();
+  const { rows, rowSubtitles } = songToRows(currentSong);
 
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
-        onNew={actions.handleNewChart}
+        onNew={actions.handleNewSong}
         onOpen={() => setSavedChartsOpen(true)}
         onSave={actions.handleSave}
         onExport={actions.handleExportJson}
@@ -94,49 +173,114 @@ const Index = () => {
             onStrummingEditorOpen={() => setStrummingEditorOpen(true)}
           />
 
-          <ChordGridSection
-            rows={state.rows}
-            rowSubtitles={state.rowSubtitles}
-            chordsPerRow={state.chordsPerRow}
-            activeChord={activeChord}
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-            onChordClick={handleChordClick}
-            onRowSubtitleChange={actions.handleRowSubtitleChange}
-            onRemoveRow={actions.removeRow}
-            onAddRow={actions.addRow}
-            onChordsPerRowChange={actions.handleChordsPerRowChange}
-          />
+          {/* Sections */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Sections</h2>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Section
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {(Object.keys(SectionTypeLabels) as SectionType[]).map((type) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => actions.addSection(type)}
+                    >
+                      {SectionTypeLabels[type]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {state.sections.length === 0 ? (
+              <div className="text-center py-12 border rounded-lg bg-muted/30">
+                <p className="text-muted-foreground mb-4">
+                  No sections yet. Add a section to get started.
+                </p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add First Section
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {(Object.keys(SectionTypeLabels) as SectionType[]).map((type) => (
+                      <DropdownMenuItem
+                        key={type}
+                        onClick={() => actions.addSection(type)}
+                      >
+                        {SectionTypeLabels[type]}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleSectionDragEnd}
+              >
+                <SortableContext
+                  items={state.sections.map(s => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {state.sections.map((section, index) => (
+                      <SortableSection
+                        key={section.id}
+                        section={section}
+                        sectionIndex={index}
+                        onToggleCollapsed={actions.toggleSectionCollapsed}
+                        onUpdateSection={actions.updateSection}
+                        onRemoveSection={actions.removeSection}
+                        onAddRow={(sectionId: string) => actions.addRowToSection(sectionId, 4)}
+                        onRemoveRow={actions.removeRowFromSection}
+                        onChordClick={handleChordClick}
+                        onUpdateRowSubtitle={(sectionId: string, rowId: string, subtitle: string) => {
+                          actions.updateRowInSection(sectionId, rowId, { subtitle });
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
+          </div>
 
           <div className="flex gap-4 justify-center pt-4">
             <Button
               variant="outline"
               onClick={() => setPreviewOpen(true)}
-              disabled={!actions.hasEditedChords}
+              disabled={!actions.hasEditedContent}
             >
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
-            <Button onClick={handleDownloadPDF} disabled={!actions.hasEditedChords}>
+            <Button onClick={handleDownloadPDF} disabled={!actions.hasEditedContent}>
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
           </div>
 
-          {!actions.hasEditedChords && (
+          {!actions.hasEditedContent && (
             <p className="text-center text-muted-foreground text-sm">
-              Click on a chord diagram above to start adding chords
+              Add a section and click on a chord diagram to start editing
             </p>
           )}
         </div>
       </main>
 
       {/* Chord Editor Dialog */}
-      {editingChord && (
+      {editingChord && currentChord && (
         <ChordEditor
-          chord={state.rows[editingChord.rowIndex][editingChord.chordIndex]}
+          chord={currentChord}
           open={true}
           onClose={() => setEditingChord(null)}
           onSave={handleSaveChord}
@@ -149,8 +293,8 @@ const Index = () => {
         onOpenChange={setPreviewOpen}
         title={state.title}
         description={state.description}
-        rows={state.rows}
-        rowSubtitles={state.rowSubtitles}
+        rows={rows}
+        rowSubtitles={rowSubtitles}
         strummingPattern={state.strummingPattern}
         onDownloadPDF={handleDownloadPDF}
       />
@@ -171,7 +315,7 @@ const Index = () => {
       <SavedChartsDialog
         open={savedChartsOpen}
         onClose={() => setSavedChartsOpen(false)}
-        onLoad={handleLoadChart}
+        onLoad={handleLoadSong}
       />
 
       {/* Hidden printable content - always mounted for reliable PDF export */}
@@ -180,8 +324,8 @@ const Index = () => {
           ref={hiddenPrintRef}
           title={state.title}
           description={state.description}
-          rows={state.rows}
-          rowSubtitles={state.rowSubtitles}
+          rows={rows}
+          rowSubtitles={rowSubtitles}
           strummingPattern={state.strummingPattern}
         />
       </div>

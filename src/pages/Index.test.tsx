@@ -143,10 +143,10 @@ describe("Index Page Integration", () => {
       expect(downloadButton).toBeDisabled();
     });
 
-    it("should show helper text for adding chords", () => {
+    it("should show helper text for adding sections", () => {
       renderIndex();
 
-      expect(screen.getByText(/click on a chord diagram above to start adding chords/i)).toBeInTheDocument();
+      expect(screen.getByText(/add a section and click on a chord diagram to start editing/i)).toBeInTheDocument();
     });
   });
 
@@ -177,40 +177,30 @@ describe("Index Page Integration", () => {
     });
   });
 
-  describe("Chord Grid Section", () => {
-    it("should display chords per row label", () => {
+  describe("Section Management", () => {
+    it("should display sections heading", () => {
       renderIndex();
 
-      expect(screen.getByText(/chords per row/i)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /sections/i })).toBeInTheDocument();
     });
 
-    it("should have add row button", () => {
+    it("should have add section button", () => {
       renderIndex();
 
-      const addRowButton = screen.getByRole("button", { name: /add row/i });
-      expect(addRowButton).toBeInTheDocument();
+      const addSectionButton = screen.getByRole("button", { name: /add section/i });
+      expect(addSectionButton).toBeInTheDocument();
     });
 
-    it("should add a new row when clicking add row button", async () => {
+    it("should show 'Add First Section' button when no sections exist", () => {
       renderIndex();
 
-      const initialRows = screen.getAllByTestId("dnd-context");
-      const addRowButton = screen.getByRole("button", { name: /add row/i });
-
-      fireEvent.click(addRowButton);
-
-      await waitFor(() => {
-        const updatedRows = screen.getAllByTestId("dnd-context");
-        expect(updatedRows.length).toBeGreaterThanOrEqual(initialRows.length);
-      });
+      expect(screen.getByRole("button", { name: /add first section/i })).toBeInTheDocument();
     });
 
-    it("should show row comment inputs", () => {
+    it("should show empty state message when no sections exist", () => {
       renderIndex();
 
-      // The actual placeholder is "Add a comment for this row (optional)..."
-      const commentInputs = screen.getAllByPlaceholderText(/add a comment for this row/i);
-      expect(commentInputs.length).toBeGreaterThan(0);
+      expect(screen.getByText(/no sections yet/i)).toBeInTheDocument();
     });
   });
 
@@ -303,32 +293,20 @@ describe("Index Page Integration", () => {
     });
   });
 
-  describe("Chords Per Row Control", () => {
-    it("should display current chords per row value", () => {
-      renderIndex();
-
-      // Should show the current value (default is 4)
-      const chordsPerRowSection = screen.getByText(/chords per row/i).parentElement;
-      expect(chordsPerRowSection).toBeInTheDocument();
-    });
-  });
-
-  describe("Row Management", () => {
-    it("should have row controls available", () => {
-      renderIndex();
-
-      // Look for buttons in the chord grid section
-      const buttons = screen.getAllByRole("button");
-      expect(buttons.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe("Responsive Layout", () => {
+  describe("Responsive Layout and UI Control", () => {
     it("should render within container with proper spacing", () => {
       renderIndex();
 
       const main = screen.getByRole("main");
       expect(main).toHaveClass("container");
+    });
+
+    it("should have row controls available after adding section", async () => {
+      renderIndex();
+
+      // We should have buttons like "Add Section", etc.
+      const buttons = screen.getAllByRole("button");
+      expect(buttons.length).toBeGreaterThan(0);
     });
   });
 
