@@ -79,7 +79,7 @@ export const ChordDiagramComponent = ({
     >
       {/* Chord Name */}
       <span
-        className={cn("font-semibold mb-1", !printMode && "text-foreground")}
+        className={cn("font-semibold mb-0.5", !printMode && "text-foreground")}
         style={{ 
           fontSize: config.fontSize,
           ...(printMode && { color: colors?.foreground })

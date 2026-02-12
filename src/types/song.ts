@@ -1,5 +1,6 @@
 import { ChordDiagram } from "./chord";
 import { StrummingPattern } from "./strumming";
+import { TabMeasure, createEmptyTabMeasure } from "./tab";
 
 /**
  * Section types for organizing song parts
@@ -21,12 +22,10 @@ export const SectionTypeLabels: Record<SectionType, string> = {
 
 /**
  * Different types of rows that can appear in a section
- * Currently only supporting chord rows, but designed to be extended
- * with tab-row and lyric-chord-row in future phases
  */
 export type SectionRow =
-  | { kind: 'chord-row'; id: string; chords: ChordDiagram[]; subtitle?: string };
-  // Future: | { kind: 'tab-row'; id: string; measures: TabMeasure[] }
+  | { kind: 'chord-row'; id: string; chords: ChordDiagram[]; subtitle?: string }
+  | { kind: 'tab-row'; id: string; measures: TabMeasure[]; subtitle?: string };
   // Future: | { kind: 'lyric-chord-row'; id: string; segments: LyricChordSegment[] }
 
 /**
@@ -98,6 +97,18 @@ export const createChordRow = (chords: ChordDiagram[], subtitle?: string): Secti
     kind: 'chord-row',
     id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     chords,
+    subtitle,
+  };
+};
+
+/**
+ * Create a tab row for a section
+ */
+export const createTabRow = (measures?: TabMeasure[], subtitle?: string): SectionRow => {
+  return {
+    kind: 'tab-row',
+    id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    measures: measures || [createEmptyTabMeasure()],
     subtitle,
   };
 };

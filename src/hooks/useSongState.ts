@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern } from "@/types/strumming";
+import { sanitizeFilename } from "@/lib/utils";
 import { 
   Song, 
   SongSection, 
@@ -8,7 +9,8 @@ import {
   SectionType,
   createSong, 
   createSection,
-  createChordRow 
+  createChordRow,
+  createTabRow 
 } from "@/types/song";
 import { toast } from "sonner";
 
@@ -27,7 +29,7 @@ const loadSong = async (id: string): Promise<Song | null> => {
 const downloadSongAsJson = (song: Song) => {
   const dataStr = JSON.stringify(song, null, 2);
   const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-  const exportFileDefaultName = `${song.title.replace(/\s+/g, '-').toLowerCase()}.json`;
+  const exportFileDefaultName = `${sanitizeFilename(song.title || 'untitled-song')}.json`;
 
   const linkElement = document.createElement('a');
   linkElement.setAttribute('href', dataUri);
@@ -81,7 +83,7 @@ export interface SongActions {
   toggleSectionCollapsed: (sectionId: string) => void;
   
   // Row management within sections
-  addRowToSection: (sectionId: string, chordsPerRow: number) => void;
+  addRowToSection: (sectionId: string, rowType: 'chord-row' | 'tab-row', chordsPerRow?: number) => void;
   removeRowFromSection: (sectionId: string, rowId: string) => void;
   updateRowInSection: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   moveRowInSection: (sectionId: string, fromIndex: number, toIndex: number) => void;
@@ -239,11 +241,17 @@ export function useSongState(): [SongState, SongActions] {
   }, []);
 
   // Row management
-  const addRowToSection = useCallback((sectionId: string, chordsPerRow: number = 4) => {
-    const emptyChords = Array.from({ length: chordsPerRow }, (_, i) => 
-      createEmptyChord(`chord-${Date.now()}-${i}`)
-    );
-    const newRow = createChordRow(emptyChords);
+  const addRowToSection = useCallback((sectionId: string, rowType: 'chord-row' | 'tab-row' = 'chord-row', chordsPerRow: number = 4) => {
+    let newRow;
+    
+    if (rowType === 'tab-row') {
+      newRow = createTabRow();
+    } else {
+      const emptyChords = Array.from({ length: chordsPerRow }, (_, i) => 
+        createEmptyChord(`chord-${Date.now()}-${i}`)
+      );
+      newRow = createChordRow(emptyChords);
+    }
     
     setSections(prev => prev.map(section => 
       section.id === sectionId 
@@ -265,9 +273,20 @@ export function useSongState(): [SongState, SongActions] {
       section.id === sectionId
         ? {
             ...section,
-            rows: section.rows.map(row =>
-              row.id === rowId ? { ...row, ...updates } : row
-            ),
+            rows: section.rows.map(row => {
+              if (row.id !== rowId) return row;
+              
+              // Type-safe update based on row kind
+              if (row.kind === 'chord-row' && updates.kind === 'chord-row') {
+                return { ...row, ...updates };
+              } else if (row.kind === 'tab-row' && updates.kind === 'tab-row') {
+                return { ...row, ...updates };
+              } else if (!updates.kind) {
+                // Allow updating common properties like subtitle
+                return { ...row, ...updates } as SectionRow;
+              }
+              return row;
+            }),
           }
         : section
     ));
