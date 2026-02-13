@@ -243,6 +243,9 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
   };
 
   const addColumn = (measureIndex: number) => {
+    const measure = measures[measureIndex];
+    if (measure.columns.length >= 12) return; // Max 14 columns
+    
     const newMeasures = [...measures];
     newMeasures[measureIndex] = {
       ...newMeasures[measureIndex],
@@ -251,25 +254,21 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
     onChange(newMeasures);
   };
 
-  const removeColumn = (measureIndex: number, columnIndex: number) => {
+  const removeColumn = (measureIndex: number) => {
     const measure = measures[measureIndex];
-    if (measure.columns.length <= 1) return; // Keep at least one column
+    if (measure.columns.length <= 4) return; // Keep at least 4 columns
     
     const newMeasures = [...measures];
+    const lastColumnIndex = measure.columns.length - 1;
     newMeasures[measureIndex] = {
       ...newMeasures[measureIndex],
-      columns: measure.columns.filter((_, i) => i !== columnIndex),
+      columns: measure.columns.slice(0, -1), // Remove last column
     };
     onChange(newMeasures);
     
-    // Clear or adjust selection
-    if (selectedCell?.measureIndex === measureIndex && selectedCell.columnIndex === columnIndex) {
+    // Clear or adjust selection if it was on the removed column
+    if (selectedCell?.measureIndex === measureIndex && selectedCell.columnIndex === lastColumnIndex) {
       setSelectedCell(null);
-    } else if (selectedCell?.measureIndex === measureIndex && selectedCell.columnIndex > columnIndex) {
-      setSelectedCell({
-        ...selectedCell,
-        columnIndex: selectedCell.columnIndex - 1,
-      });
     }
   };
 
@@ -282,21 +281,14 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
       <div className={cn("space-y-4", className)} ref={gridRef}>
       {measures.map((measure, measureIndex) => (
         <div key={measure.id} className="border rounded-lg p-3 bg-card">
-          {/* Measure header */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">
-              Measure {measureIndex + 1}
-              {measure.timeSignature && (
-                <span className="text-muted-foreground ml-2">
-                  ({measure.timeSignature})
-                </span>
-              )}
-            </div>
+          {/* Measure controls */}
+          <div className="flex items-center justify-end mb-2">
             <div className="flex gap-1">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => addColumn(measureIndex)}
+                disabled={measure.columns.length >= 14}
                 title="Add column"
               >
                 <Plus className="w-3 h-3" />
@@ -304,17 +296,17 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => removeMeasure(measureIndex)}
-                disabled={measures.length <= 1}
-                title="Remove measure"
+                onClick={() => removeColumn(measureIndex)}
+                disabled={measure.columns.length <= 4}
+                title="Remove column"
               >
-                <Trash2 className="w-3 h-3" />
+                <span className="text-sm font-bold">−</span>
               </Button>
             </div>
           </div>
 
           {/* Tab grid */}
-          <div className="font-mono text-sm overflow-x-auto">
+          <div className="font-mono text-base overflow-x-auto">
             <div className="inline-block bg-muted/10 rounded p-2">
               {TAB_STRING_NAMES.map((stringName, stringIndex) => (
                 <div key={stringIndex} className="flex items-center gap-0 min-h-[28px]">
@@ -324,7 +316,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
                   </span>
                   
                   {/* Line */}
-                  <span className="text-muted-foreground">|</span>
+                  <span className="text-muted-foreground font-bold">|</span>
                   
                   {/* Cells for this string */}
                   {measure.columns.map((column, columnIndex) => {
@@ -348,7 +340,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
                         >
                           {note.fret !== null ? (
                             <>
-                              <span>{note.fret}</span>
+                              <span className="font-bold">{note.fret}</span>
                               {note.technique && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -367,22 +359,6 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
                           )}
                         </button>
                         
-                        {/* Column controls - show on hover */}
-                        {stringIndex === 0 && (
-                          <div className="relative group">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5"
-                              onClick={() => removeColumn(measureIndex, columnIndex)}
-                              disabled={measure.columns.length <= 1}
-                              title="Remove column"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        )}
-                        
                         {columnIndex < measure.columns.length - 1 && (
                           <span className="text-muted-foreground px-0.5">-</span>
                         )}
@@ -391,7 +367,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
                   })}
                   
                   {/* End line */}
-                  <span className="text-muted-foreground">|</span>
+                  <span className="text-muted-foreground font-bold">|</span>
                 </div>
               ))}
             </div>

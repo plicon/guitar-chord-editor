@@ -325,6 +325,9 @@ export function useSongState(): [SongState, SongActions] {
       if (row.kind === 'chord-row') {
         return row.chords.some(isChordEdited);
       }
+      if (row.kind === 'tab-row') {
+        return true; // Tab rows are always considered edited content
+      }
       return false;
     })
   );

@@ -29,15 +29,9 @@ export function TabRowDisplay({ measures, className, printMode = false }: TabRow
 
   return (
     <TooltipProvider>
-      <div className={cn("font-mono text-sm overflow-x-auto", className)}>
+      <div className={cn("font-mono text-base overflow-x-auto", className)}>
       {measures.map((measure, measureIndex) => (
         <div key={measure.id} className="mb-2">
-          {/* Measure label */}
-          <div className={cn("text-xs mb-1", printMode ? "text-gray-600" : "text-muted-foreground")}>
-            Measure {measureIndex + 1}
-            {measure.timeSignature && ` (${measure.timeSignature})`}
-          </div>
-          
           {/* Tab grid - 6 strings */}
           <div className={cn("rounded p-2 inline-block", printMode ? "bg-gray-100" : "bg-muted/20")}>
             {TAB_STRING_NAMES.map((stringName, stringIndex) => (
@@ -48,7 +42,7 @@ export function TabRowDisplay({ measures, className, printMode = false }: TabRow
                 </span>
                 
                 {/* Horizontal line */}
-                <span className={printMode ? "text-gray-600" : "text-muted-foreground"}>|</span>
+                <span className={cn("font-bold", printMode ? "text-gray-600" : "text-muted-foreground")}>|</span>
                 
                 {/* Notes for this string */}
                 {measure.columns.map((column, columnIndex) => {
@@ -59,7 +53,7 @@ export function TabRowDisplay({ measures, className, printMode = false }: TabRow
                   return (
                     <span key={columnIndex} className="relative">
                       {/* Fret number or dash */}
-                      <span className={cn("inline-block w-7 text-center", printMode ? "text-gray-900" : "")}>
+                      <span className={cn("inline-block w-7 text-center font-bold", printMode ? "text-gray-900" : "")}>
                         {fret !== null ? (
                           <>
                             {fret}
@@ -89,7 +83,7 @@ export function TabRowDisplay({ measures, className, printMode = false }: TabRow
                 })}
                 
                 {/* End line */}
-                <span className={printMode ? "text-gray-600" : "text-muted-foreground"}>|</span>
+                <span className={cn("font-bold", printMode ? "text-gray-600" : "text-muted-foreground")}>|</span>
               </div>
             ))}
           </div>
