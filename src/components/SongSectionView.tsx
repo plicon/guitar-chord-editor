@@ -34,6 +34,8 @@ export interface SongSectionViewProps {
   onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
   onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
+  onAddChordToRow: (sectionId: string, rowId: string) => void;
+  onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
   dragHandleProps?: Record<string, unknown>;
 }
 
@@ -48,6 +50,8 @@ export function SongSectionView({
   onChordClick,
   onUpdateRowSubtitle,
   onUpdateRow,
+  onAddChordToRow,
+  onRemoveChordFromRow,
   dragHandleProps,
 }: SongSectionViewProps) {
   const [isEditingName, setIsEditingName] = useState(false);
@@ -209,6 +213,8 @@ export function SongSectionView({
                             onChordClick(section.id, row.id, chordIndex)
                           }
                           onRemove={() => onRemoveRow(section.id, row.id)}
+                          onAddChord={() => onAddChordToRow(section.id, row.id)}
+                          onRemoveChord={() => onRemoveChordFromRow(section.id, row.id)}
                           showRemove={false}
                         />
                       </div>

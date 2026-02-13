@@ -3,7 +3,7 @@ import { ChordDiagramComponent } from "./ChordDiagram";
 import { SortableChord } from "./SortableChord";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, Minus } from "lucide-react";
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -17,6 +17,8 @@ interface ChordRowProps {
   rowIndex: number;
   onChordClick: (index: number) => void;
   onRemove: () => void;
+  onAddChord?: () => void;
+  onRemoveChord?: () => void;
   showRemove?: boolean;
   printMode?: boolean;
 }
@@ -26,6 +28,8 @@ export const ChordRow = ({
   rowIndex,
   onChordClick,
   onRemove,
+  onAddChord,
+  onRemoveChord,
   showRemove = false,
   printMode = false,
 }: ChordRowProps) => {
@@ -114,6 +118,34 @@ export const ChordRow = ({
         >
           <Trash2 className="w-4 h-4" />
         </Button>
+      )}
+      
+      {/* Add/Remove Chord Buttons */}
+      {!printMode && onAddChord && onRemoveChord && (
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2"
+            onClick={onRemoveChord}
+            disabled={chords.length <= 1}
+            title={chords.length <= 1 ? "Minimum 1 chord per row" : "Remove chord"}
+          >
+            <Minus className="w-3 h-3 mr-1" />
+            Remove Chord
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2"
+            onClick={onAddChord}
+            disabled={chords.length >= 5}
+            title={chords.length >= 5 ? "Maximum 5 chords per row" : "Add chord"}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Chord
+          </Button>
+        </div>
       )}
     </div>
   );

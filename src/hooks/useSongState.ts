@@ -100,6 +100,8 @@ export interface SongActions {
   
   // Chord management
   updateChord: (sectionId: string, rowId: string, chordIndex: number, chord: ChordDiagram) => void;
+  addChordToRow: (sectionId: string, rowId: string) => void;
+  removeChordFromRow: (sectionId: string, rowId: string) => void;
   
   // File operations
   handleNewSong: () => void;
@@ -330,6 +332,40 @@ export function useSongState(): [SongState, SongActions] {
     }));
   }, []);
 
+  const addChordToRow = useCallback((sectionId: string, rowId: string) => {
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+      
+      return {
+        ...section,
+        rows: section.rows.map(row => {
+          if (row.id !== rowId || row.kind !== 'chord-row') return row;
+          if (row.chords.length >= 5) return row; // Max 5 chords
+          
+          const newChord = createEmptyChord(`chord-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`);
+          return { ...row, chords: [...row.chords, newChord] };
+        }),
+      };
+    }));
+  }, []);
+
+  const removeChordFromRow = useCallback((sectionId: string, rowId: string) => {
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+      
+      return {
+        ...section,
+        rows: section.rows.map(row => {
+          if (row.id !== rowId || row.kind !== 'chord-row') return row;
+          if (row.chords.length <= 1) return row; // Min 1 chord
+          
+          // Remove the last chord
+          return { ...row, chords: row.chords.slice(0, -1) };
+        }),
+      };
+    }));
+  }, []);
+
   const hasEditedContent = sections.some(section =>
     section.rows.some(row => {
       if (row.kind === 'chord-row') {
@@ -373,6 +409,8 @@ export function useSongState(): [SongState, SongActions] {
     updateRowInSection,
     moveRowInSection,
     updateChord,
+    addChordToRow,
+    removeChordFromRow,
     handleNewSong,
     handleSave,
     handleLoadSong,
