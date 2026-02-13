@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { TabMeasure, TabColumn, createEmptyTabMeasure, createEmptyTabColumn, TAB_STRING_NAMES, isValidFret, TabTechnique } from "@/types/tab";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TECHNIQUE_LABELS: Record<TabTechnique, string> = {
@@ -244,7 +244,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
 
   const addColumn = (measureIndex: number) => {
     const measure = measures[measureIndex];
-    if (measure.columns.length >= 12) return; // Max 14 columns
+    if (measure.columns.length >= 13) return; // Max 13 columns
     
     const newMeasures = [...measures];
     newMeasures[measureIndex] = {
@@ -280,31 +280,7 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
     <TooltipProvider>
       <div className={cn("space-y-4", className)} ref={gridRef}>
       {measures.map((measure, measureIndex) => (
-        <div key={measure.id} className="border rounded-lg p-3 bg-card">
-          {/* Measure controls */}
-          <div className="flex items-center justify-end mb-2">
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => addColumn(measureIndex)}
-                disabled={measure.columns.length >= 14}
-                title="Add column"
-              >
-                <Plus className="w-3 h-3" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => removeColumn(measureIndex)}
-                disabled={measure.columns.length <= 4}
-                title="Remove column"
-              >
-                <span className="text-sm font-bold">−</span>
-              </Button>
-            </div>
-          </div>
-
+        <div key={measure.id} className="relative group border rounded-lg p-3 bg-card">
           {/* Tab grid */}
           <div className="font-mono text-base overflow-x-auto">
             <div className="inline-block bg-muted/10 rounded p-2">
@@ -379,18 +355,64 @@ export function TabRowEditor({ measures, onChange, className }: TabRowEditorProp
               Type 0-24 to set fret • h/p/b/r/~/\ to add technique • x to clear technique • Space/Del to clear • Arrows to navigate • Tab to move • Esc to deselect
             </div>
           )}
+          
+          {/* Add/Remove Column Buttons */}
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 bg-background"
+              onClick={() => removeColumn(measureIndex)}
+              disabled={measure.columns.length <= 4}
+              title={measure.columns.length <= 4 ? "Minimum 4 columns per measure" : "Remove column"}
+            >
+              <Minus className="w-3 h-3 mr-1" />
+              Remove Column
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 bg-background"
+              onClick={() => addColumn(measureIndex)}
+              disabled={measure.columns.length >= 13}
+              title={measure.columns.length >= 13 ? "Maximum 13 columns per measure" : "Add column"}
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add Column
+            </Button>
+          </div>
         </div>
       ))}
 
-      {/* Add measure button */}
-      <Button
-        variant="outline"
-        onClick={addMeasure}
-        className="w-full"
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Add Measure
-      </Button>
+      {/* Add/Remove Measure Buttons - hover to show */}
+      <div className="relative group border-2 border-dashed rounded-lg p-4 hover:border-primary/50 transition-colors">
+        <p className="text-center text-muted-foreground text-sm">
+          {measures.length} {measures.length === 1 ? 'measure' : 'measures'}
+        </p>
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 bg-background"
+            onClick={() => removeMeasure(measures.length - 1)}
+            disabled={measures.length <= 1}
+            title={measures.length <= 1 ? "Minimum 1 measure per row" : "Remove measure"}
+          >
+            <Minus className="w-3 h-3 mr-1" />
+            Remove Measure
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 bg-background"
+            onClick={addMeasure}
+            title="Add measure"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Measure
+          </Button>
+        </div>
+      </div>
     </div>
     </TooltipProvider>
   );

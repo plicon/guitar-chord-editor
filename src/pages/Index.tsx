@@ -74,6 +74,8 @@ interface SortableSectionProps {
   onChordClick: (sectionId: string, rowId: string, chordIndex: number) => void;
   onUpdateRowSubtitle: (sectionId: string, rowId: string, subtitle: string) => void;
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
+  onAddChordToRow: (sectionId: string, rowId: string) => void;
+  onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
   dragHandleProps?: ReturnType<typeof useSortable>['listeners'];
 }
 
@@ -268,6 +270,8 @@ const Index = () => {
                           actions.updateRowInSection(sectionId, rowId, { subtitle });
                         }}
                         onUpdateRow={actions.updateRowInSection}
+                        onAddChordToRow={actions.addChordToRow}
+                        onRemoveChordFromRow={actions.removeChordFromRow}
                       />
                     ))}
                   </div>
