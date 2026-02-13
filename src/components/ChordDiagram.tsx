@@ -32,15 +32,7 @@ export const ChordDiagramComponent = ({
   
   const edited = isChordEdited(chord);
 
-  // Show a leading empty fret when chord doesn't start at fret 1
-  // and has no barre on its first displayed fret (e.g. D, D5)
-  const hasBarreOnFirstFret = chord.barres.some(b => b.fret === 1);
-  const showLeadingFret = chord.startFret > 1 && !hasBarreOnFirstFret;
-  const displayFrets = showLeadingFret ? chord.frets + 1 : chord.frets;
-  const displayStartFret = showLeadingFret ? chord.startFret - 1 : chord.startFret;
-  const fretOffset = showLeadingFret ? 1 : 0;
-
-  const fretSpacing = (config.height - 50) / (displayFrets + 1);
+  const fretSpacing = (config.height - 50) / (chord.frets + 1);
 
   if (!edited && !showPlaceholder) {
     return null;
@@ -85,7 +77,7 @@ export const ChordDiagramComponent = ({
           ...(printMode && { color: colors?.foreground })
         }}
       >
-        {chord.name || (showPlaceholder ? "" : "")}
+        {chord.name || "\u00A0"}
       </span>
 
       <svg
@@ -109,7 +101,7 @@ export const ChordDiagramComponent = ({
         ) : edited ? (
           <>
             {/* Nut or fret number */}
-            {displayStartFret === 1 ? (
+            {chord.startFret === 1 ? (
               <rect
                 x={startX}
                 y={startY}
@@ -127,7 +119,7 @@ export const ChordDiagramComponent = ({
                 fontSize={config.fingerSize}
                 textAnchor="middle"
               >
-                {displayStartFret}
+                {chord.startFret}
               </text>
             )}
 
@@ -136,9 +128,9 @@ export const ChordDiagramComponent = ({
               <line
                 key={`string-${i}`}
                 x1={startX + i * stringSpacing}
-                y1={startY + (displayStartFret === 1 ? nutHeight : 0)}
+                y1={startY + (chord.startFret === 1 ? nutHeight : 0)}
                 x2={startX + i * stringSpacing}
-                y2={startY + fretSpacing * displayFrets}
+                y2={startY + fretSpacing * chord.frets}
                 className={!printMode ? "stroke-chord-string" : undefined}
                 stroke={printMode ? colors?.string : undefined}
                 strokeWidth={1}
@@ -146,16 +138,16 @@ export const ChordDiagramComponent = ({
             ))}
 
             {/* Frets */}
-            {Array.from({ length: displayFrets + 1 }).map((_, i) => (
+            {Array.from({ length: chord.frets + 1 }).map((_, i) => (
               <line
                 key={`fret-${i}`}
                 x1={startX}
-                y1={startY + i * fretSpacing + (displayStartFret === 1 && i === 0 ? nutHeight : 0)}
+                y1={startY + i * fretSpacing + (chord.startFret === 1 && i === 0 ? nutHeight : 0)}
                 x2={startX + stringSpacing * 5}
-                y2={startY + i * fretSpacing + (displayStartFret === 1 && i === 0 ? nutHeight : 0)}
+                y2={startY + i * fretSpacing + (chord.startFret === 1 && i === 0 ? nutHeight : 0)}
                 className={!printMode ? "stroke-chord-fret" : undefined}
                 stroke={printMode ? colors?.fret : undefined}
-                strokeWidth={i === 0 && displayStartFret === 1 ? 0 : 1}
+                strokeWidth={i === 0 && chord.startFret === 1 ? 0 : 1}
               />
             ))}
 
@@ -169,7 +161,7 @@ export const ChordDiagramComponent = ({
                 <rect
                   key={`barre-${i}`}
                   x={startX + (6 - maxString) * stringSpacing - 4}
-                  y={startY + (diagramFret + fretOffset - 0.5) * fretSpacing - 6}
+                  y={startY + (diagramFret - 0.5) * fretSpacing - 6}
                   width={(maxString - minString) * stringSpacing + 8}
                   height={12}
                   rx={6}
@@ -187,7 +179,7 @@ export const ChordDiagramComponent = ({
                 <circle
                   key={`finger-${i}`}
                   cx={startX + (6 - finger.string) * stringSpacing}
-                  cy={startY + (diagramFret + fretOffset - 0.5) * fretSpacing}
+                  cy={startY + (diagramFret - 0.5) * fretSpacing}
                   r={stringSpacing / 3}
                   className={!printMode ? "fill-chord-dot" : undefined}
                   fill={printMode ? colors?.dot : undefined}
@@ -233,7 +225,7 @@ export const ChordDiagramComponent = ({
                     <text
                       key={`label-${string}`}
                       x={startX + (6 - string) * stringSpacing}
-                      y={startY + fretSpacing * displayFrets + 15}
+                      y={startY + fretSpacing * chord.frets + 15}
                       className={!printMode ? "fill-foreground font-medium" : "font-medium"}
                       fill={printMode ? colors?.foreground : undefined}
                       fontSize={config.fingerSize}

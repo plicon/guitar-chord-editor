@@ -228,8 +228,10 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
     if (dragStart.string === string && dragStart.fret === fret) {
       // Single click - toggle finger position
+      // Convert diagram fret to absolute fret for comparison
+      const absoluteFret = editedChord.startFret + fret - 1;
       const existingIndex = editedChord.fingers.findIndex(
-        (f) => f.string === string && f.fret === fret
+        (f) => f.string === string && f.fret === absoluteFret
       );
 
       if (existingIndex >= 0) {
@@ -239,8 +241,10 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         });
       } else {
         // Check if there's a barre at this position
+        // Convert diagram fret to absolute fret for comparison
+        const absoluteFret = editedChord.startFret + fret - 1;
         const barreIndex = editedChord.barres.findIndex(
-          (b) => b.fret === fret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
+          (b) => b.fret === absoluteFret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
         );
         
         if (barreIndex >= 0) {
@@ -252,7 +256,7 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         } else {
           // Add finger, remove any existing finger on this string
           const newFingers = editedChord.fingers.filter((f) => f.string !== string);
-          const newFinger: FingerPosition = { string, fret };
+          const newFinger: FingerPosition = { string, fret: absoluteFret };
           setEditedChord({
             ...editedChord,
             fingers: [...newFingers, newFinger],
@@ -266,15 +270,18 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
       const fromString = Math.max(dragStart.string, string);
       const toString = Math.min(dragStart.string, string);
       
+      // Convert diagram fret to absolute fret number
+      const absoluteFret = editedChord.startFret + fret - 1;
+      
       // Remove any existing barres on this fret
-      const newBarres = editedChord.barres.filter((b) => b.fret !== fret);
+      const newBarres = editedChord.barres.filter((b) => b.fret !== absoluteFret);
       
       // Remove any individual fingers in the barre range
       const newFingers = editedChord.fingers.filter(
-        (f) => f.fret !== fret || f.string < toString || f.string > fromString
+        (f) => f.fret !== absoluteFret || f.string < toString || f.string > fromString
       );
       
-      const newBarre: Barre = { fret, fromString, toString };
+      const newBarre: Barre = { fret: absoluteFret, fromString, toString };
       
       // Update muted/open strings
       const affectedStrings = Array.from(
@@ -347,12 +354,16 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   };
 
   const hasFingerAt = (string: number, fret: number) => {
-    return editedChord.fingers.some((f) => f.string === string && f.fret === fret);
+    // Convert diagram fret to absolute fret for comparison
+    const absoluteFret = editedChord.startFret + fret - 1;
+    return editedChord.fingers.some((f) => f.string === string && f.fret === absoluteFret);
   };
 
   const isInBarre = (string: number, fret: number) => {
+    // Convert diagram fret to absolute fret for comparison
+    const absoluteFret = editedChord.startFret + fret - 1;
     return editedChord.barres.some(
-      (b) => b.fret === fret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
+      (b) => b.fret === absoluteFret && string >= Math.min(b.fromString, b.toString) && string <= Math.max(b.fromString, b.toString)
     );
   };
 
@@ -606,11 +617,13 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               {editedChord.barres.map((barre, i) => {
                 const maxStr = Math.max(barre.fromString, barre.toString);
                 const minStr = Math.min(barre.fromString, barre.toString);
+                // Convert absolute fret to diagram-relative position
+                const diagramFret = barre.fret - editedChord.startFret + 1;
                 return (
                   <rect
                     key={`barre-${i}`}
                     x={startX + (6 - maxStr) * stringSpacing - 6}
-                    y={startY + (barre.fret - 0.5) * fretSpacing - 8}
+                    y={startY + (diagramFret - 0.5) * fretSpacing - 8}
                     width={(maxStr - minStr) * stringSpacing + 12}
                     height={16}
                     rx={8}
