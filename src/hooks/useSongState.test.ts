@@ -229,7 +229,7 @@ describe("useSongState", () => {
       const sectionId = result.current[0].sections[0].id;
 
       act(() => {
-        actions.addRowToSection(sectionId, 4);
+        actions.addRowToSection(sectionId, 'chord-row', 4);
       });
 
       const section = result.current[0].sections[0];
@@ -251,8 +251,8 @@ describe("useSongState", () => {
       const sectionId = result.current[0].sections[0].id;
 
       act(() => {
-        actions.addRowToSection(sectionId, 4);
-        actions.addRowToSection(sectionId, 4);
+        actions.addRowToSection(sectionId, 'chord-row', 4);
+        actions.addRowToSection(sectionId, 'chord-row', 4);
       });
 
       const rowId = result.current[0].sections[0].rows[0].id;
@@ -275,7 +275,7 @@ describe("useSongState", () => {
       const sectionId = result.current[0].sections[0].id;
 
       act(() => {
-        actions.addRowToSection(sectionId, 4);
+        actions.addRowToSection(sectionId, 'chord-row', 4);
       });
 
       const rowId = result.current[0].sections[0].rows[0].id;
@@ -301,7 +301,7 @@ describe("useSongState", () => {
       const sectionId = result.current[0].sections[0].id;
 
       act(() => {
-        actions.addRowToSection(sectionId, 4);
+        actions.addRowToSection(sectionId, 'chord-row', 4);
       });
 
       const rowId = result.current[0].sections[0].rows[0].id;
@@ -366,7 +366,7 @@ describe("useSongState", () => {
       const sectionId = result.current[0].sections[0].id;
 
       act(() => {
-        result.current[1].addRowToSection(sectionId, 4);
+        result.current[1].addRowToSection(sectionId, 'chord-row', 4);
       });
 
       const rowId = result.current[0].sections[0].rows[0].id;

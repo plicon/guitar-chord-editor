@@ -57,9 +57,18 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
       >
         {/* Watermark - visible in preview and print */}
         {APP_CONFIG.showWatermark && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none print:flex overflow-hidden"
-            style={{ zIndex: 9999 }}
+        <div 
+            className="absolute pointer-events-none print:flex overflow-hidden"
+            style={{ 
+              zIndex: 9999,
+              top: 0,
+              left: 0,
+              width: '210mm',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <span 
               className="text-gray-400 select-none whitespace-nowrap"

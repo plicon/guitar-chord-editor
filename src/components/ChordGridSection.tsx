@@ -67,8 +67,6 @@ export const ChordGridSection = ({
               key={rowIndex}
               chords={row}
               rowIndex={rowIndex}
-              subtitle={rowSubtitles[rowIndex] || ""}
-              onSubtitleChange={(value) => onRowSubtitleChange(rowIndex, value)}
               onChordClick={(chordIndex) => onChordClick(rowIndex, chordIndex)}
               onRemove={() => onRemoveRow(rowIndex)}
               showRemove={rows.length > 1}
