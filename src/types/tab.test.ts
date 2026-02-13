@@ -27,10 +27,10 @@ describe('Tab Types', () => {
   });
 
   describe('createEmptyTabMeasure', () => {
-    it('should create a measure with default 8 columns', () => {
+    it('should create a measure with default 12 columns', () => {
       const measure = createEmptyTabMeasure();
       expect(measure.id).toBeDefined();
-      expect(measure.columns).toHaveLength(8);
+      expect(measure.columns).toHaveLength(12);
       expect(measure.timeSignature).toBe('4/4');
     });
 
