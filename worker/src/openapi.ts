@@ -1244,12 +1244,12 @@ export const openApiSpec = {
             type: 'array',
             description: 'Rows within the section (chord rows or tab rows)',
             items: {
-             Songs',
-      description: 'User-created songs with chords and tablature'
-    },
-    {
-      name: 'Admin',
-      description: 'Protected write operations for song
+              oneOf: [
+                { $ref: '#/components/schemas/ChordRow' },
+                { $ref: '#/components/schemas/TabRow' }
+              ]
+            }
+          },
           collapsed: {
             type: 'boolean',
             description: 'UI state: whether the section is collapsed',

@@ -179,8 +179,8 @@ export interface SongSection {
 export interface SectionRow {
   kind: 'chord-row' | 'tab-row';
   id: string;
-  chords?: any[];
-  measures?: any[];
+  chords?: unknown[];
+  measures?: unknown[];
   subtitle?: string;
 }
 
@@ -211,7 +211,15 @@ export interface UpdateChartRequest {
 }
 
 export interface CreateChordPresetRequest {
- 
+  name: string;
+  frets: number;
+  startFret?: number;
+  fingers: FingerPosition[];
+  barres?: Barre[];
+  mutedStrings?: number[];
+  openStrings?: number[];
+  fingerLabels?: FingerLabel[];
+}
 
 export interface CreateSongRequest {
   title: string;
@@ -235,14 +243,6 @@ export interface UpdateSongRequest {
   sections?: SongSection[];
   strummingPattern?: StrummingPattern;
   notes?: string;
-} name: string;
-  frets: number;
-  startFret?: number;
-  fingers: FingerPosition[];
-  barres?: Barre[];
-  mutedStrings?: number[];
-  openStrings?: number[];
-  fingerLabels?: FingerLabel[];
 }
 
 export interface UpdateChordPresetRequest {

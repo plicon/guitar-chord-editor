@@ -137,7 +137,7 @@ export async function updateSong(
 
   const now = new Date().toISOString();
   const updates: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   // Build dynamic update query
   if (data.title !== undefined) {
