@@ -51,6 +51,21 @@ export interface ChordPresetRow {
   updated_at: number;
 }
 
+export interface SongRow {
+  id: string;
+  title: string;
+  artist?: string;
+  description?: string;
+  key?: string;
+  tempo?: number;
+  time_signature?: string;
+  sections: string; // JSON string
+  strumming_pattern?: string; // JSON string
+  notes?: string;
+  created_at: string; // ISO 8601
+  updated_at: string; // ISO 8601
+}
+
 // ============================================================================
 // API Response Types
 // ============================================================================
@@ -138,6 +153,37 @@ export interface FingerLabel {
   finger: number; // 1-4 or 0 for thumb (T)
 }
 
+export interface Song {
+  id: string;
+  title: string;
+  artist?: string;
+  description?: string;
+  key?: string;
+  tempo?: number;
+  timeSignature?: string;
+  sections: SongSection[];
+  strummingPattern?: StrummingPattern;
+  notes?: string;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+}
+
+export interface SongSection {
+  id: string;
+  name: string;
+  type: string;
+  rows: SectionRow[];
+  collapsed?: boolean;
+}
+
+export interface SectionRow {
+  kind: 'chord-row' | 'tab-row';
+  id: string;
+  chords?: unknown[];
+  measures?: unknown[];
+  subtitle?: string;
+}
+
 // ============================================================================
 // API Request Types
 // ============================================================================
@@ -173,6 +219,30 @@ export interface CreateChordPresetRequest {
   mutedStrings?: number[];
   openStrings?: number[];
   fingerLabels?: FingerLabel[];
+}
+
+export interface CreateSongRequest {
+  title: string;
+  artist?: string;
+  description?: string;
+  key?: string;
+  tempo?: number;
+  timeSignature?: string;
+  sections: SongSection[];
+  strummingPattern?: StrummingPattern;
+  notes?: string;
+}
+
+export interface UpdateSongRequest {
+  title?: string;
+  artist?: string;
+  description?: string;
+  key?: string;
+  tempo?: number;
+  timeSignature?: string;
+  sections?: SongSection[];
+  strummingPattern?: StrummingPattern;
+  notes?: string;
 }
 
 export interface UpdateChordPresetRequest {

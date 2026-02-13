@@ -13,17 +13,27 @@ import {
   createTabRow 
 } from "@/types/song";
 import { toast } from "sonner";
+import { getStorageProvider } from "@/services/storage";
 
-// TODO: Update storage service to handle Song type directly
 const saveSong = async (song: Song) => {
-  // Placeholder - will be implemented with proper Song storage
-  localStorage.setItem(`song-${song.id}`, JSON.stringify(song));
+  const provider = getStorageProvider();
+  if (provider.saveSong) {
+    await provider.saveSong(song);
+  } else {
+    // Fallback to localStorage if provider doesn't support songs
+    localStorage.setItem(`song-${song.id}`, JSON.stringify(song));
+  }
 };
 
 const loadSong = async (id: string): Promise<Song | null> => {
-  // Placeholder - will be implemented with proper Song storage
-  const data = localStorage.getItem(`song-${id}`);
-  return data ? JSON.parse(data) : null;
+  const provider = getStorageProvider();
+  if (provider.loadSong) {
+    return await provider.loadSong(id);
+  } else {
+    // Fallback to localStorage
+    const data = localStorage.getItem(`song-${id}`);
+    return data ? JSON.parse(data) : null;
+  }
 };
 
 const downloadSongAsJson = (song: Song) => {

@@ -13,7 +13,7 @@ export const openApiSpec = {
   info: {
     title: 'FretKit API',
     version: WORKER_VERSION,
-    description: 'REST API for managing guitar chord charts and presets. Built with Cloudflare Workers and D1.',
+    description: 'REST API for managing guitar songs with chord diagrams, tablature, and presets. Built with Cloudflare Workers and D1.',
     contact: {
       name: 'FretKit',
       url: 'https://fretkit.io'
@@ -327,19 +327,19 @@ export const openApiSpec = {
         }
       }
     },
-    '/charts': {
+    '/songs': {
       get: {
-        summary: 'List Chord Charts',
-        description: 'Get all saved chord charts with optional search and pagination',
-        operationId: 'listCharts',
-        tags: ['Charts'],
+        summary: 'List Songs',
+        description: 'Get all saved songs with optional search and pagination',
+        operationId: 'listSongs',
+        tags: ['Songs'],
         security: [],
         parameters: [
           {
             name: 'q',
             in: 'query',
             required: false,
-            description: 'Search query to filter charts by title or artist (case-insensitive, partial match)',
+            description: 'Search query to filter songs by title or artist (case-insensitive, partial match)',
             schema: {
               type: 'string'
             }
@@ -370,7 +370,7 @@ export const openApiSpec = {
         ],
         responses: {
           '200': {
-            description: 'Paginated list of chord charts',
+            description: 'Paginated list of songs',
             content: {
               'application/json': {
                 schema: {
@@ -379,12 +379,12 @@ export const openApiSpec = {
                     data: {
                       type: 'array',
                       items: {
-                        $ref: '#/components/schemas/ChordChart'
+                        $ref: '#/components/schemas/Song'
                       }
                     },
                     total: {
                       type: 'integer',
-                      description: 'Total number of matching charts'
+                      description: 'Total number of matching songs'
                     },
                     limit: {
                       type: 'integer',
@@ -423,32 +423,31 @@ export const openApiSpec = {
         }
       }
     },
-    '/charts/{id}': {
+    '/songs/{id}': {
       get: {
-        summary: 'Get Chord Chart',
-        description: 'Retrieve a specific chord chart by its ID',
-        operationId: 'getChart',
-        tags: ['Charts'],
+        summary: 'Get Song',
+        description: 'Retrieve a specific song by its ID',
+        operationId: 'getSong',
+        tags: ['Songs'],
         security: [],
         parameters: [
           {
             name: 'id',
             in: 'path',
             required: true,
-            description: 'Unique identifier of the chord chart',
+            description: 'Unique identifier of the song',
             schema: {
-              type: 'string',
-              format: 'uuid'
+              type: 'string'
             }
           }
         ],
         responses: {
           '200': {
-            description: 'Chord chart found',
+            description: 'Song found',
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/ChordChart'
+                  $ref: '#/components/schemas/Song'
                 }
               }
             }
@@ -464,7 +463,7 @@ export const openApiSpec = {
             }
           },
           '404': {
-            description: 'Chord chart not found',
+            description: 'Song not found',
             content: {
               'application/json': {
                 schema: {
@@ -476,12 +475,12 @@ export const openApiSpec = {
         }
       }
     },
-    '/admin/charts': {
+    '/admin/songs': {
         post: {
-          summary: 'Create Chord Chart',
-          description: 'Save a new chord chart to the database (admin)',
-          operationId: 'createChart',
-          tags: ['Admin', 'Charts'],
+          summary: 'Create Song',
+          description: 'Save a new song to the database (admin)',
+          operationId: 'createSong',
+          tags: ['Admin', 'Songs'],
           security: [
             {
               cfAccessClientId: [],
@@ -490,22 +489,22 @@ export const openApiSpec = {
           ],
           requestBody: {
             required: true,
-            description: 'Chord chart data to save',
+            description: 'Song data to save',
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/ChordChartInput'
+                  $ref: '#/components/schemas/SongInput'
                 }
               }
             }
           },
           responses: {
             '201': {
-              description: 'Chord chart created successfully',
+              description: 'Song created successfully',
               content: {
                 'application/json': {
                   schema: {
-                    $ref: '#/components/schemas/ChordChart'
+                    $ref: '#/components/schemas/Song'
                   }
                 }
               }
@@ -533,12 +532,12 @@ export const openApiSpec = {
           }
         }
       },
-      '/admin/charts/{id}': {
+      '/admin/songs/{id}': {
         put: {
-          summary: 'Update Chord Chart',
-          description: 'Update an existing chord chart (admin)',
-          operationId: 'updateChart',
-          tags: ['Admin', 'Charts'],
+          summary: 'Update Song',
+          description: 'Update an existing song (admin)',
+          operationId: 'updateSong',
+          tags: ['Admin', 'Songs'],
             security: [
               {
                 cfAccessClientId: [],
@@ -550,37 +549,36 @@ export const openApiSpec = {
               name: 'id',
               in: 'path',
               required: true,
-              description: 'Unique identifier of the chord chart',
+              description: 'Unique identifier of the song',
               schema: {
-                type: 'string',
-                format: 'uuid'
+                type: 'string'
               }
             }
           ],
           requestBody: {
             required: true,
-            description: 'Updated chord chart data',
+            description: 'Updated song data',
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/ChordChartInput'
+                  $ref: '#/components/schemas/SongInput'
                 }
               }
             }
           },
           responses: {
             '200': {
-              description: 'Chord chart updated successfully',
+              description: 'Song updated successfully',
               content: {
                 'application/json': {
                   schema: {
-                    $ref: '#/components/schemas/ChordChart'
+                    $ref: '#/components/schemas/Song'
                   }
                 }
               }
             },
             '404': {
-              description: 'Chord chart not found',
+              description: 'Song not found',
               content: {
                 'application/json': {
                   schema: {
@@ -602,10 +600,10 @@ export const openApiSpec = {
           }
         },
         delete: {
-          summary: 'Delete Chord Chart',
-          description: 'Delete a chord chart from the database (admin)',
-          operationId: 'deleteChart',
-          tags: ['Admin', 'Charts'],
+          summary: 'Delete Song',
+          description: 'Delete a song from the database (admin)',
+          operationId: 'deleteSong',
+          tags: ['Admin', 'Songs'],
           security: [
             {
               cfAccessClientId: [],
@@ -617,19 +615,18 @@ export const openApiSpec = {
               name: 'id',
               in: 'path',
               required: true,
-              description: 'Unique identifier of the chord chart',
+              description: 'Unique identifier of the song',
               schema: {
-                type: 'string',
-                format: 'uuid'
+                type: 'string'
               }
             }
           ],
           responses: {
             '204': {
-              description: 'Chord chart deleted successfully'
+              description: 'Song deleted successfully'
             },
             '404': {
-              description: 'Chord chart not found',
+              description: 'Song not found',
               content: {
                 'application/json': {
                   schema: {
@@ -1155,64 +1152,217 @@ export const openApiSpec = {
         },
         required: ['id', 'name', 'pattern']
       },
-      ChordChart: {
+      Song: {
         type: 'object',
-        description: 'A complete chord chart/song',
+        description: 'A complete song with sections, chords, and optional tablature',
         properties: {
           id: {
             type: 'string',
-            format: 'uuid',
-            description: 'Unique identifier for the chart'
+            description: 'Unique identifier for the song',
+            example: 'song-1234567890-abc123'
           },
           title: {
             type: 'string',
-            example: 'My Song',
-            description: 'Title of the chord chart'
+            example: 'Wonderwall',
+            description: 'Title of the song'
           },
           artist: {
-            type: ['string', 'null'],
-            example: 'Artist Name',
-            description: 'Artist or author name'
+            type: 'string',
+            example: 'Oasis',
+            description: 'Artist or band name'
           },
-          data: {
-            type: 'object',
-            description: 'Chart data (structure varies)',
-            additionalProperties: true
+          description: {
+            type: 'string',
+            example: 'Classic 90s rock song',
+            description: 'Optional description or notes about the song'
+          },
+          key: {
+            type: 'string',
+            example: 'Em',
+            description: 'Musical key of the song'
+          },
+          tempo: {
+            type: 'integer',
+            example: 120,
+            description: 'Tempo in beats per minute'
+          },
+          timeSignature: {
+            type: 'string',
+            example: '4/4',
+            description: 'Time signature'
+          },
+          sections: {
+            type: 'array',
+            description: 'Song sections (verse, chorus, bridge, etc.)',
+            items: {
+              $ref: '#/components/schemas/SongSection'
+            }
+          },
+          strummingPattern: {
+            type: ['object', 'null'],
+            description: 'Optional strumming pattern for the song'
+          },
+          notes: {
+            type: 'string',
+            description: 'Additional notes or instructions'
           },
           createdAt: {
             type: 'string',
             format: 'date-time',
-            description: 'When the chart was created'
+            description: 'When the song was created'
           },
           updatedAt: {
             type: 'string',
             format: 'date-time',
-            description: 'When the chart was last updated'
+            description: 'When the song was last updated'
           }
         },
-        required: ['id', 'title', 'data', 'createdAt', 'updatedAt']
+        required: ['id', 'title', 'sections', 'createdAt', 'updatedAt']
       },
-      ChordChartInput: {
+      SongSection: {
         type: 'object',
-        description: 'Input data for creating or updating a chord chart',
+        description: 'A section within a song (e.g., Verse, Chorus, Bridge)',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Unique identifier for the section',
+            example: 'section-1234567890-abc123'
+          },
+          name: {
+            type: 'string',
+            example: 'Verse 1',
+            description: 'Name/label for the section'
+          },
+          type: {
+            type: 'string',
+            enum: ['intro', 'verse', 'chorus', 'bridge', 'solo', 'outro', 'custom'],
+            example: 'verse',
+            description: 'Type of section'
+          },
+          rows: {
+            type: 'array',
+            description: 'Rows within the section (chord rows or tab rows)',
+            items: {
+              oneOf: [
+                { $ref: '#/components/schemas/ChordRow' },
+                { $ref: '#/components/schemas/TabRow' }
+              ]
+            }
+          },
+          collapsed: {
+            type: 'boolean',
+            description: 'UI state: whether the section is collapsed',
+            default: false
+          }
+        },
+        required: ['id', 'name', 'type', 'rows']
+      },
+      ChordRow: {
+        type: 'object',
+        description: 'A row of chord diagrams',
+        properties: {
+          kind: {
+            type: 'string',
+            enum: ['chord-row'],
+            description: 'Row type identifier'
+          },
+          id: {
+            type: 'string',
+            description: 'Unique identifier for the row'
+          },
+          chords: {
+            type: 'array',
+            description: 'Array of chord diagrams',
+            items: {
+              type: 'object',
+              additionalProperties: true
+            }
+          },
+          subtitle: {
+            type: 'string',
+            description: 'Optional subtitle/label for the row'
+          }
+        },
+        required: ['kind', 'id', 'chords']
+      },
+      TabRow: {
+        type: 'object',
+        description: 'A row of guitar tablature',
+        properties: {
+          kind: {
+            type: 'string',
+            enum: ['tab-row'],
+            description: 'Row type identifier'
+          },
+          id: {
+            type: 'string',
+            description: 'Unique identifier for the row'
+          },
+          measures: {
+            type: 'array',
+            description: 'Array of tab measures',
+            items: {
+              type: 'object',
+              additionalProperties: true
+            }
+          },
+          subtitle: {
+            type: 'string',
+            description: 'Optional subtitle/label for the row'
+          }
+        },
+        required: ['kind', 'id', 'measures']
+      },
+      SongInput: {
+        type: 'object',
+        description: 'Input data for creating or updating a song',
         properties: {
           title: {
             type: 'string',
-            example: 'My Song',
-            description: 'Title of the chord chart'
+            example: 'Wonderwall',
+            description: 'Title of the song'
           },
           artist: {
-            type: ['string', 'null'],
-            example: 'Artist Name',
-            description: 'Artist or author name'
+            type: 'string',
+            example: 'Oasis',
+            description: 'Artist or band name'
           },
-          data: {
-            type: 'object',
-            description: 'Chart data containing chords, lyrics, etc.',
-            additionalProperties: true
+          description: {
+            type: 'string',
+            description: 'Optional description'
+          },
+          key: {
+            type: 'string',
+            example: 'Em',
+            description: 'Musical key'
+          },
+          tempo: {
+            type: 'integer',
+            example: 120,
+            description: 'Tempo in BPM'
+          },
+          timeSignature: {
+            type: 'string',
+            example: '4/4',
+            description: 'Time signature'
+          },
+          sections: {
+            type: 'array',
+            description: 'Song sections',
+            items: {
+              $ref: '#/components/schemas/SongSection'
+            }
+          },
+          strummingPattern: {
+            type: ['object', 'null'],
+            description: 'Optional strumming pattern'
+          },
+          notes: {
+            type: 'string',
+            description: 'Additional notes'
           }
         },
-        required: ['title', 'data']
+        required: ['title', 'sections']
       },
       Error: {
         type: 'object',

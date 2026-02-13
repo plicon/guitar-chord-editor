@@ -1,8 +1,16 @@
+import { Song } from "@/types/song";
 import { ChordChart, ChordChartMetadata } from "@/types/chordChart";
+import { SongMetadata } from "./d1StorageProvider";
 
 export interface StorageProvider {
   name: string;
   isAvailable: () => Promise<boolean>;
+  // New Song-based methods
+  saveSong?: (song: Song) => Promise<void>;
+  loadSong?: (id: string) => Promise<Song | null>;
+  listSongs?: () => Promise<SongMetadata[]>;
+  deleteSong?: (id: string) => Promise<void>;
+  // Legacy ChordChart methods (for backward compatibility)
   saveChart: (chart: ChordChart) => Promise<void>;
   loadChart: (id: string) => Promise<ChordChart | null>;
   listCharts: () => Promise<ChordChartMetadata[]>;
