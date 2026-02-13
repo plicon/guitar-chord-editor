@@ -103,9 +103,9 @@ export const ChordDiagramComponent = ({
             {/* Nut or fret number */}
             {chord.startFret === 1 ? (
               <rect
-                x={startX}
+                x={startX - 0.5}
                 y={startY}
-                width={stringSpacing * 5}
+                width={stringSpacing * 5 + 1}
                 height={nutHeight}
                 className={!printMode ? "fill-chord-fret" : undefined}
                 fill={printMode ? colors?.fret : undefined}

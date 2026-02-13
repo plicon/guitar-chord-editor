@@ -183,7 +183,8 @@ describe("PrintableSheet", () => {
 
       const pageDiv = container.querySelector(".w-\\[210mm\\]");
       expect(pageDiv).toBeInTheDocument();
-      expect(pageDiv).toHaveClass("min-h-[297mm]");
+      // Min-height removed to prevent forcing empty space and extra PDF pages
+      expect(pageDiv).toHaveClass("w-[210mm]");
     });
 
     it("should use white background", () => {
