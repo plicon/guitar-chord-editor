@@ -8,6 +8,7 @@
 import type { Env } from './types';
 import { openApiSpec } from './openapi';
 import { handleCharts, handleAdminCharts } from './routes/charts';
+import { handleSongs, handleAdminSongs } from './routes/songs';
 import {
   handleChordPresets,
   handleStrummingPresets,
@@ -116,9 +117,17 @@ export default {
         if (pathParts[1] === 'charts') {
           response = await handleCharts(request, env, pathParts);
         }
+        // /api/songs/*
+        else if (pathParts[1] === 'songs') {
+          response = await handleSongs(request, env, pathParts);
+        }
         // /api/admin/charts/*
         else if (pathParts[1] === 'admin' && pathParts[2] === 'charts') {
           response = await handleAdminCharts(request, env, pathParts);
+        }
+        // /api/admin/songs/*
+        else if (pathParts[1] === 'admin' && pathParts[2] === 'songs') {
+          response = await handleAdminSongs(request, env, pathParts);
         }
         // /api/presets/chords/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'chords') {
