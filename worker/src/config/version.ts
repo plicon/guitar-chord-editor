@@ -7,4 +7,6 @@
  * NOTE: To update the version, change it in worker/package.json
  */
 
-export const WORKER_VERSION = '3.2.3';
+import packageJson from '../../package.json';
+
+export const WORKER_VERSION = packageJson.version;
