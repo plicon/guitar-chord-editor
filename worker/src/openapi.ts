@@ -1199,9 +1199,8 @@ export const openApiSpec = {
             }
           },
           strummingPattern: {
-            type: 'object',
-            description: 'Optional strumming pattern for the song',
-            nullable: true
+            type: ['object', 'null'],
+            description: 'Optional strumming pattern for the song'
           },
           notes: {
             type: 'string',
@@ -1355,9 +1354,8 @@ export const openApiSpec = {
             }
           },
           strummingPattern: {
-            type: 'object',
-            description: 'Optional strumming pattern',
-            nullable: true
+            type: ['object', 'null'],
+            description: 'Optional strumming pattern'
           },
           notes: {
             type: 'string',
