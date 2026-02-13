@@ -10,4 +10,6 @@
  * To update the version, change it in package.json (root level).
  */
 
-export const APP_VERSION = '3.2.3';
+import packageJson from '../../package.json';
+
+export const APP_VERSION = packageJson.version;
