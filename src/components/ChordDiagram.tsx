@@ -87,6 +87,10 @@ export const ChordDiagramComponent = ({
           "rounded-md",
           !edited && showPlaceholder && !printMode && "bg-chord-empty"
         )}
+        style={{
+          shapeRendering: printMode ? "crispEdges" : undefined,
+        }}
+        xmlns="http://www.w3.org/2000/svg"
       >
         {!edited && showPlaceholder && !printMode ? (
           <g>
