@@ -9,8 +9,9 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTouchDevice, useIsTablet } from "@/hooks/use-mobile";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface ChordRowProps {
   chords: ChordDiagram[];
@@ -34,6 +35,9 @@ export const ChordRow = ({
   printMode = false,
 }: ChordRowProps) => {
   const isMobile = useIsMobile();
+  const isTouch = useIsTouchDevice();
+  const isTabletDevice = useIsTablet();
+  const showTouchControls = isTouch || isTabletDevice;
   const shouldScroll = isMobile && chords.length > 3;
 
   const gridCols = {
@@ -122,11 +126,16 @@ export const ChordRow = ({
       
       {/* Add/Remove Chord Buttons */}
       {!printMode && onAddChord && onRemoveChord && (
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className={cn(
+          "flex gap-2 justify-center mt-2",
+          showTouchControls
+            ? "opacity-100"
+            : "absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+        )}>
           <Button
             variant="outline"
             size="sm"
-            className="h-7 px-2"
+            className={cn(showTouchControls ? "h-9 px-3" : "h-7 px-2")}
             onClick={onRemoveChord}
             disabled={chords.length <= 1}
             title={chords.length <= 1 ? "Minimum 1 chord per row" : "Remove chord"}
@@ -137,7 +146,7 @@ export const ChordRow = ({
           <Button
             variant="outline"
             size="sm"
-            className="h-7 px-2"
+            className={cn(showTouchControls ? "h-9 px-3" : "h-7 px-2")}
             onClick={onAddChord}
             disabled={chords.length >= 5}
             title={chords.length >= 5 ? "Maximum 5 chords per row" : "Add chord"}
