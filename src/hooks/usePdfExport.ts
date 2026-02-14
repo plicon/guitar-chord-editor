@@ -8,10 +8,40 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
   const handleDownloadPDF = useCallback(async () => {
     if (!printRef.current) return;
 
+    // Wait for fonts and rendering to complete
+    if (document.fonts) {
+      await document.fonts.ready;
+    }
+    
+    // Additional small delay to ensure SVGs are fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Debug logging (can be removed after testing)
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('PDF Export Debug:', {
+        userAgent: navigator.userAgent,
+        devicePixelRatio: window.devicePixelRatio,
+        fonts: document.fonts ? Array.from(document.fonts.values()).map(f => ({
+          family: f.family,
+          status: f.status
+        })) : 'N/A',
+        elementSize: {
+          width: printRef.current.offsetWidth,
+          height: printRef.current.offsetHeight
+        }
+      });
+    }
+
     const canvas = await html2canvas(printRef.current, {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
+      logging: false,
+      allowTaint: false,
+      removeContainer: true,
+      imageTimeout: 0,
+      // Force synchronous SVG rendering
+      foreignObjectRendering: false,
     });
 
     const imgData = canvas.toDataURL("image/png");
