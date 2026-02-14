@@ -8,13 +8,22 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
   const handleDownloadPDF = useCallback(async () => {
     if (!printRef.current) return;
 
-    // Wait for fonts and rendering to complete
+    // Force load fonts by checking specific font faces used in the document
     if (document.fonts) {
+      // Trigger font loading for system fonts
+      await Promise.all([
+        document.fonts.load('14px system-ui'),
+        document.fonts.load('16px system-ui'),
+        document.fonts.load('100px "Permanent Marker"'),
+      ].map(p => p.catch(() => {}))); // Ignore errors if fonts don't exist
+      
+      // Wait for all fonts to be ready
       await document.fonts.ready;
     }
     
-    // Additional small delay to ensure SVGs are fully rendered
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Increased delay to ensure SVGs and fonts are fully rendered
+    // This is especially important for production environments
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     // Debug logging (can be removed after testing)
     if (typeof console !== 'undefined' && console.log) {
