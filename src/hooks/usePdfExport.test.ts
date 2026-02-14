@@ -81,10 +81,6 @@ describe("usePdfExport", () => {
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
-      allowTaint: false,
-      removeContainer: true,
-      imageTimeout: 0,
-      foreignObjectRendering: false,
     });
 
     // Verify jsPDF was initialized with correct options

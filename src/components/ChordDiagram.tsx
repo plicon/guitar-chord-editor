@@ -87,9 +87,6 @@ export const ChordDiagramComponent = ({
           "rounded-md",
           !edited && showPlaceholder && !printMode && "bg-chord-empty"
         )}
-        style={{
-          shapeRendering: printMode ? "crispEdges" : undefined,
-        }}
         xmlns="http://www.w3.org/2000/svg"
       >
         {!edited && showPlaceholder && !printMode ? (
@@ -107,9 +104,9 @@ export const ChordDiagramComponent = ({
             {/* Nut or fret number */}
             {chord.startFret === 1 ? (
               <rect
-                x={printMode ? Math.round(startX - 0.5) : startX - 0.5}
-                y={printMode ? Math.round(startY) : startY}
-                width={printMode ? Math.round(stringSpacing * 5 + 1) : stringSpacing * 5 + 1}
+                x={startX - 0.5}
+                y={startY}
+                width={stringSpacing * 5 + 1}
                 height={nutHeight}
                 className={!printMode ? "fill-chord-fret" : undefined}
                 fill={printMode ? colors?.fret : undefined}
