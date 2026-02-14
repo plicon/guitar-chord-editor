@@ -3,6 +3,7 @@ import { Song } from "@/types/song";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { TabRowDisplay } from "./TabRowDisplay";
 import { APP_CONFIG } from "@/config/appConfig";
+import { APP_VERSION } from "@/config/version";
 import { isChordEdited } from "@/types/chord";
 import { hasStrummingContent } from "@/types/strumming";
 import { TabTechnique } from "@/types/tab";
@@ -266,6 +267,11 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
               <span className="text-[10px] text-gray-400">{APP_CONFIG.rowUrl}</span>
             </div>
           )}
+
+          {/* Version info for debugging */}
+          <div className="flex justify-end">
+            <span className="text-[8px] text-gray-300">v{APP_VERSION}</span>
+          </div>
         </div>
       </div>
     );

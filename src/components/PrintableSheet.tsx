@@ -3,6 +3,7 @@ import { ChordDiagram, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { APP_CONFIG } from "@/config/appConfig";
+import { APP_VERSION } from "@/config/version";
 
 
 interface PrintableSheetProps {
@@ -250,6 +251,11 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
             No chords have been added yet.
           </p>
         )}
+
+        {/* Version info for debugging */}
+        <div className="flex justify-end mt-1">
+          <span className="text-[8px] text-gray-300">v{APP_VERSION}</span>
+        </div>
       </div>
     );
   }
