@@ -82,19 +82,20 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
             </span>
           </div>
         )}
-        {/* Title and Strumming Pattern */}
-        <div data-pdf-section="header" className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
-              <h1 className="text-4xl font-bold text-gray-900">
-                {title || "Chord Chart"}
-              </h1>
+        {/* Title, Strumming Pattern, and Separator — all captured together as one PDF section */}
+        <div data-pdf-section="header" className="mb-4">
+          <div className={`${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-3">
+                <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
+                <h1 className="text-4xl font-bold text-gray-900">
+                  {title || "Chord Chart"}
+                </h1>
+              </div>
+              {description && description.trim() && (
+                <p className="text-sm text-gray-600 mt-1">{description}</p>
+              )}
             </div>
-            {description && description.trim() && (
-              <p className="text-sm text-gray-600 mt-1">{description}</p>
-            )}
-          </div>
 
           {/* Strumming Pattern for Print - Musical Staff Style */}
           {showStrumming && (
@@ -165,14 +166,15 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
               </div>
             </div>
           )}
+          </div>
+          {/* Separator — inside header section so it is captured in the PDF export */}
+          {processedRows.length > 0 && !rowSubtitles[processedRows[0]?.originalIndex]?.trim() && (
+            <div className="border-t-2 border-black mt-4 pt-2" />
+          )}
         </div>
 
         {/* Chord Rows - Grouped by Section */}
         <div className="space-y-6">
-          {/* Separator if first row has no subtitle */}
-          {processedRows.length > 0 && !rowSubtitles[processedRows[0]?.originalIndex]?.trim() && (
-            <div className="border-t-2 border-black pt-2" />
-          )}
           {(() => {
             // Group rows by section
             const sections: { sectionIndex: number; rows: typeof processedRows }[] = [];

@@ -86,96 +86,98 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
           </div>
         )}
 
-        {/* Title and Strumming Pattern */}
-        <div data-pdf-section="header" className={`mb-2 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-16 h-16" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                {song.title || "Untitled Song"}
-              </h1>
+        {/* Title, Strumming Pattern, and Separator — all captured together as one PDF section */}
+        <div data-pdf-section="header" className="mb-2">
+          <div className={`${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-3">
+                <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-16 h-16" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {song.title || "Untitled Song"}
+                </h1>
+              </div>
+              {song.description && song.description.trim() && (
+                <p className="text-sm text-gray-600 mt-1">{song.description}</p>
+              )}
+              {song.artist && (
+                <p className="text-sm text-gray-500 mt-1">by {song.artist}</p>
+              )}
             </div>
-            {song.description && song.description.trim() && (
-              <p className="text-sm text-gray-600 mt-1">{song.description}</p>
-            )}
-            {song.artist && (
-              <p className="text-sm text-gray-500 mt-1">by {song.artist}</p>
-            )}
-          </div>
 
-          {/* Strumming Pattern for Print */}
-          {showStrumming && (
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wide">
-                Strumming Pattern <span className="font-bold">{song.strummingPattern!.timeSignature}</span>
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="relative bg-gray-50 rounded border border-gray-200">
-                  <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 14, paddingBottom: 7 }}>
-                    {[0, 1, 2, 3, 4].map((line) => (
-                      <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 7 : 0 }} />
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center relative" style={{ height: 70 }}>
-                    {song.strummingPattern!.beats.map((beat, beatIndex) => {
-                      const beatLabel = beat.beatType === "on" 
-                        ? String(Math.floor(beatIndex / song.strummingPattern!.subdivision) + 1)
-                        : beat.beatType;
-                            
-                      return (
-                        <div
-                          key={beatIndex}
-                          className="flex flex-col items-center justify-center relative"
-                          style={{ width: 14, height: 70 }}
-                        >
-                          <span className={`absolute top-0 text-[7px] font-medium ${beat.beatType === "on" ? "text-gray-600" : "text-gray-400"}`}>
-                            {beatLabel}
-                          </span>
-                          
-                          {beat.stroke === "up" && (
-                            <div className="absolute flex flex-col items-center" style={{ top: 12 }}>
-                              <div 
-                                style={{ 
-                                  width: 0, 
-                                  height: 0, 
-                                  borderLeft: '6px solid transparent',
-                                  borderRight: '6px solid transparent',
-                                  borderBottom: '10px solid #1f2937'
-                                }} 
-                              />
-                              <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
-                            </div>
-                          )}
-                          
-                          {beat.stroke === "down" && (
-                            <div className="absolute flex flex-col items-center" style={{ bottom: 6 }}>
-                              <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
-                              <div 
-                                style={{ 
-                                  width: 0, 
-                                  height: 0, 
-                                  borderLeft: '6px solid transparent',
-                                  borderRight: '6px solid transparent',
-                                  borderTop: '10px solid #1f2937'
-                                }} 
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+            {/* Strumming Pattern for Print */}
+            {showStrumming && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-gray-500 uppercase tracking-wide">
+                  Strumming Pattern <span className="font-bold">{song.strummingPattern!.timeSignature}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <div className="relative bg-gray-50 rounded border border-gray-200">
+                    <div className="absolute inset-0 flex flex-col justify-center pointer-events-none" style={{ paddingTop: 14, paddingBottom: 7 }}>
+                      {[0, 1, 2, 3, 4].map((line) => (
+                        <div key={line} className="w-full h-[1px] bg-gray-300" style={{ marginBottom: line < 4 ? 7 : 0 }} />
+                      ))}
+                    </div>
+
+                    <div className="flex items-center relative" style={{ height: 70 }}>
+                      {song.strummingPattern!.beats.map((beat, beatIndex) => {
+                        const beatLabel = beat.beatType === "on"
+                          ? String(Math.floor(beatIndex / song.strummingPattern!.subdivision) + 1)
+                          : beat.beatType;
+
+                        return (
+                          <div
+                            key={beatIndex}
+                            className="flex flex-col items-center justify-center relative"
+                            style={{ width: 14, height: 70 }}
+                          >
+                            <span className={`absolute top-0 text-[7px] font-medium ${beat.beatType === "on" ? "text-gray-600" : "text-gray-400"}`}>
+                              {beatLabel}
+                            </span>
+
+                            {beat.stroke === "up" && (
+                              <div className="absolute flex flex-col items-center" style={{ top: 12 }}>
+                                <div
+                                  style={{
+                                    width: 0,
+                                    height: 0,
+                                    borderLeft: '6px solid transparent',
+                                    borderRight: '6px solid transparent',
+                                    borderBottom: '10px solid #1f2937'
+                                  }}
+                                />
+                                <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                              </div>
+                            )}
+
+                            {beat.stroke === "down" && (
+                              <div className="absolute flex flex-col items-center" style={{ bottom: 6 }}>
+                                <div style={{ width: 3, height: 18, backgroundColor: '#1f2937' }} />
+                                <div
+                                  style={{
+                                    width: 0,
+                                    height: 0,
+                                    borderLeft: '6px solid transparent',
+                                    borderRight: '6px solid transparent',
+                                    borderTop: '10px solid #1f2937'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          {/* Separator line — inside the header section so it is captured in the PDF export */}
+          <div className="border-t-2 border-black mt-2 pt-1" />
         </div>
 
         {/* Sections */}
         <div className="space-y-3">
-          <div className="border-t-2 border-black pt-1" />
-          
           {song.sections.map((section, sectionIndex) => {
             const isAlternate = sectionIndex % 2 === 1;
             const bgColor = isAlternate ? 'bg-gray-50' : 'bg-white';
