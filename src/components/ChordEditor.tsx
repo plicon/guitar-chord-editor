@@ -564,9 +564,10 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
           {/* Interactive Fretboard */}
           <div className="flex justify-center py-4">
-            <svg 
-              ref={svgRef} 
-              width={220} 
+            <svg
+              ref={svgRef}
+              data-testid="fretboard-svg"
+              width={220}
               height={295}
               onMouseLeave={() => {
                 if (dragStart) {
