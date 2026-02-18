@@ -193,10 +193,10 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
             if (visibleRows.length === 0) return null;
             
             return (
-              <div key={section.id} data-pdf-section="content" className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
+              <div key={section.id} className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
                 {/* Section Title */}
                 {section.name && (
-                  <div className="px-3 py-1.5 border-b-2 border-gray-300">
+                  <div data-pdf-section="section-title" className="px-3 py-1.5 border-b-2 border-gray-300">
                     <h2 className="text-base font-bold text-gray-800">
                       {section.name}
                     </h2>
@@ -206,7 +206,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                 {/* Section Rows */}
                 <div className="p-2 space-y-2">
                   {visibleRows.map((row) => (
-                    <div key={row.id}>
+                    <div key={row.id} data-pdf-section="row">
                       {/* Row Subtitle */}
                       {row.subtitle && row.subtitle.trim() && (
                         <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-2 py-0.5 mb-0.5`}>
