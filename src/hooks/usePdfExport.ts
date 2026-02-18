@@ -149,6 +149,117 @@ async function rasterizeSvgsAsync(container: HTMLElement): Promise<() => void> {
   };
 }
 
+/**
+ * Inserts spacer divs to prevent two kinds of page-split problems:
+ *
+ * 1. Row split: a [data-pdf-avoid-break] row straddles a page boundary.
+ *    Fix: insert a spacer before the row to push it onto the next page.
+ *
+ * 2. Orphan header: a section header ([data-pdf-section-header] inside
+ *    [data-pdf-section]) ends up on a different page than its first row
+ *    ([data-pdf-first-row]), OR the header itself straddles a page boundary.
+ *    Fix: insert a spacer before the entire section container so the header
+ *    and its first row both start on the same new page.
+ *
+ * All positions are computed up-front (before any DOM mutation) and a running
+ * `addedHeight` counter keeps subsequent elements correctly positioned as
+ * spacers accumulate. Spacers are inserted in a second pass to avoid
+ * invalidating getBoundingClientRect mid-loop.
+ *
+ * Returns a cleanup function that removes every inserted spacer.
+ */
+export function insertPageBreakSpacers(container: HTMLElement): () => void {
+  const containerRect = container.getBoundingClientRect();
+  // A4 page height in DOM pixels, proportional to the container's rendered width
+  const pageHeightPx = containerRect.width * (297 / 210);
+
+  const rows = Array.from(container.querySelectorAll<HTMLElement>('[data-pdf-avoid-break]'));
+
+  // Sections that have already received a section-level spacer – prevents a
+  // second spacer if somehow multiple rows in the same section are processed.
+  const processedSections = new Set<HTMLElement>();
+
+  const insertions: { target: HTMLElement; spacerHeight: number }[] = [];
+  let addedHeight = 0;
+
+  for (const row of rows) {
+    const rowRect = row.getBoundingClientRect();
+    // Adjusted position accounts for spacers planned (but not yet inserted) above.
+    let rowTop = rowRect.top - containerRect.top + addedHeight;
+    const rowHeight = rowRect.height;
+
+    // ── Concern 1: orphan section header ────────────────────────────────────
+    // Only applies to rows explicitly marked as the first row of a section that
+    // has a visible header.  When triggered we move the *whole section* rather
+    // than just the row so the header travels with its content.
+    if (row.hasAttribute('data-pdf-first-row')) {
+      const sectionEl = row.closest<HTMLElement>('[data-pdf-section]');
+      const headerEl = sectionEl?.querySelector<HTMLElement>('[data-pdf-section-header]');
+
+      if (sectionEl && headerEl && !processedSections.has(sectionEl) && rowHeight < pageHeightPx) {
+        const headerRect = headerEl.getBoundingClientRect();
+        const headerTop  = headerRect.top - containerRect.top + addedHeight;
+        const headerBottom = headerTop + headerRect.height;
+        const headerPageIndex  = Math.floor(headerTop / pageHeightPx);
+        const headerPageBottom = (headerPageIndex + 1) * pageHeightPx;
+
+        const rowPageIndex  = Math.floor(rowTop / pageHeightPx);
+        const rowBottom     = rowTop + rowHeight;
+        const rowPageBottom = (rowPageIndex + 1) * pageHeightPx;
+
+        const headerStraddles = headerBottom > headerPageBottom;
+        // Header and first row land on different pages (orphan)
+        const headerOrphaned  = headerPageIndex !== rowPageIndex;
+        const rowStraddles    = rowBottom > rowPageBottom;
+
+        if (headerStraddles || headerOrphaned || rowStraddles) {
+          const sectionRect  = sectionEl.getBoundingClientRect();
+          const sectionTop   = sectionRect.top - containerRect.top + addedHeight;
+          const sectionPageIndex  = Math.floor(sectionTop / pageHeightPx);
+          const sectionPageBottom = (sectionPageIndex + 1) * pageHeightPx;
+          const spacerHeight = sectionPageBottom - sectionTop;
+
+          // Guard: don't insert a full-page spacer (would happen only if the
+          // section already sits exactly at a page boundary – nothing to fix).
+          if (spacerHeight > 0 && spacerHeight < pageHeightPx) {
+            insertions.push({ target: sectionEl, spacerHeight });
+            addedHeight += spacerHeight;
+            // Update rowTop so the row-level check below uses the new position.
+            rowTop += spacerHeight;
+            processedSections.add(sectionEl);
+          }
+        }
+      }
+    }
+
+    // ── Concern 2: row straddles a page boundary ─────────────────────────────
+    // Applies to every row (including first rows – in case the section-level
+    // push above wasn't enough, e.g. an unusually tall header).
+    const rowBottom  = rowTop + rowHeight;
+    const pageIndex  = Math.floor(rowTop / pageHeightPx);
+    const pageBottom = (pageIndex + 1) * pageHeightPx;
+
+    if (rowBottom > pageBottom && rowHeight < pageHeightPx) {
+      const spacerHeight = pageBottom - rowTop;
+      insertions.push({ target: row, spacerHeight });
+      addedHeight += spacerHeight;
+    }
+  }
+
+  // ── Insert all spacers in a single DOM pass ──────────────────────────────
+  const spacers: HTMLElement[] = [];
+  for (const { target, spacerHeight } of insertions) {
+    const spacer = document.createElement('div');
+    spacer.style.height = `${Math.ceil(spacerHeight)}px`;
+    target.parentNode?.insertBefore(spacer, target);
+    spacers.push(spacer);
+  }
+
+  return () => {
+    spacers.forEach((spacer) => spacer.parentNode?.removeChild(spacer));
+  };
+}
+
 export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>) {
 
   const handleDownloadPDF = useCallback(async () => {
@@ -171,7 +282,10 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
     // Pre-rasterize all SVGs to images to avoid html2canvas SVG rendering issues
     const restoreSvgs = await rasterizeSvgsAsync(printRef.current);
 
-    // Small delay for replaced images to settle in the DOM
+    // Insert spacers to prevent rows from being sliced across page boundaries
+    const restoreSpacers = insertPageBreakSpacers(printRef.current);
+
+    // Small delay for replaced images and spacers to settle in the DOM
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
@@ -210,8 +324,9 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
 
       pdf.save(`${sanitizeFilename(title || "chord-chart")}.pdf`);
     } finally {
-      // Always restore original SVGs so the UI isn't broken
+      // Always restore original SVGs and remove spacers so the UI isn't broken
       restoreSvgs();
+      restoreSpacers();
     }
   }, [title]);
 

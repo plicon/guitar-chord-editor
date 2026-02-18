@@ -192,24 +192,27 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
             
             if (visibleRows.length === 0) return null;
             
+            const bgStyle = isAlternate ? { backgroundColor: '#f9fafb' } : { backgroundColor: '#ffffff' };
+            const subtitleBgStyle = isAlternate ? { backgroundColor: '#e5e7eb' } : { backgroundColor: '#f3f4f6' };
+
             return (
-              <div key={section.id} className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
+              <div key={section.id} data-pdf-section className={`border-2 ${borderColor} rounded-lg`} style={{ zIndex: 1, ...bgStyle }}>
                 {/* Section Title */}
                 {section.name && (
-                  <div className="px-3 py-1.5 border-b-2 border-gray-300">
+                  <div data-pdf-section-header className="px-3 py-1.5 border-b-2 border-gray-300">
                     <h2 className="text-base font-bold text-gray-800">
                       {section.name}
                     </h2>
                   </div>
                 )}
-                
+
                 {/* Section Rows */}
                 <div className="p-2 space-y-2">
-                  {visibleRows.map((row) => (
-                    <div key={row.id}>
+                  {visibleRows.map((row, rowIndex) => (
+                    <div key={row.id} data-pdf-avoid-break="true" data-pdf-first-row={section.name && rowIndex === 0 ? "true" : undefined}>
                       {/* Row Subtitle */}
                       {row.subtitle && row.subtitle.trim() && (
-                        <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-2 py-0.5 mb-0.5`}>
+                        <div className="rounded px-2 py-0.5 mb-0.5" style={subtitleBgStyle}>
                           <p className="text-xs text-gray-700 font-medium">
                             {row.subtitle}
                           </p>
