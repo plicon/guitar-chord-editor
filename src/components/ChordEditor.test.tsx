@@ -598,8 +598,8 @@ describe("ChordEditor", () => {
     it("should add finger position when clicking on fret", () => {
       renderEditor();
 
-      // Find a fret position circle and click it
-      const svg = document.querySelector("svg");
+      // Find the interactive fretboard SVG specifically
+      const svg = document.querySelector('[data-testid="fretboard-svg"]');
       expect(svg).toBeInTheDocument();
 
       // The clickable circles for fret positions are in <g> elements
@@ -1017,8 +1017,8 @@ describe("ChordEditor", () => {
       const fret7Button = screen.getByRole("button", { name: "7" });
       expect(fret7Button).toHaveClass("bg-primary");
       
-      // Fret number should be displayed in SVG
-      const svg = document.querySelector("svg");
+      // Fret number should be displayed in the fretboard SVG
+      const svg = document.querySelector('[data-testid="fretboard-svg"]');
       expect(svg?.textContent).toContain("7");
     });
   });
