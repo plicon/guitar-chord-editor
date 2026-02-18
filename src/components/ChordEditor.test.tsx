@@ -54,7 +54,73 @@ vi.mock("@/services/presets", () => ({
     };
     return presets[name] || null;
   }),
-  listChordPresets: vi.fn(async () => []),
+  listChordPresets: vi.fn(async () => [
+    {
+      name: "Am",
+      frets: 5,
+      startFret: 1,
+      fingers: [
+        { string: 2, fret: 1 },
+        { string: 4, fret: 2 },
+        { string: 3, fret: 2 },
+      ],
+      barres: [],
+      mutedStrings: [6],
+      openStrings: [5, 1],
+      fingerLabels: [
+        { string: 2, finger: 1 },
+        { string: 4, finger: 2 },
+        { string: 3, finger: 3 },
+      ],
+    },
+    {
+      name: "G",
+      frets: 5,
+      startFret: 1,
+      fingers: [
+        { string: 6, fret: 3 },
+        { string: 5, fret: 2 },
+        { string: 1, fret: 3 },
+      ],
+      barres: [],
+      mutedStrings: [],
+      openStrings: [4, 3, 2],
+      fingerLabels: [],
+    },
+    {
+      name: "F",
+      frets: 5,
+      startFret: 1,
+      fingers: [
+        { string: 3, fret: 2 },
+        { string: 4, fret: 3 },
+        { string: 5, fret: 3 },
+      ],
+      barres: [{ fret: 1, fromString: 6, toString: 1 }],
+      mutedStrings: [],
+      openStrings: [],
+      fingerLabels: [],
+    },
+    // 7-element preset used by near-match test:
+    // playing only the 6 fingers (no barre) gives score 6/7 ≈ 0.857 > 0.85 threshold
+    {
+      name: "Bm",
+      frets: 5,
+      startFret: 2,
+      fingers: [
+        { string: 1, fret: 2 },
+        { string: 2, fret: 3 },
+        { string: 3, fret: 4 },
+        { string: 4, fret: 4 },
+        { string: 5, fret: 2 },
+        { string: 6, fret: 2 },
+      ],
+      barres: [{ fret: 2, fromString: 6, toString: 1 }],
+      mutedStrings: [],
+      openStrings: [],
+      fingerLabels: [],
+    },
+  ]),
   searchChordPresets: vi.fn(async () => []),
   getStrummingPreset: vi.fn(async () => null),
   listStrummingPresets: vi.fn(async () => []),
@@ -726,6 +792,180 @@ describe("ChordEditor", () => {
 
       // The barre should be in the saved chord
       expect(mockOnSave).toHaveBeenCalled();
+    });
+  });
+
+  describe("Identify Chord (ID Button)", () => {
+    const amFingers = [
+      { string: 2, fret: 1 },
+      { string: 4, fret: 2 },
+      { string: 3, fret: 2 },
+    ];
+
+    it("renders the ID button next to the chord name label", () => {
+      renderEditor();
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      expect(idButton).toBeInTheDocument();
+      expect(idButton.textContent).toContain("ID");
+    });
+
+    it("is disabled when no fingers or barres are placed", () => {
+      renderEditor(); // defaultChord has empty fingers/barres
+      expect(screen.getByTitle("Identify chord from current finger positions")).toBeDisabled();
+    });
+
+    it("is enabled when fingers are placed and presets have loaded", async () => {
+      renderEditor({ ...defaultChord, fingers: [{ string: 2, fret: 1 }] });
+      await waitFor(() =>
+        expect(screen.getByTitle("Identify chord from current finger positions")).not.toBeDisabled()
+      );
+    });
+
+    it("is enabled when only a barre is placed", async () => {
+      renderEditor({ ...defaultChord, barres: [{ fret: 1, fromString: 6, toString: 1 }] });
+      await waitFor(() =>
+        expect(screen.getByTitle("Identify chord from current finger positions")).not.toBeDisabled()
+      );
+    });
+
+    it("shows an exact match chip with ✓ for a known chord shape", async () => {
+      renderEditor({ ...defaultChord, startFret: 1, fingers: amFingers });
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+
+      await waitFor(() =>
+        expect(screen.getByTitle("Exact match")).toBeInTheDocument()
+      );
+      expect(screen.getByTitle("Exact match").textContent).toContain("Am");
+      expect(screen.getByTitle("Exact match").textContent).toContain("✓");
+    });
+
+    it("shows 'No matching chords found' when no preset matches", async () => {
+      // Two fingers far apart on unusual strings — well below the 0.85 threshold for any preset
+      renderEditor({ ...defaultChord, startFret: 1, fingers: [{ string: 1, fret: 1 }, { string: 6, fret: 5 }] });
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+
+      await waitFor(() =>
+        expect(screen.getByText("No matching chords found")).toBeInTheDocument()
+      );
+    });
+
+    it("applies full preset data when an exact match chip is clicked", async () => {
+      renderEditor({ ...defaultChord, startFret: 1, fingers: amFingers });
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+
+      await waitFor(() => expect(screen.getByTitle("Exact match")).toBeInTheDocument());
+
+      fireEvent.click(screen.getByTitle("Exact match"));
+
+      // Name applied immediately
+      expect(screen.getByPlaceholderText("e.g., Am, G, C7")).toHaveValue("Am");
+
+      // Save and verify all preset fields were written
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Am",
+          startFret: 1,
+          fingers: expect.arrayContaining([
+            expect.objectContaining({ string: 2, fret: 1 }),
+            expect.objectContaining({ string: 4, fret: 2 }),
+            expect.objectContaining({ string: 3, fret: 2 }),
+          ]),
+          mutedStrings: [6],
+          openStrings: expect.arrayContaining([5, 1]),
+          fingerLabels: expect.arrayContaining([
+            expect.objectContaining({ string: 2, finger: 1 }),
+            expect.objectContaining({ string: 4, finger: 2 }),
+            expect.objectContaining({ string: 3, finger: 3 }),
+          ]),
+        })
+      );
+    });
+
+    it("clears match chips after one is clicked", async () => {
+      renderEditor({ ...defaultChord, startFret: 1, fingers: amFingers });
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+
+      await waitFor(() => expect(screen.getByTitle("Exact match")).toBeInTheDocument());
+
+      fireEvent.click(screen.getByTitle("Exact match"));
+
+      expect(screen.queryByTitle("Exact match")).not.toBeInTheDocument();
+      expect(screen.queryByText("No matching chords found")).not.toBeInTheDocument();
+    });
+
+    it("clears match results when the dialog is reopened", async () => {
+      const queryClient = createQueryClient();
+      const amChord = { ...defaultChord, startFret: 1, fingers: amFingers };
+
+      const { rerender } = render(
+        <QueryClientProvider client={queryClient}>
+          <ChordEditor chord={amChord} open={true} onClose={mockOnClose} onSave={mockOnSave} />
+        </QueryClientProvider>
+      );
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+      await waitFor(() => expect(screen.getByTitle("Exact match")).toBeInTheDocument());
+
+      // Close then reopen
+      rerender(
+        <QueryClientProvider client={queryClient}>
+          <ChordEditor chord={amChord} open={false} onClose={mockOnClose} onSave={mockOnSave} />
+        </QueryClientProvider>
+      );
+      rerender(
+        <QueryClientProvider client={queryClient}>
+          <ChordEditor chord={amChord} open={true} onClose={mockOnClose} onSave={mockOnSave} />
+        </QueryClientProvider>
+      );
+
+      expect(screen.queryByTitle("Exact match")).not.toBeInTheDocument();
+      expect(screen.queryByText("No matching chords found")).not.toBeInTheDocument();
+    });
+
+    it("near-match chips show percentage in their title", async () => {
+      // Bm preset has 6 fingers + 1 barre = 7 elements.
+      // Playing only the 6 fingers (no barre) gives score 6/7 ≈ 85.7% — above
+      // the 0.85 threshold and not an exact match (barre is missing).
+      const nearMatchChord = {
+        ...defaultChord,
+        startFret: 2,
+        fingers: [
+          { string: 1, fret: 2 },
+          { string: 2, fret: 3 },
+          { string: 3, fret: 4 },
+          { string: 4, fret: 4 },
+          { string: 5, fret: 2 },
+          { string: 6, fret: 2 },
+        ],
+      };
+      renderEditor(nearMatchChord);
+
+      const idButton = screen.getByTitle("Identify chord from current finger positions");
+      await waitFor(() => expect(idButton).not.toBeDisabled());
+      fireEvent.click(idButton);
+
+      await waitFor(() => {
+        const percentChip = screen.queryByTitle(/\d+% match/);
+        expect(percentChip).toBeInTheDocument();
+        expect(percentChip?.textContent).toContain("Bm");
+        // Exact-match ✓ must NOT be present
+        expect(percentChip?.textContent).not.toContain("✓");
+      });
     });
   });
 

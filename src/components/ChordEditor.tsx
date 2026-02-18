@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChordDiagram, FingerPosition, Barre, FingerLabel } from "@/types/chord";
 import { cn } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Search } from "lucide-react";
 import { filterChordSuggestions } from "@/data/chordSuggestions";
 import { useChordPresetCache } from "@/hooks/useChordPresetCache";
 import { Switch } from "@/components/ui/switch";
 import type { ChordPreset } from "@/types/chord";
+import { findMatchingChords, type ChordMatch } from "@/lib/chordMatcher";
 
 interface ChordEditorProps {
   chord: ChordDiagram;
@@ -25,7 +26,7 @@ interface ChordEditorProps {
 }
 
 export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) => {
-  const { getPreset, hasPreset } = useChordPresetCache();
+  const { getPreset, hasPreset, presets, isLoading: presetsLoading } = useChordPresetCache();
   const [editedChord, setEditedChord] = useState<ChordDiagram>({
     ...chord,
     fingerLabels: chord.fingerLabels || [],
@@ -36,6 +37,8 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [autoFillPresets, setAutoFillPresets] = useState(true);
+  const [chordMatches, setChordMatches] = useState<ChordMatch[]>([]);
+  const [hasIdentified, setHasIdentified] = useState(false);
   const justSelectedRef = useRef(false);
   const justOpenedRef = useRef(false);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
@@ -49,9 +52,11 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         frets: chord.frets || 5,
         fingerLabels: chord.fingerLabels || [],
       });
-      // Clear suggestions to prevent dropdown from showing
+      // Clear suggestions and any prior identify results
       setSuggestions([]);
       setShowSuggestions(false);
+      setChordMatches([]);
+      setHasIdentified(false);
       // Focus save button instead of input
       setTimeout(() => {
         inputRef.current?.blur();
@@ -140,6 +145,34 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
 
   const handleNameChange = (value: string) => {
     setEditedChord({ ...editedChord, name: value });
+  };
+
+  const handleIdentifyChord = () => {
+    const results = findMatchingChords(editedChord, presets);
+    setChordMatches(results);
+    setHasIdentified(true);
+  };
+
+  const handleApplyMatch = (name: string) => {
+    justSelectedRef.current = true;
+    const preset = getPreset(name);
+    if (preset) {
+      setEditedChord({
+        ...editedChord,
+        name,
+        frets: preset.frets || 5,
+        startFret: preset.startFret,
+        fingers: preset.fingers,
+        barres: preset.barres,
+        mutedStrings: preset.mutedStrings,
+        openStrings: preset.openStrings,
+        fingerLabels: preset.fingerLabels,
+      });
+    } else {
+      setEditedChord({ ...editedChord, name });
+    }
+    setChordMatches([]);
+    setHasIdentified(false);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -400,7 +433,26 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
         <div className="space-y-4">
           {/* Chord Name Input with Autocomplete */}
           <div className="space-y-2 relative">
-            <Label htmlFor="chordName">Chord Name</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="chordName">Chord Name</Label>
+              <button
+                type="button"
+                onClick={handleIdentifyChord}
+                disabled={
+                  (editedChord.fingers.length === 0 && editedChord.barres.length === 0) ||
+                  presetsLoading
+                }
+                title="Identify chord from current finger positions"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide transition-colors",
+                  "border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground",
+                  "disabled:pointer-events-none disabled:opacity-40"
+                )}
+              >
+                <Search className="w-2.5 h-2.5" />
+                ID
+              </button>
+            </div>
             <Input
               ref={inputRef}
               id="chordName"
@@ -423,6 +475,33 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
               aria-autocomplete="list"
             />
             
+            {/* Chord Match Results */}
+            {hasIdentified && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {chordMatches.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">No matching chords found</span>
+                ) : (
+                  chordMatches.map((match) => (
+                    <button
+                      key={match.name}
+                      type="button"
+                      onClick={() => handleApplyMatch(match.name)}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+                        match.isExact
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "border border-border bg-background text-foreground hover:bg-accent"
+                      )}
+                      title={match.isExact ? "Exact match" : `${Math.round(match.score * 100)}% match`}
+                    >
+                      {match.name}
+                      {match.isExact && <span className="opacity-70">✓</span>}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
               <div 
