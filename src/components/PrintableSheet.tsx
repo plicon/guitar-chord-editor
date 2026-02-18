@@ -83,7 +83,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
           </div>
         )}
         {/* Title and Strumming Pattern */}
-        <div className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+        <div data-pdf-section="header" className={`mb-4 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
               <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-24 h-24" />
@@ -254,7 +254,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
         )}
 
         {/* Version info for debugging */}
-        <div className="flex justify-end mt-1">
+        <div data-pdf-section="footer" className="flex justify-end mt-1">
           <span className="text-[8px] text-gray-300">v{APP_VERSION}</span>
         </div>
       </div>

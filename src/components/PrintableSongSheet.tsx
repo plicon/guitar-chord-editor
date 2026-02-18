@@ -87,7 +87,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
         )}
 
         {/* Title and Strumming Pattern */}
-        <div className={`mb-2 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
+        <div data-pdf-section="header" className={`mb-2 ${showStrumming ? "flex items-start justify-between gap-4" : ""}`}>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
               <img src="/ms-icon-310x310.png" alt="Fretkit Logo" className="w-16 h-16" />
@@ -249,7 +249,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
         </div>
 
         {/* Footer */}
-        <div className="mt-2 space-y-0.5">
+        <div data-pdf-section="footer" className="mt-2 space-y-0.5">
           {/* Technique Legend */}
           {hasTechniques && (
             <div className="flex flex-col gap-0.5 text-[10px] text-gray-600">
