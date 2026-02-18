@@ -175,37 +175,64 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
-      const canvas = await html2canvas(printRef.current, {
+      // A4 dimensions in mm
+      const PAGE_WIDTH_MM = 210;
+      const PAGE_HEIGHT_MM = 297;
+      const MARGIN_MM = 4; // Match the p-4 padding
+      const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - (MARGIN_MM * 2);
+      const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
+      const SECTION_GAP_MM = 3;
+
+      const html2canvasOptions = {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
-      });
+      };
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
+      // Find all sections marked with data-pdf-section
+      const sections = Array.from(
+        printRef.current.querySelectorAll('[data-pdf-section]')
+      ) as HTMLElement[];
 
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Fallback: if no sections found, use old single-capture method
+      if (sections.length === 0) {
+        const canvas = await html2canvas(printRef.current, html2canvasOptions);
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const imgWidth = PAGE_WIDTH_MM;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        pdf.save(`${sanitizeFilename(title || "chord-chart")}.pdf`);
+        return;
+      }
 
-      // Add first page
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      let currentY = MARGIN_MM;
+      let isFirstSection = true;
 
-      // Only add additional pages if content height significantly exceeds one page
-      let heightLeft = imgHeight - pageHeight;
-      let position = -pageHeight;
+      for (const section of sections) {
+        const canvas = await html2canvas(section, html2canvasOptions);
 
-      while (heightLeft > 1) {
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        position -= pageHeight;
+        // Calculate dimensions of the captured section in mm
+        const widthPx = canvas.width / 2; // html2canvas scale is 2
+        const heightPx = canvas.height / 2;
+        const scaleFactor = CONTENT_WIDTH_MM / widthPx;
+        const heightMM = heightPx * scaleFactor;
+
+        const remainingSpace = PAGE_HEIGHT_MM - MARGIN_MM - currentY;
+
+        // If the section won't fit and we're not at the top of the page, add a new page
+        if (heightMM > remainingSpace && !isFirstSection && currentY > MARGIN_MM) {
+          pdf.addPage();
+          currentY = MARGIN_MM;
+        }
+
+        const imgData = canvas.toDataURL("image/png");
+        pdf.addImage(imgData, "PNG", MARGIN_MM, currentY, CONTENT_WIDTH_MM, heightMM);
+
+        currentY += heightMM + SECTION_GAP_MM;
+        isFirstSection = false;
       }
 
       pdf.save(`${sanitizeFilename(title || "chord-chart")}.pdf`);
