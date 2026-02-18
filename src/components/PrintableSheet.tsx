@@ -194,10 +194,10 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
               const borderColor = isAlternate ? 'border-gray-300' : 'border-gray-200';
               
               return (
-                <div key={sectionIndex} data-pdf-section="content" className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
+                <div key={sectionIndex} className={`border-2 ${borderColor} rounded-lg ${bgColor}`} style={{ zIndex: 1 }}>
                   {/* Section Title */}
                   {sectionTitle && (
-                    <div className="px-4 py-3 border-b-2 border-gray-300">
+                    <div data-pdf-section="section-title" className="px-4 py-3 border-b-2 border-gray-300">
                       <h2 className="text-lg font-bold text-gray-800">
                         {sectionTitle}
                       </h2>
@@ -210,7 +210,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                       const subtitle = rowSubtitles[originalIndex];
                       
                       return (
-                        <div key={originalIndex}>
+                        <div key={originalIndex} data-pdf-section="row">
                           {/* Row Subtitle */}
                           {subtitle && subtitle.trim() && (
                             <div className={`${isAlternate ? 'bg-gray-200' : 'bg-gray-100'} rounded px-3 py-1.5 mb-2`}>
