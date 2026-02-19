@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
-import { StrummingPattern } from "@/types/strumming";
+import { StrummingPattern, getSlotsPerBar } from "@/types/strumming";
 import { sanitizeFilename } from "@/lib/utils";
 import { 
   Song, 
@@ -12,6 +12,7 @@ import {
   createChordRow,
   createTabRow 
 } from "@/types/song";
+import { createEmptyTabMeasure } from "@/types/tab";
 import { toast } from "sonner";
 import { getStorageProvider } from "@/services/storage";
 
@@ -255,9 +256,12 @@ export function useSongState(): [SongState, SongActions] {
   // Row management
   const addRowToSection = useCallback((sectionId: string, rowType: 'chord-row' | 'tab-row' = 'chord-row', chordsPerRow: number = 4) => {
     let newRow;
-    
+
     if (rowType === 'tab-row') {
-      newRow = createTabRow();
+      const columns = strummingPattern
+        ? getSlotsPerBar(strummingPattern.timeSignature, strummingPattern.subdivision)
+        : 8;
+      newRow = createTabRow([createEmptyTabMeasure(columns)]);
     } else {
       const emptyChords = Array.from({ length: chordsPerRow }, (_, i) => 
         createEmptyChord(`chord-${Date.now()}-${i}`)
@@ -265,12 +269,12 @@ export function useSongState(): [SongState, SongActions] {
       newRow = createChordRow(emptyChords);
     }
     
-    setSections(prev => prev.map(section => 
-      section.id === sectionId 
+    setSections(prev => prev.map(section =>
+      section.id === sectionId
         ? { ...section, rows: [...section.rows, newRow] }
         : section
     ));
-  }, []);
+  }, [strummingPattern]);
 
   const removeRowFromSection = useCallback((sectionId: string, rowId: string) => {
     setSections(prev => prev.map(section =>

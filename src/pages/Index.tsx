@@ -16,6 +16,7 @@ import { Download, Eye, Plus } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { usePdfExport } from "@/hooks/usePdfExport";
 import { SectionType, SectionTypeLabels, Song, SongSection, SectionRow } from "@/types/song";
+import { StrummingPattern } from "@/types/strumming";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,6 +77,7 @@ interface SortableSectionProps {
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   onAddChordToRow: (sectionId: string, rowId: string) => void;
   onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
+  strummingPattern?: StrummingPattern | null;
   dragHandleProps?: ReturnType<typeof useSortable>['listeners'];
 }
 
@@ -261,7 +263,7 @@ const Index = () => {
                         onToggleCollapsed={actions.toggleSectionCollapsed}
                         onUpdateSection={actions.updateSection}
                         onRemoveSection={actions.removeSection}
-                        onAddRow={(sectionId: string, rowType: 'chord-row' | 'tab-row') => 
+                        onAddRow={(sectionId: string, rowType: 'chord-row' | 'tab-row') =>
                           actions.addRowToSection(sectionId, rowType, 4)
                         }
                         onRemoveRow={actions.removeRowFromSection}
@@ -272,6 +274,7 @@ const Index = () => {
                         onUpdateRow={actions.updateRowInSection}
                         onAddChordToRow={actions.addChordToRow}
                         onRemoveChordFromRow={actions.removeChordFromRow}
+                        strummingPattern={state.strummingPattern}
                       />
                     ))}
                   </div>
