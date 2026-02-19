@@ -63,7 +63,7 @@ export const createEmptyTabColumn = (): TabColumn => ({
 /**
  * Create an empty tab measure with a specified number of columns
  */
-export const createEmptyTabMeasure = (columns: number = 13): TabMeasure => ({
+export const createEmptyTabMeasure = (columns: number = 8): TabMeasure => ({
   id: `tab-measure-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
   columns: Array.from({ length: columns }, () => createEmptyTabColumn()),
   timeSignature: "4/4",

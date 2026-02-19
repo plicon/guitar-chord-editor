@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SongSection, SectionRow, SectionTypeLabels } from "@/types/song";
 import { ChordDiagram } from "@/types/chord";
 import { TabMeasure } from "@/types/tab";
+import { StrummingPattern } from "@/types/strumming";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChordRow } from "@/components/ChordRow";
@@ -36,6 +37,7 @@ export interface SongSectionViewProps {
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   onAddChordToRow: (sectionId: string, rowId: string) => void;
   onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
+  strummingPattern?: StrummingPattern | null;
   dragHandleProps?: Record<string, unknown>;
 }
 
@@ -52,6 +54,7 @@ export function SongSectionView({
   onUpdateRow,
   onAddChordToRow,
   onRemoveChordFromRow,
+  strummingPattern,
   dragHandleProps,
 }: SongSectionViewProps) {
   const [isEditingName, setIsEditingName] = useState(false);
@@ -244,12 +247,13 @@ export function SongSectionView({
                     
                     {/* Tab Row */}
                     <div className="flex items-start gap-2">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <TabRowEditor
                           measures={row.measures}
-                          onChange={(measures: TabMeasure[]) => 
+                          onChange={(measures: TabMeasure[]) =>
                             onUpdateRow(section.id, row.id, { kind: 'tab-row', measures })
                           }
+                          strummingPattern={strummingPattern}
                         />
                       </div>
                       
