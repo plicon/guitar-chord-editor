@@ -1,6 +1,6 @@
 {
   "name": "fretkit-worker",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Cloudflare Worker for FretKit - Chord chart storage and preset management",
   "main": "src/index.ts",
   "scripts": {

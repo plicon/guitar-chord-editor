@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AdminIndexPage from "./pages/AdminIndex";
 import AdminStrummingPatternsPage from "./pages/AdminStrummingPatterns";
 import AdminChordsPage from "./pages/AdminChords";
+import AdminSongsPage from "./pages/AdminSongs";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/admin" element={<AdminIndexPage />} />
             <Route path="/admin/strumming-patterns" element={<AdminStrummingPatternsPage />} />
             <Route path="/admin/chords" element={<AdminChordsPage />} />
+            <Route path="/admin/songs" element={<AdminSongsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

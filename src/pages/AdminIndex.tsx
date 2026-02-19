@@ -1,6 +1,6 @@
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Button } from "../components/ui/button";
-import { Home, Music, Guitar } from "lucide-react";
+import { Home, Music, Guitar, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { AppFooter } from "../components/AppFooter";
@@ -89,6 +89,27 @@ export default function AdminIndexPage() {
                 <Link to="/admin/chords">
                   <Guitar className="w-4 h-4 mr-2" />
                   Manage Chords
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Songs Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <FileText className="w-6 h-6 text-primary" />
+                <CardTitle>Songs</CardTitle>
+              </div>
+              <CardDescription>
+                View and delete user-created songs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link to="/admin/songs">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Manage Songs
                 </Link>
               </Button>
             </CardContent>
