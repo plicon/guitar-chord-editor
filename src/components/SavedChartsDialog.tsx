@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChordChartMetadata } from "@/types/chordChart";
-import { listCharts, deleteChart } from "@/services/storage";
-import { Trash2, FileText, Loader2 } from "lucide-react";
+import { listCharts } from "@/services/storage";
+import { FileText, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -23,8 +23,6 @@ interface SavedChartsDialogProps {
 export const SavedChartsDialog = ({ open, onClose, onLoad }: SavedChartsDialogProps) => {
   const [charts, setCharts] = useState<ChordChartMetadata[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
   useEffect(() => {
     if (open) {
       loadCharts();
@@ -41,21 +39,6 @@ export const SavedChartsDialog = ({ open, onClose, onLoad }: SavedChartsDialogPr
       toast.error("Failed to load saved charts");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setDeletingId(id);
-    try {
-      await deleteChart(id);
-      setCharts(charts.filter((c) => c.id !== id));
-      toast.success("Chart deleted");
-    } catch (error) {
-      console.error("Failed to delete chart:", error);
-      toast.error("Failed to delete chart");
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -94,19 +77,6 @@ export const SavedChartsDialog = ({ open, onClose, onLoad }: SavedChartsDialogPr
                       {formatDistanceToNow(new Date(chart.updatedAt), { addSuffix: true })}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => handleDelete(chart.id, e)}
-                    disabled={deletingId === chart.id}
-                  >
-                    {deletingId === chart.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                  </Button>
                 </div>
               ))}
             </div>
