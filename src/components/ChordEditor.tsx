@@ -548,13 +548,24 @@ export const ChordEditor = ({ chord, open, onClose, onSave }: ChordEditorProps) 
           {/* Start Fret Selector */}
           <div className="space-y-2">
             <Label>Starting Fret</Label>
+            <p className="text-xs text-muted-foreground">
+              Shifting the starting fret moves the whole chord shape — useful for capo positions.
+            </p>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5, 6, 7].map((fret) => (
                 <Button
                   key={fret}
                   variant={editedChord.startFret === fret ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setEditedChord({ ...editedChord, startFret: fret })}
+                  onClick={() => {
+                    const delta = fret - editedChord.startFret;
+                    setEditedChord({
+                      ...editedChord,
+                      startFret: fret,
+                      fingers: editedChord.fingers.map(f => ({ ...f, fret: f.fret + delta })),
+                      barres: editedChord.barres.map(b => ({ ...b, fret: b.fret + delta })),
+                    });
+                  }}
                 >
                   {fret}
                 </Button>
