@@ -210,7 +210,8 @@ export const ChordDiagramComponent = ({
                 cx={startX + (6 - string) * stringSpacing}
                 cy={startY - 12}
                 r={config.fingerSize / 2.5}
-                className={!printMode ? "stroke-muted-foreground fill-none" : "fill-none"}
+                className={!printMode ? "stroke-muted-foreground fill-none" : undefined}
+                fill={printMode ? "none" : undefined}
                 stroke={printMode ? colors?.muted : undefined}
                 strokeWidth={1.5}
               />

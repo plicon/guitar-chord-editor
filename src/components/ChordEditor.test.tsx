@@ -361,6 +361,124 @@ describe("ChordEditor", () => {
     });
   });
 
+  describe("Starting Fret — capo shape shifting", () => {
+    // Uses defaultChord (name="") so auto-fill never triggers and overrides fingers.
+
+    it("shifts all finger fret values by the delta when increasing starting fret", () => {
+      const chord = {
+        ...defaultChord,
+        startFret: 1,
+        fingers: [
+          { string: 1, fret: 2 },
+          { string: 2, fret: 3 },
+        ],
+      };
+      renderEditor(chord);
+
+      // delta = 5 - 1 = +4
+      fireEvent.click(screen.getByRole("button", { name: "5" }));
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startFret: 5,
+          fingers: expect.arrayContaining([
+            expect.objectContaining({ string: 1, fret: 6 }),
+            expect.objectContaining({ string: 2, fret: 7 }),
+          ]),
+        })
+      );
+    });
+
+    it("shifts all finger fret values by the delta when decreasing starting fret", () => {
+      const chord = {
+        ...defaultChord,
+        startFret: 5,
+        fingers: [{ string: 1, fret: 6 }],
+      };
+      renderEditor(chord);
+
+      // delta = 1 - 5 = -4
+      fireEvent.click(screen.getByRole("button", { name: "1" }));
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startFret: 1,
+          fingers: expect.arrayContaining([
+            expect.objectContaining({ string: 1, fret: 2 }),
+          ]),
+        })
+      );
+    });
+
+    it("shifts barre fret values by the same delta", () => {
+      const chord = {
+        ...defaultChord,
+        startFret: 1,
+        barres: [{ fret: 1, fromString: 6, toString: 1 }],
+      };
+      renderEditor(chord);
+
+      // delta = 3 - 1 = +2
+      fireEvent.click(screen.getByRole("button", { name: "3" }));
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startFret: 3,
+          barres: expect.arrayContaining([
+            expect.objectContaining({ fret: 3, fromString: 6, toString: 1 }),
+          ]),
+        })
+      );
+    });
+
+    it("does not alter open strings or muted strings when shifting starting fret", () => {
+      const chord = {
+        ...defaultChord,
+        startFret: 1,
+        fingers: [{ string: 1, fret: 2 }],
+        openStrings: [4, 3],
+        mutedStrings: [6],
+      };
+      renderEditor(chord);
+
+      fireEvent.click(screen.getByRole("button", { name: "5" }));
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startFret: 5,
+          openStrings: expect.arrayContaining([4, 3]),
+          mutedStrings: expect.arrayContaining([6]),
+        })
+      );
+    });
+
+    it("leaves finger frets unchanged when clicking the already-selected starting fret", () => {
+      const chord = {
+        ...defaultChord,
+        startFret: 3,
+        fingers: [{ string: 1, fret: 4 }],
+      };
+      renderEditor(chord);
+
+      // delta = 3 - 3 = 0
+      fireEvent.click(screen.getByRole("button", { name: "3" }));
+      fireEvent.click(screen.getByRole("button", { name: /save chord/i }));
+
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startFret: 3,
+          fingers: expect.arrayContaining([
+            expect.objectContaining({ string: 1, fret: 4 }),
+          ]),
+        })
+      );
+    });
+  });
+
   describe("Auto-fill Toggle", () => {
     it("should be enabled by default", () => {
       renderEditor();
