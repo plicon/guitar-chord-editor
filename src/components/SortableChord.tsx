@@ -1,19 +1,26 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChordDiagram as ChordDiagramType } from "@/types/chord";
+import { ChordDiagram as ChordDiagramType, isChordEdited } from "@/types/chord";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { cn } from "@/lib/utils";
-import { GripVertical } from "lucide-react";
+import { Copy, GripHorizontal } from "lucide-react";
+import { useIsTouchDevice, useIsTablet } from "@/hooks/use-mobile";
 
 interface SortableChordProps {
   chord: ChordDiagramType;
   onClick: () => void;
+  onDuplicate?: () => void;
 }
 
 export const SortableChord = ({
   chord,
   onClick,
+  onDuplicate,
 }: SortableChordProps) => {
+  const isTouch = useIsTouchDevice();
+  const isTablet = useIsTablet();
+  const alwaysShowHint = isTouch || isTablet;
+
   const {
     attributes,
     listeners,
@@ -28,25 +35,31 @@ export const SortableChord = ({
     transition,
   };
 
+  const edited = isChordEdited(chord);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative group",
+        "relative group cursor-grab active:cursor-grabbing select-none",
         isDragging && "z-50 opacity-80"
       )}
+      {...attributes}
+      {...listeners}
     >
-      {/* Drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-2 top-1/2 -translate-y-1/2 p-1 rounded cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-muted hover:bg-accent"
-        title="Drag to reorder"
-      >
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
-      
+      {/* Duplicate button — top-right corner, only for edited chords */}
+      {onDuplicate && edited && (
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+          className="absolute top-0 right-0 z-10 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-accent"
+          title="Duplicate chord"
+        >
+          <Copy className="w-3 h-3 text-muted-foreground" />
+        </button>
+      )}
+
       <ChordDiagramComponent
         chord={chord}
         onClick={onClick}
@@ -54,6 +67,19 @@ export const SortableChord = ({
         showPlaceholder={true}
         printMode={false}
       />
+
+      {/* Drag hint — always visible on touch/tablet, hover-only on desktop */}
+      <div
+        className={cn(
+          "absolute bottom-1 left-1/2 -translate-x-1/2 pointer-events-none transition-opacity",
+          alwaysShowHint
+            ? "opacity-25"
+            : "opacity-0 group-hover:opacity-30"
+        )}
+        title="Drag to reorder"
+      >
+        <GripHorizontal className="w-4 h-4 text-muted-foreground" />
+      </div>
     </div>
   );
 };

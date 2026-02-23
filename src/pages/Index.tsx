@@ -77,6 +77,7 @@ interface SortableSectionProps {
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   onAddChordToRow: (sectionId: string, rowId: string) => void;
   onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
+  onDuplicateChord: (sectionId: string, rowId: string, chordIndex: number) => void;
   strummingPattern?: StrummingPattern | null;
   dragHandleProps?: ReturnType<typeof useSortable>['listeners'];
 }
@@ -118,21 +119,45 @@ const Index = () => {
   const [strummingEditorOpen, setStrummingEditorOpen] = useState(false);
   const [savedChartsOpen, setSavedChartsOpen] = useState(false);
 
-  // dnd-kit sensors for section reordering
+  // dnd-kit sensors — distance:8 ensures a tap/click is never mistaken for a drag
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const handleSectionDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    if (over && active.id !== over.id) {
-      const oldIndex = state.sections.findIndex(s => s.id === active.id);
-      const newIndex = state.sections.findIndex(s => s.id === over.id);
-      actions.moveSection(oldIndex, newIndex);
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if it's a section drag
+    const isSectionDrag = state.sections.some(s => s.id === activeId);
+    if (isSectionDrag) {
+      const oldIndex = state.sections.findIndex(s => s.id === activeId);
+      const newIndex = state.sections.findIndex(s => s.id === overId);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        actions.moveSection(oldIndex, newIndex);
+      }
+      return;
+    }
+
+    // It's a chord drag — find the row containing this chord and reorder
+    for (const section of state.sections) {
+      for (const row of section.rows) {
+        if (row.kind !== 'chord-row') continue;
+        const fromIndex = row.chords.findIndex(c => c.id === activeId);
+        if (fromIndex !== -1) {
+          const toIndex = row.chords.findIndex(c => c.id === overId);
+          if (toIndex !== -1) {
+            actions.reorderChordsInRow(section.id, row.id, fromIndex, toIndex);
+          }
+          return;
+        }
+      }
     }
   };
 
@@ -248,7 +273,7 @@ const Index = () => {
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
-                onDragEnd={handleSectionDragEnd}
+                onDragEnd={handleDragEnd}
               >
                 <SortableContext
                   items={state.sections.map(s => s.id)}
@@ -274,6 +299,7 @@ const Index = () => {
                         onUpdateRow={actions.updateRowInSection}
                         onAddChordToRow={actions.addChordToRow}
                         onRemoveChordFromRow={actions.removeChordFromRow}
+                        onDuplicateChord={actions.duplicateChordInRow}
                         strummingPattern={state.strummingPattern}
                       />
                     ))}

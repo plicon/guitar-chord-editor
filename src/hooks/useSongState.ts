@@ -103,6 +103,8 @@ export interface SongActions {
   updateChord: (sectionId: string, rowId: string, chordIndex: number, chord: ChordDiagram) => void;
   addChordToRow: (sectionId: string, rowId: string) => void;
   removeChordFromRow: (sectionId: string, rowId: string) => void;
+  reorderChordsInRow: (sectionId: string, rowId: string, fromIndex: number, toIndex: number) => void;
+  duplicateChordInRow: (sectionId: string, rowId: string, chordIndex: number) => void;
   
   // File operations
   handleNewSong: () => void;
@@ -370,6 +372,51 @@ export function useSongState(): [SongState, SongActions] {
     }));
   }, []);
 
+  const reorderChordsInRow = useCallback((sectionId: string, rowId: string, fromIndex: number, toIndex: number) => {
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        rows: section.rows.map(row => {
+          if (row.id !== rowId || row.kind !== 'chord-row') return row;
+          const newChords = [...row.chords];
+          const [removed] = newChords.splice(fromIndex, 1);
+          newChords.splice(toIndex, 0, removed);
+          return { ...row, chords: newChords };
+        }),
+      };
+    }));
+  }, []);
+
+  const duplicateChordInRow = useCallback((sectionId: string, rowId: string, chordIndex: number) => {
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        rows: section.rows.map(row => {
+          if (row.id !== rowId || row.kind !== 'chord-row') return row;
+          const source = row.chords[chordIndex];
+          const duplicate = { ...source, id: `chord-${Date.now()}-${Math.random().toString(36).slice(2, 11)}` };
+          const newChords = [...row.chords];
+
+          // Prefer replacing an empty slot after the source chord, then before it
+          const emptyAfter = newChords.findIndex((c, i) => i > chordIndex && !isChordEdited(c));
+          const emptyBefore = emptyAfter === -1 ? newChords.findIndex((c, i) => i < chordIndex && !isChordEdited(c)) : -1;
+          const emptyIndex = emptyAfter !== -1 ? emptyAfter : emptyBefore;
+
+          if (emptyIndex !== -1) {
+            newChords[emptyIndex] = duplicate;
+          } else if (newChords.length < 5) {
+            newChords.splice(chordIndex + 1, 0, duplicate);
+          }
+          // else: row is full with all edited chords — button should not be visible
+
+          return { ...row, chords: newChords };
+        }),
+      };
+    }));
+  }, []);
+
   const hasEditedContent = sections.some(section =>
     section.rows.some(row => {
       if (row.kind === 'chord-row') {
@@ -415,6 +462,8 @@ export function useSongState(): [SongState, SongActions] {
     updateChord,
     addChordToRow,
     removeChordFromRow,
+    reorderChordsInRow,
+    duplicateChordInRow,
     handleNewSong,
     handleSave,
     handleLoadSong,

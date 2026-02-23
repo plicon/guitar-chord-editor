@@ -1,4 +1,4 @@
-import { ChordDiagram } from "@/types/chord";
+import { ChordDiagram, isChordEdited } from "@/types/chord";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { SortableChord } from "./SortableChord";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ interface ChordRowProps {
   onRemove: () => void;
   onAddChord?: () => void;
   onRemoveChord?: () => void;
+  onDuplicateChord?: (index: number) => void;
   showRemove?: boolean;
   printMode?: boolean;
 }
@@ -31,6 +32,7 @@ export const ChordRow = ({
   onRemove,
   onAddChord,
   onRemoveChord,
+  onDuplicateChord,
   showRemove = false,
   printMode = false,
 }: ChordRowProps) => {
@@ -84,6 +86,7 @@ export const ChordRow = ({
               <SortableChord
                 chord={chord}
                 onClick={() => onChordClick(index)}
+                onDuplicate={onDuplicateChord && (chords.length < 5 || chords.some(c => !isChordEdited(c))) ? () => onDuplicateChord(index) : undefined}
               />
             </div>
           ))}
@@ -95,6 +98,7 @@ export const ChordRow = ({
               key={chord.id}
               chord={chord}
               onClick={() => onChordClick(index)}
+              onDuplicate={onDuplicateChord && (chords.length < 5 || chords.some(c => !isChordEdited(c))) ? () => onDuplicateChord(index) : undefined}
             />
           ))}
         </div>

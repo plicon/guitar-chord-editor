@@ -37,6 +37,7 @@ export interface SongSectionViewProps {
   onUpdateRow: (sectionId: string, rowId: string, updates: Partial<SectionRow>) => void;
   onAddChordToRow: (sectionId: string, rowId: string) => void;
   onRemoveChordFromRow: (sectionId: string, rowId: string) => void;
+  onDuplicateChord: (sectionId: string, rowId: string, chordIndex: number) => void;
   strummingPattern?: StrummingPattern | null;
   dragHandleProps?: Record<string, unknown>;
 }
@@ -54,6 +55,7 @@ export function SongSectionView({
   onUpdateRow,
   onAddChordToRow,
   onRemoveChordFromRow,
+  onDuplicateChord,
   strummingPattern,
   dragHandleProps,
 }: SongSectionViewProps) {
@@ -212,12 +214,15 @@ export function SongSectionView({
                         <ChordRow
                           chords={row.chords}
                           rowIndex={rowIndex}
-                          onChordClick={(chordIndex) => 
+                          onChordClick={(chordIndex) =>
                             onChordClick(section.id, row.id, chordIndex)
                           }
                           onRemove={() => onRemoveRow(section.id, row.id)}
                           onAddChord={() => onAddChordToRow(section.id, row.id)}
                           onRemoveChord={() => onRemoveChordFromRow(section.id, row.id)}
+                          onDuplicateChord={(chordIndex) =>
+                            onDuplicateChord(section.id, row.id, chordIndex)
+                          }
                           showRemove={false}
                         />
                       </div>
