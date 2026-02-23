@@ -319,6 +319,253 @@ describe("useSongState", () => {
     });
   });
 
+  describe("reorderChordsInRow", () => {
+    it("should move a chord forward within the same row", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 4); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      act(() => {
+        ["G", "Am", "C", "F"].forEach((name, i) => {
+          result.current[1].updateChord(sectionId, rowId, i, { ...createEmptyChord(`c${i}`), name });
+        });
+      });
+
+      // Move G (index 0) to index 2 → [Am, C, G, F]
+      act(() => { result.current[1].reorderChordsInRow(sectionId, rowId, 0, 2); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords.map(c => c.name)).toEqual(["Am", "C", "G", "F"]);
+      }
+    });
+
+    it("should move a chord backward within the same row", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 4); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      act(() => {
+        ["G", "Am", "C", "F"].forEach((name, i) => {
+          result.current[1].updateChord(sectionId, rowId, i, { ...createEmptyChord(`c${i}`), name });
+        });
+      });
+
+      // Move F (index 3) to index 1 → [G, F, Am, C]
+      act(() => { result.current[1].reorderChordsInRow(sectionId, rowId, 3, 1); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords.map(c => c.name)).toEqual(["G", "F", "Am", "C"]);
+      }
+    });
+
+    it("should preserve the total number of chords after reorder", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 4); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      act(() => { result.current[1].reorderChordsInRow(sectionId, rowId, 0, 3); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords).toHaveLength(4);
+      }
+    });
+
+    it("should not affect other sections", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => {
+        result.current[1].addSection("verse");
+        result.current[1].addSection("chorus");
+      });
+      const [sec1Id, sec2Id] = result.current[0].sections.map(s => s.id);
+      act(() => {
+        result.current[1].addRowToSection(sec1Id, 'chord-row', 2);
+        result.current[1].addRowToSection(sec2Id, 'chord-row', 2);
+      });
+      const row1Id = result.current[0].sections[0].rows[0].id;
+
+      act(() => {
+        result.current[1].updateChord(sec1Id, row1Id, 0, { ...createEmptyChord("c0"), name: "G" });
+        result.current[1].updateChord(sec1Id, row1Id, 1, { ...createEmptyChord("c1"), name: "Am" });
+      });
+
+      act(() => { result.current[1].reorderChordsInRow(sec1Id, row1Id, 0, 1); });
+
+      // Section 2's row should be untouched
+      const sec2Row = result.current[0].sections[1].rows[0];
+      if (sec2Row.kind === "chord-row") {
+        expect(sec2Row.chords[0].name).toBe("");
+        expect(sec2Row.chords[1].name).toBe("");
+      }
+    });
+  });
+
+  describe("duplicateChordInRow", () => {
+    it("should replace the first empty slot after the source chord", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 4); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      // Row: [G, empty, empty, empty]
+      act(() => {
+        result.current[1].updateChord(sectionId, rowId, 0, { ...createEmptyChord("c0"), name: "G" });
+      });
+
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 0); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords).toHaveLength(4);
+        // First empty after index 0 (index 1) should now hold the duplicate
+        expect(row.chords[0].name).toBe("G");
+        expect(row.chords[1].name).toBe("G");
+      }
+    });
+
+    it("should replace the first empty slot before the source when no empty follows", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 3); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      // Row: [empty, Am, C] — no empty after index 1, one before it
+      act(() => {
+        result.current[1].updateChord(sectionId, rowId, 1, { ...createEmptyChord("c1"), name: "Am" });
+        result.current[1].updateChord(sectionId, rowId, 2, { ...createEmptyChord("c2"), name: "C" });
+      });
+
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 1); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords).toHaveLength(3);
+        // Empty at index 0 replaced with the duplicate of Am
+        expect(row.chords[0].name).toBe("Am");
+        expect(row.chords[1].name).toBe("Am");
+        expect(row.chords[2].name).toBe("C");
+      }
+    });
+
+    it("should insert after the source when all chords are edited and row has capacity", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 2); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      // Row: [G, Am] — both edited, room for one more
+      act(() => {
+        result.current[1].updateChord(sectionId, rowId, 0, { ...createEmptyChord("c0"), name: "G" });
+        result.current[1].updateChord(sectionId, rowId, 1, { ...createEmptyChord("c1"), name: "Am" });
+      });
+
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 0); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords).toHaveLength(3);
+        expect(row.chords[0].name).toBe("G");
+        expect(row.chords[1].name).toBe("G"); // inserted after source
+        expect(row.chords[2].name).toBe("Am");
+      }
+    });
+
+    it("should do nothing when row is at max capacity with all edited chords", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 5); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      act(() => {
+        ["G", "Am", "C", "F", "D"].forEach((name, i) => {
+          result.current[1].updateChord(sectionId, rowId, i, { ...createEmptyChord(`c${i}`), name });
+        });
+      });
+
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 0); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords).toHaveLength(5);
+        expect(row.chords[0].name).toBe("G");
+      }
+    });
+
+    it("should assign the duplicate a different id than the source", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 2); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      act(() => {
+        result.current[1].updateChord(sectionId, rowId, 0, { ...createEmptyChord("c0"), name: "G" });
+      });
+
+      const sourceId = (() => {
+        const r = result.current[0].sections[0].rows[0];
+        return r.kind === "chord-row" ? r.chords[0].id : null;
+      })();
+
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 0); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        expect(row.chords[1].id).not.toBe(sourceId);
+      }
+    });
+
+    it("should copy all chord properties to the duplicate", () => {
+      const { result } = renderHook(() => useSongState());
+
+      act(() => { result.current[1].addSection("verse"); });
+      const sectionId = result.current[0].sections[0].id;
+      act(() => { result.current[1].addRowToSection(sectionId, 'chord-row', 2); });
+      const rowId = result.current[0].sections[0].rows[0].id;
+
+      const sourceChord = {
+        ...createEmptyChord("c0"),
+        name: "G",
+        startFret: 3,
+        fingers: [{ string: 1, fret: 3 }],
+        mutedStrings: [6],
+      };
+
+      act(() => { result.current[1].updateChord(sectionId, rowId, 0, sourceChord); });
+      act(() => { result.current[1].duplicateChordInRow(sectionId, rowId, 0); });
+
+      const row = result.current[0].sections[0].rows[0];
+      if (row.kind === "chord-row") {
+        const dup = row.chords[1];
+        expect(dup.name).toBe("G");
+        expect(dup.startFret).toBe(3);
+        expect(dup.fingers).toEqual([{ string: 1, fret: 3 }]);
+        expect(dup.mutedStrings).toEqual([6]);
+      }
+    });
+  });
+
   describe("getCurrentSong", () => {
     it("should return complete song object", () => {
       const { result } = renderHook(() => useSongState());
