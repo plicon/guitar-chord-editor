@@ -1,0 +1,186 @@
+/**
+ * Tests for Chord Chart Generator
+ * 
+ * Tests the LLM response parsing and prompt building logic.
+ */
+import { describe, it, expect, vi } from 'vitest';
+import { generateChordChart } from '../../worker/src/services/chordChartGenerator';
+import type { LLMProvider } from '../../worker/src/llm';
+import type { TranscriptResult } from '../../worker/src/services/youtube';
+
+function createMockTranscript(overrides?: Partial<TranscriptResult>): TranscriptResult {
+  return {
+    metadata: {
+      videoId: 'test123',
+      title: 'How to play Wonderwall - Oasis',
+      author: 'Guitar Teacher',
+      description: 'Learn Wonderwall by Oasis on guitar',
+    },
+    segments: [
+      { text: 'Hey everyone, today we are learning Wonderwall', start: 0, duration: 3 },
+      { text: 'The chords for the verse are Em7 G Dsus4 A7sus4', start: 5, duration: 4 },
+      { text: 'For the chorus we play C D Em', start: 40, duration: 3 },
+    ],
+    fullText: 'Hey everyone today we are learning Wonderwall The chords for the verse are Em7 G Dsus4 A7sus4 For the chorus we play C D Em',
+    ...overrides,
+  };
+}
+
+function createMockLLM(responseContent: string): LLMProvider {
+  return {
+    name: 'openai',
+    defaultModel: 'gpt-4o-mini',
+    complete: vi.fn().mockResolvedValue({
+      content: responseContent,
+      model: 'gpt-4o-mini',
+    }),
+  };
+}
+
+describe('generateChordChart', () => {
+  it('parses valid JSON response from LLM', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Wonderwall',
+      artist: 'Oasis',
+      key: 'Em',
+      sections: [
+        { name: 'Verse', type: 'verse', chords: ['Em7', 'G', 'Dsus4', 'A7sus4'] },
+        { name: 'Chorus', type: 'chorus', chords: ['C', 'D', 'Em'] },
+      ],
+    }));
+
+    const result = await generateChordChart(llm, createMockTranscript());
+
+    expect(result.title).toBe('Wonderwall');
+    expect(result.artist).toBe('Oasis');
+    expect(result.key).toBe('Em');
+    expect(result.sections).toHaveLength(2);
+    expect(result.sections[0].chords).toEqual(['Em7', 'G', 'Dsus4', 'A7sus4']);
+    expect(result.sections[1].type).toBe('chorus');
+  });
+
+  it('strips markdown code fences from response', async () => {
+    const json = JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'Verse', type: 'verse', chords: ['Am'] }],
+    });
+    const llm = createMockLLM('```json\n' + json + '\n```');
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Test');
+    expect(result.sections).toHaveLength(1);
+  });
+
+  it('defaults title to Untitled when missing', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      sections: [{ name: 'Verse', type: 'verse', chords: ['C'] }],
+    }));
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Untitled');
+  });
+
+  it('defaults section name and type when missing', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      sections: [{ chords: ['Am', 'C'] }],
+    }));
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.sections[0].name).toBe('Section');
+    expect(result.sections[0].type).toBe('custom');
+  });
+
+  it('throws on invalid JSON response', async () => {
+    const llm = createMockLLM('This is not valid JSON at all');
+
+    await expect(generateChordChart(llm, createMockTranscript()))
+      .rejects.toThrow('Failed to parse LLM response as JSON');
+  });
+
+  it('throws when sections array is missing', async () => {
+    const llm = createMockLLM(JSON.stringify({ title: 'Test' }));
+
+    await expect(generateChordChart(llm, createMockTranscript()))
+      .rejects.toThrow('Response missing "sections" array');
+  });
+
+  it('passes correct messages to LLM', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'V', type: 'verse', chords: ['C'] }],
+    }));
+
+    await generateChordChart(llm, createMockTranscript());
+
+    expect(llm.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          expect.objectContaining({ role: 'system' }),
+          expect.objectContaining({ role: 'user' }),
+        ]),
+        temperature: 0.2,
+        maxTokens: 4096,
+      })
+    );
+  });
+
+  it('includes video metadata in user prompt', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'V', type: 'verse', chords: ['C'] }],
+    }));
+
+    await generateChordChart(llm, createMockTranscript());
+
+    const call = (llm.complete as any).mock.calls[0][0];
+    const userMessage = call.messages.find((m: any) => m.role === 'user');
+    expect(userMessage.content).toContain('Wonderwall');
+    expect(userMessage.content).toContain('Guitar Teacher');
+  });
+
+  it('handles chords field as non-array gracefully', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'V', type: 'verse', chords: 'not-an-array' }],
+    }));
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.sections[0].chords).toEqual([]);
+  });
+
+  it('converts numeric tempo to number', async () => {
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      tempo: '120',
+      sections: [{ name: 'V', type: 'verse', chords: ['Am'] }],
+    }));
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.tempo).toBe(120);
+  });
+
+  it('groups transcript segments into time-based chunks', async () => {
+    const transcript = createMockTranscript({
+      segments: [
+        { text: 'Start', start: 0, duration: 2 },
+        { text: 'Still early', start: 10, duration: 2 },
+        { text: 'Later section', start: 45, duration: 2 },
+        { text: 'Much later', start: 90, duration: 2 },
+      ],
+    });
+
+    const llm = createMockLLM(JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'V', type: 'verse', chords: ['C'] }],
+    }));
+
+    await generateChordChart(llm, transcript);
+
+    const call = (llm.complete as any).mock.calls[0][0];
+    const userContent = call.messages.find((m: any) => m.role === 'user').content;
+    // Should have multiple timestamp markers due to >30s gaps
+    expect(userContent).toContain('[0:00]');
+    expect(userContent).toContain('[0:45]');
+  });
+});
