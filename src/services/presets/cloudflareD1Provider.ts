@@ -4,6 +4,22 @@ import type { ChordPreset } from '@/types/chord';
 import type { StrummingPreset } from '@/types/presets';
 import type { TimeSignature, Subdivision } from '@/types/strumming';
 
+const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID || '';
+const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET || '';
+
+function getRequestHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (CF_ACCESS_CLIENT_ID && CF_ACCESS_CLIENT_SECRET) {
+    headers['CF-Access-Client-Id'] = CF_ACCESS_CLIENT_ID;
+    headers['CF-Access-Client-Secret'] = CF_ACCESS_CLIENT_SECRET;
+  }
+
+  return headers;
+}
+
 export interface CloudflareApiConfig {
   apiUrl: string;
   enabled: boolean;
@@ -53,6 +69,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
     try {
       const response = await fetch(`${this.apiUrl}/health`, {
         method: 'GET',
+        headers: getRequestHeaders(),
       });
       return response.ok;
     } catch (error) {
@@ -66,9 +83,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
       // Fetch all presets in one request (used for prefetch cache)
       const response = await fetch(`${this.apiUrl}/presets/chords?limit=5000`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getRequestHeaders(),
       });
 
       if (!response.ok) {
@@ -89,9 +104,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
       const id = nameOrId.toLowerCase().replace(/[^a-z0-9]/g, '_');
       let response = await fetch(`${this.apiUrl}/presets/chords/${id}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getRequestHeaders(),
       });
 
       if (response.ok) {
@@ -104,9 +117,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
         `${this.apiUrl}/presets/chords?search=${encodeURIComponent(nameOrId)}`,
         {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getRequestHeaders(),
         }
       );
 
@@ -131,9 +142,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
         `${this.apiUrl}/presets/chords?search=${encodeURIComponent(query)}`,
         {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getRequestHeaders(),
         }
       );
 
@@ -157,9 +166,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getRequestHeaders(),
       });
 
       if (!response.ok) {
@@ -180,9 +187,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
       const id = nameOrId.toLowerCase().replace(/[^a-z0-9]/g, '_');
       let response = await fetch(`${this.apiUrl}/presets/strumming/${id}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getRequestHeaders(),
       });
 
       if (response.ok) {
@@ -195,9 +200,7 @@ export class CloudflareD1PresetProvider implements PresetProvider {
         `${this.apiUrl}/presets/strumming?q=${encodeURIComponent(nameOrId)}`,
         {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getRequestHeaders(),
         }
       );
 
