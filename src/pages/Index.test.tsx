@@ -237,11 +237,11 @@ describe("Index Page Integration", () => {
       expect(plainNewButton).toBeInTheDocument();
     });
 
-    it("should have New AI button", () => {
+    it("should have AI button", () => {
       renderIndex();
 
-      const newAIButton = screen.getByRole("button", { name: /new ai/i });
-      expect(newAIButton).toBeInTheDocument();
+      const aiButton = screen.getByRole("button", { name: /^ai$/i });
+      expect(aiButton).toBeInTheDocument();
     });
 
     it("should have Login button when not authenticated", () => {
