@@ -24,6 +24,7 @@ export class D1StorageProvider implements StorageProvider {
   private apiUrl: string;
   private cfAccessClientId: string;
   private cfAccessClientSecret: string;
+  private authHeadersFn: (() => Record<string, string>) | null = null;
 
   constructor(config: D1StorageConfig) {
     this.apiUrl = config.apiUrl;
@@ -32,7 +33,14 @@ export class D1StorageProvider implements StorageProvider {
   }
 
   /**
-   * Get headers including CF-Access service auth when configured
+   * Set a function that provides auth headers (Bearer token) for admin endpoints.
+   */
+  setAuthHeadersProvider(fn: () => Record<string, string>) {
+    this.authHeadersFn = fn;
+  }
+
+  /**
+   * Get headers including CF-Access service auth and Bearer token when configured
    */
   private getHeaders(includeContentType = true): Record<string, string> {
     const headers: Record<string, string> = {};
@@ -42,6 +50,10 @@ export class D1StorageProvider implements StorageProvider {
     if (this.cfAccessClientId && this.cfAccessClientSecret) {
       headers["CF-Access-Client-Id"] = this.cfAccessClientId;
       headers["CF-Access-Client-Secret"] = this.cfAccessClientSecret;
+    }
+    // Merge auth headers (Bearer token)
+    if (this.authHeadersFn) {
+      Object.assign(headers, this.authHeadersFn());
     }
     return headers;
   }

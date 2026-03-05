@@ -35,6 +35,16 @@ export const getStorageProvider = (): StorageProvider => {
   return storageProvider;
 };
 
+/**
+ * Set auth headers provider on D1 storage (for Bearer token injection).
+ */
+export const setStorageAuthHeaders = (fn: () => Record<string, string>) => {
+  const provider = getStorageProvider();
+  if (provider instanceof D1StorageProvider) {
+    provider.setAuthHeadersProvider(fn);
+  }
+};
+
 // Convenience functions
 export const saveChart = async (chart: ChordChart): Promise<void> => {
   return getStorageProvider().saveChart(chart);

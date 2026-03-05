@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./Index";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Mock storage service - matches actual export structure
 vi.mock("@/services/storage", () => ({
@@ -15,6 +16,7 @@ vi.mock("@/services/storage", () => ({
   importChartFromJson: vi.fn().mockReturnValue({}),
   downloadChartAsJson: vi.fn(),
   getStorageProvider: vi.fn(),
+  setStorageAuthHeaders: vi.fn(),
 }));
 
 // Mock sonner toast
@@ -75,7 +77,9 @@ const renderIndex = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ThemeProvider>
-          <Index />
+          <AuthProvider>
+            <Index />
+          </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>
@@ -97,6 +101,20 @@ describe("Index Page Integration", () => {
     };
     Object.defineProperty(global, 'localStorage', {
       value: localStorageMock,
+      writable: true,
+    });
+
+    // Mock sessionStorage (for auth token)
+    const sessionStorageMock = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      length: 0,
+      key: vi.fn(),
+    };
+    Object.defineProperty(global, 'sessionStorage', {
+      value: sessionStorageMock,
       writable: true,
     });
     
@@ -226,29 +244,30 @@ describe("Index Page Integration", () => {
       expect(newAIButton).toBeInTheDocument();
     });
 
-    it("should have Open button", () => {
+    it("should have Login button when not authenticated", () => {
       renderIndex();
 
-      const openButton = screen.getByRole("button", { name: /open/i });
-      expect(openButton).toBeInTheDocument();
+      const loginButton = screen.getByRole("button", { name: /login/i });
+      expect(loginButton).toBeInTheDocument();
     });
 
-    it("should have Save button", () => {
+    it("should not show Save/Open/Export/Import when not authenticated", () => {
       renderIndex();
 
-      const saveButton = screen.getByRole("button", { name: /save/i });
-      expect(saveButton).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^save$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^open$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^export$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^import$/i })).not.toBeInTheDocument();
     });
 
-    it("should open saved charts dialog when clicking Open", async () => {
+    it("should open login dialog when clicking Login", async () => {
       renderIndex();
 
-      const openButton = screen.getByRole("button", { name: /open/i });
-      fireEvent.click(openButton);
+      const loginButton = screen.getByRole("button", { name: /login/i });
+      fireEvent.click(loginButton);
 
       await waitFor(() => {
-        // Use getByRole for the dialog title to be more specific
-        expect(screen.getByRole("heading", { name: /saved charts/i })).toBeInTheDocument();
+        expect(screen.getByText(/sign in to save, import, and export songs/i)).toBeInTheDocument();
       });
     });
   });
