@@ -23,6 +23,7 @@ IMPORTANT RULES:
 - If a section contains single-note lines, riffs, or tab notation, include them in the "tab" field using standard ASCII tab format
 - Tab lines must be ordered high to low: e, B, G, D, A, E
 - Each tab line must have the same length
+- The "tab" array must contain ONLY string elements (the 6 guitar string lines). NEVER place properties like "notes" inside the tab array — use a separate "notes" field on the section object instead.
 - Use standard tab notation: numbers for frets, h=hammer-on, p=pull-off, /=slide up, ~=vibrato, b=bend
 - CRITICAL: Keep tab notation SHORT and COMPACT — only include the essential riff/lick, not full measures of dashes. Prioritize completing ALL sections over tab detail.
 - A section can have BOTH chords AND tab. Add tab to the same section as its chords when applicable — do NOT create a separate section just for tab.

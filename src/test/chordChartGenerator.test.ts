@@ -263,4 +263,47 @@ describe('generateChordChart', () => {
     expect(result.sections[1].tab).toBeUndefined();
     expect(result.sections[1].chords).toEqual(['Am', 'C']);
   });
+
+  it('repairs key-value pairs accidentally placed inside tab array', async () => {
+    // Gemini sometimes puts "notes" inside the tab array instead of as a sibling property
+    const malformed = `{
+  "title": "Sweet Child o' Mine",
+  "key": "D",
+  "sections": [
+    {
+      "name": "Intro Riff",
+      "type": "intro",
+      "chords": ["D", "Dsus4"],
+      "tab": [
+        "e|-----------------|",
+        "B|---3---3---3---3-|",
+        "G|-2---0-1-0-1-0-1-|",
+        "D|0----------------|",
+        "A|-----------------|",
+        "E|-----------------|",
+        "notes": "Played over D and Dsus4 chords."
+      ]
+    }
+  ]
+}`;
+    const llm = createMockLLM(malformed);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe("Sweet Child o' Mine");
+    expect(result.sections).toHaveLength(1);
+    expect(result.sections[0].tab).toHaveLength(6);
+    expect(result.sections[0].tab![0]).toBe('e|-----------------|');
+    expect(result.sections[0].tab![5]).toBe('E|-----------------|');
+  });
+
+  it('repairs key-value in array combined with truncation', async () => {
+    // Both structural issue AND truncated response
+    const malformed = '```json\n{"title":"Test","sections":[{"name":"Riff","type":"intro","tab":["e|---|","B|---|","notes": "Some';
+    const llm = createMockLLM(malformed);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Test');
+    expect(result.sections).toHaveLength(1);
+    expect(result.sections[0].tab).toHaveLength(2);
+  });
 });
