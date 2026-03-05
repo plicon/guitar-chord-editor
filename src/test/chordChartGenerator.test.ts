@@ -120,7 +120,7 @@ describe('generateChordChart', () => {
           expect.objectContaining({ role: 'user' }),
         ]),
         temperature: 0.2,
-        maxTokens: 8192,
+        maxTokens: 16384,
       })
     );
   });

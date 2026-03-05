@@ -25,7 +25,15 @@ const TECHNIQUE_CHARS: Record<string, TabTechnique> = {
  * Lines are split on '|' to detect measure boundaries.
  */
 export function parseAsciiTab(lines: string[]): TabMeasure[] {
-  if (lines.length !== 6) return [];
+  if (lines.length < 4 || lines.length > 6) return [];
+
+  // Pad to 6 lines if fewer were provided (e.g. only 4 strings shown)
+  while (lines.length < 6) {
+    const sampleLine = lines[0];
+    const pipeIdx = sampleLine.indexOf('|');
+    const dashLen = pipeIdx >= 0 ? sampleLine.length - pipeIdx - 1 : sampleLine.length;
+    lines.push('-'.repeat(dashLen));
+  }
 
   // Strip string label prefix (e.g. "e|" or "E|") and split by '|' for measures
   const stripped = lines.map(line => {

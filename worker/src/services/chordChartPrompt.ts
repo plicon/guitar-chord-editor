@@ -24,6 +24,8 @@ IMPORTANT RULES:
 - Tab lines must be ordered high to low: e, B, G, D, A, E
 - Each tab line must have the same length
 - Use standard tab notation: numbers for frets, h=hammer-on, p=pull-off, /=slide up, ~=vibrato, b=bend
+- CRITICAL: Keep tab notation SHORT and COMPACT — only include the essential riff/lick, not full measures of dashes. Prioritize completing ALL sections over tab detail.
+- A section can have BOTH chords AND tab. Add tab to the same section as its chords when applicable — do NOT create a separate section just for tab.
 
 Respond with ONLY valid JSON matching this exact structure (no markdown fencing, no explanation):
 

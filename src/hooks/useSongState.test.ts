@@ -738,7 +738,7 @@ describe("useSongState", () => {
       expect(tabRows.length).toBe(1);
     });
 
-    it("should skip tab row when tab data has wrong number of lines", () => {
+    it("should skip tab row when tab data has too few lines", () => {
       const { result } = renderHook(() => useSongState());
       const [, actions] = result.current;
 
@@ -752,7 +752,7 @@ describe("useSongState", () => {
               name: "Bad Tab",
               type: "verse",
               chords: ["Am"],
-              tab: ["e|--0--|", "B|--1--|"], // Only 2 lines, not 6
+              tab: ["e|--0--|", "B|--1--|"], // Only 2 lines, below minimum of 4
             },
           ],
         },
@@ -767,6 +767,42 @@ describe("useSongState", () => {
       const [state] = result.current;
       const tabRows = state.sections[0].rows.filter(r => r.kind === "tab-row");
       expect(tabRows.length).toBe(0);
+    });
+
+    it("should accept tab data with 4-5 lines (padded to 6)", () => {
+      const { result } = renderHook(() => useSongState());
+      const [, actions] = result.current;
+
+      const youtubeResult = {
+        metadata: { videoId: "test123", title: "Test", author: "Author", description: "" },
+        transcriptLength: 100,
+        chart: {
+          title: "Test Song",
+          sections: [
+            {
+              name: "Riff",
+              type: "intro",
+              chords: [],
+              tab: [
+                "e|--0--|",
+                "B|--1--|",
+                "G|--0--|",
+                "D|--2--|",
+              ],
+            },
+          ],
+        },
+        provider: "test",
+        model: "test",
+      };
+
+      act(() => {
+        actions.loadFromYouTubeResult(youtubeResult);
+      });
+
+      const [state] = result.current;
+      const tabRows = state.sections[0].rows.filter(r => r.kind === "tab-row");
+      expect(tabRows.length).toBe(1);
     });
   });
 });
