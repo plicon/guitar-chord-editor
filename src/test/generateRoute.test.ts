@@ -98,6 +98,59 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     expect(body.chart.title).toBe('Test Video');
     expect(body.provider).toBe('google');
     expect(body.analysisMethod).toBe('video');
+    expect(generateChordChartFromVideo).toHaveBeenCalledWith(
+      'test-google-key',
+      'https://www.youtube.com/watch?v=abc12345678',
+      expect.objectContaining({ videoId: 'abc12345678' }),
+      undefined,
+    );
+  });
+
+  it('returns 500 when Gemini video fallback fails', async () => {
+    vi.mocked(extractVideoId).mockReturnValue('abc12345678');
+    vi.mocked(extractTranscript).mockRejectedValue(new Error('No captions available'));
+    vi.mocked(fetchVideoMetadata).mockResolvedValue({
+      videoId: 'abc12345678', title: 'Test', author: 'Author', description: '',
+    });
+    vi.mocked(generateChordChartFromVideo).mockRejectedValue(
+      new Error('Gemini video analysis failed (429): Rate limited')
+    );
+
+    const req = createRequest('POST', { url: 'https://youtube.com/watch?v=abc12345678' });
+    const res = await handleGenerate(req, mockEnvWithGoogle, ['api', 'generate', 'from-youtube']);
+    expect(res.status).toBe(500);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.error).toContain('Video analysis failed');
+  });
+
+  it('returns 500 when LLM chart generation fails', async () => {
+    vi.mocked(extractVideoId).mockReturnValue('abc12345678');
+    vi.mocked(extractTranscript).mockResolvedValue({
+      metadata: { videoId: 'abc12345678', title: 'Test', author: 'Auth', description: '' },
+      segments: [{ text: 'Hello', start: 0, duration: 1 }],
+      fullText: 'Hello',
+    });
+    const mockProvider = { name: 'openai' as const, defaultModel: 'gpt-4o-mini', complete: vi.fn() };
+    vi.mocked(createLLMProvider).mockReturnValue(mockProvider);
+    vi.mocked(generateChordChart).mockRejectedValue(new Error('Failed to parse LLM response'));
+
+    const req = createRequest('POST', { url: 'https://youtube.com/watch?v=abc12345678' });
+    const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
+    expect(res.status).toBe(500);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.error).toContain('LLM generation failed');
+  });
+
+  it('returns 400 for invalid JSON body', async () => {
+    const req = new Request('https://test.com/api/generate/from-youtube', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'not json',
+    });
+    const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
+    expect(res.status).toBe(400);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.error).toContain('Invalid JSON');
   });
 
   it('returns 500 when LLM provider fails to initialize', async () => {
