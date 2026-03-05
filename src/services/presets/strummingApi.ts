@@ -1,28 +1,15 @@
 // API client for strumming pattern CRUD
 
+import { getAdminAuthHeaders } from "@/services/adminAuth";
+
 const API_BASE = import.meta.env.VITE_API_URL || 'https://production.api.fretkit.io/api';
 const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL || API_BASE;
-const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID || '';
-const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET || '';
-
-// Helper to get Cloudflare Access headers for admin endpoints
-function getAdminHeaders(extraHeaders = {}) {
-  return {
-    "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
-    "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
-    ...extraHeaders,
-  };
-}
 
 export async function getStrummingPatterns({ admin = false } = {}) {
-  const url = admin ? `${ADMIN_BASE}/presets/strumming` : `${API_BASE}/presets/strumming`;
-  const options = admin 
-    ? { 
-        credentials: "include" as const, 
-        headers: getAdminHeaders(),
-        cache: "no-store" as const
-      }
-    : { credentials: "include" as const };
+  const url = admin ? `${ADMIN_BASE}/admin/presets/strumming` : `${API_BASE}/presets/strumming`;
+  const options: RequestInit = admin 
+    ? { headers: getAdminAuthHeaders(), cache: "no-store" }
+    : {};
   
   const res = await fetch(url, options);
   if (!res.ok) throw new Error("Failed to fetch patterns");
@@ -35,37 +22,30 @@ export async function getStrummingPatterns({ admin = false } = {}) {
   }
 }
 
-export async function createStrummingPattern(data) {
-  const res = await fetch(`${ADMIN_BASE}/presets/strumming`, {
+export async function createStrummingPattern(data: any) {
+  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming`, {
     method: "POST",
-    headers: getAdminHeaders({
-      "Content-Type": "application/json",
-    }),
-    credentials: "include",
+    headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to create pattern");
   return await res.json();
 }
 
-export async function updateStrummingPattern(id, data) {
-  const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
+export async function updateStrummingPattern(id: string, data: any) {
+  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming/${id}`, {
     method: "PUT",
-    headers: getAdminHeaders({
-      "Content-Type": "application/json",
-    }),
-    credentials: "include",
+    headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to update pattern");
   return await res.json();
 }
 
-export async function deleteStrummingPattern(id) {
-  const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
+export async function deleteStrummingPattern(id: string) {
+  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming/${id}`, {
     method: "DELETE",
-    headers: getAdminHeaders(),
-    credentials: "include",
+    headers: getAdminAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to delete pattern");
 }

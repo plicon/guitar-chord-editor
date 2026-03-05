@@ -9,6 +9,8 @@ import type { Env } from './types';
 import { openApiSpec } from './openapi';
 import { handleCharts, handleAdminCharts } from './routes/charts';
 import { handleSongs, handleAdminSongs } from './routes/songs';
+import { handleAuthLogin } from './routes/auth';
+import { requireAdminAuth } from './utils/auth';
 import { handleGenerate } from './routes/generate';
 import {
   handleChordPresets,
@@ -44,7 +46,7 @@ function getCorsConfig(env: Env) {
   return {
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'CF-Access-Client-Id', 'CF-Access-Client-Secret'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     maxAge: 86400, // 24 hours
   };
@@ -127,13 +129,9 @@ export default {
         else if (pathParts[1] === 'songs') {
           response = await handleSongs(request, env, pathParts);
         }
-        // /api/admin/charts/*
-        else if (pathParts[1] === 'admin' && pathParts[2] === 'charts') {
-          response = await handleAdminCharts(request, env, pathParts);
-        }
-        // /api/admin/songs/*
-        else if (pathParts[1] === 'admin' && pathParts[2] === 'songs') {
-          response = await handleAdminSongs(request, env, pathParts);
+        // /api/auth/login
+        else if (pathParts[1] === 'auth' && pathParts[2] === 'login') {
+          response = await handleAuthLogin(request, env);
         }
         // /api/presets/chords/*
         else if (pathParts[1] === 'presets' && pathParts[2] === 'chords') {
@@ -143,21 +141,24 @@ export default {
         else if (pathParts[1] === 'presets' && pathParts[2] === 'strumming') {
           response = await handleStrummingPresets(request, env, pathParts);
         }
-        // /api/admin/presets/chords/*
-        else if (
-          pathParts[1] === 'admin' &&
-          pathParts[2] === 'presets' &&
-          pathParts[3] === 'chords'
-        ) {
-          response = await handleAdminChordPresets(request, env, pathParts);
-        }
-        // /api/admin/presets/strumming/*
-        else if (
-          pathParts[1] === 'admin' &&
-          pathParts[2] === 'presets' &&
-          pathParts[3] === 'strumming'
-        ) {
-          response = await handleAdminStrummingPresets(request, env, pathParts);
+        // /api/admin/* — require auth
+        else if (pathParts[1] === 'admin') {
+          const authError = await requireAdminAuth(request, env);
+          if (authError) {
+            return addCorsHeaders(authError, request, corsConfig);
+          }
+
+          if (pathParts[2] === 'charts') {
+            response = await handleAdminCharts(request, env, pathParts);
+          } else if (pathParts[2] === 'songs') {
+            response = await handleAdminSongs(request, env, pathParts);
+          } else if (pathParts[2] === 'presets' && pathParts[3] === 'chords') {
+            response = await handleAdminChordPresets(request, env, pathParts);
+          } else if (pathParts[2] === 'presets' && pathParts[3] === 'strumming') {
+            response = await handleAdminStrummingPresets(request, env, pathParts);
+          } else {
+            response = errorResponse('Not Found', 404);
+          }
         }
         // /api/generate/*
         else if (pathParts[1] === 'generate') {

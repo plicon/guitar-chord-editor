@@ -10,10 +10,6 @@ interface ImportMetaEnv {
   readonly VITE_STORAGE_PROVIDER?: 'local' | 's3' | 'd1'
   readonly VITE_API_URL?: string
   readonly VITE_ADMIN_API_URL?: string
-  readonly VITE_CF_ACCESS_CLIENT_ID?: string
-  readonly VITE_CF_ACCESS_CLIENT_SECRET?: string
-  readonly VITE_ADMIN_USERNAME?: string
-  readonly VITE_ADMIN_PASSWORD?: string
 }
 
 interface ImportMeta {

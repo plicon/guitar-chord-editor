@@ -9,10 +9,10 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { isAuthenticated, login, logout } = useAdminAuth();
+  const { isAuthenticated, isLoading, error, login, logout } = useAdminAuth();
 
   if (!isAuthenticated) {
-    return <AdminLogin onLogin={login} />;
+    return <AdminLogin onLogin={login} isLoading={isLoading} error={error} />;
   }
 
   return (
