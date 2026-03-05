@@ -6,12 +6,13 @@
  * 
  * Extracts transcript from a YouTube tutorial video and uses the configured
  * LLM provider to generate a structured chord chart.
+ * Falls back to Gemini video analysis when captions aren't available.
  */
 
 import type { Env } from '../types';
 import { createLLMProvider } from '../llm';
-import { extractTranscript, extractVideoId } from '../services/youtube';
-import { generateChordChart } from '../services/chordChartGenerator';
+import { extractTranscript, extractVideoId, fetchVideoMetadata } from '../services/youtube';
+import { generateChordChart, generateChordChartFromVideo } from '../services/chordChartGenerator';
 import {
   jsonResponse,
   errorResponse,
@@ -53,38 +54,79 @@ async function handleFromYouTube(request: Request, env: Env): Promise<Response> 
     return errorResponse('Invalid YouTube URL', 400);
   }
 
-  // 1. Extract transcript
+  // 1. Try to extract transcript (captions)
   let transcript;
+  let transcriptError: string | null = null;
   try {
     transcript = await extractTranscript(body.url);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Failed to extract transcript';
-    return errorResponse(msg, 422);
+    transcriptError = e instanceof Error ? e.message : 'Failed to extract transcript';
   }
 
-  // 2. Generate chord chart via LLM
-  let llm;
+  // 2a. If transcript available, use normal LLM flow
+  if (transcript) {
+    let llm;
+    try {
+      llm = createLLMProvider(env);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'LLM provider not configured';
+      return errorResponse(msg, 500);
+    }
+
+    let chart;
+    try {
+      chart = await generateChordChart(llm, transcript);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to generate chord chart';
+      return errorResponse(`LLM generation failed: ${msg}`, 500);
+    }
+
+    return jsonResponse({
+      metadata: transcript.metadata,
+      transcriptLength: transcript.segments.length,
+      chart,
+      provider: llm.name,
+      model: llm.defaultModel,
+    }, 200);
+  }
+
+  // 2b. No captions — fall back to Gemini video analysis
+  if (!env.GOOGLE_AI_API_KEY) {
+    return errorResponse(
+      `${transcriptError}. Gemini video analysis fallback requires GOOGLE_AI_API_KEY to be configured.`,
+      422
+    );
+  }
+
+  // Fetch basic metadata for the response
+  let metadata;
   try {
-    llm = createLLMProvider(env);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'LLM provider not configured';
-    return errorResponse(msg, 500);
+    metadata = await fetchVideoMetadata(videoId);
+  } catch {
+    metadata = { videoId, title: '', author: '', description: '' };
   }
 
   let chart;
   try {
-    chart = await generateChordChart(llm, transcript);
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    chart = await generateChordChartFromVideo(
+      env.GOOGLE_AI_API_KEY,
+      videoUrl,
+      metadata,
+      env.LLM_MODEL
+    );
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Failed to generate chord chart';
-    return errorResponse(`LLM generation failed: ${msg}`, 500);
+    const msg = e instanceof Error ? e.message : 'Gemini video analysis failed';
+    return errorResponse(`Video analysis failed: ${msg}`, 500);
   }
 
   return jsonResponse({
-    metadata: transcript.metadata,
-    transcriptLength: transcript.segments.length,
+    metadata,
+    transcriptLength: 0,
     chart,
-    provider: llm.name,
-    model: llm.defaultModel,
+    provider: 'google',
+    model: env.LLM_MODEL || 'gemini-2.5-flash',
+    analysisMethod: 'video',
   }, 200);
 }
 

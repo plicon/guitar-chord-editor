@@ -2,11 +2,12 @@
  * Chord Chart Generation Service
  * 
  * Uses an LLM to parse a YouTube tutorial transcript into structured chord data.
+ * Falls back to Gemini video analysis when transcripts aren't available.
  */
 
 import type { LLMProvider } from '../llm';
 import { CHORD_CHART_SYSTEM_PROMPT } from './chordChartPrompt';
-import type { TranscriptResult } from './youtube';
+import type { TranscriptResult, YouTubeMetadata } from './youtube';
 
 export interface GeneratedChordChart {
   title: string;
@@ -42,6 +43,75 @@ export async function generateChordChart(
   });
 
   return parseResponse(response.content);
+}
+
+/**
+ * Generate a chord chart by sending the YouTube video URL directly to Gemini
+ * for multimodal analysis (audio + visual). Used when captions aren't available.
+ */
+export async function generateChordChartFromVideo(
+  googleApiKey: string,
+  videoUrl: string,
+  metadata: YouTubeMetadata,
+  model?: string
+): Promise<GeneratedChordChart> {
+  const geminiModel = model || 'gemini-2.5-flash';
+
+  const userPrompt = [
+    `Analyze this YouTube guitar tutorial video and extract all chord information.`,
+    `Video: "${metadata.title}" by ${metadata.author}`,
+    metadata.description ? `\nDescription:\n${metadata.description.slice(0, 500)}` : '',
+    `\nListen to the audio carefully. Identify:`,
+    `- All chords mentioned or played`,
+    `- Song sections (intro, verse, chorus, bridge, etc.)`,
+    `- Strumming patterns if demonstrated`,
+    `- Key, tempo, and time signature if apparent`,
+  ].filter(Boolean).join('\n');
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${googleApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: CHORD_CHART_SYSTEM_PROMPT }] },
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                fileData: {
+                  fileUri: videoUrl,
+                  mimeType: 'video/mp4',
+                },
+              },
+              { text: userPrompt },
+            ],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 4096,
+          temperature: 0.2,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Gemini video analysis failed (${response.status}): ${error}`);
+  }
+
+  const data = await response.json() as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+  if (!text) {
+    throw new Error('Gemini returned empty response for video analysis');
+  }
+
+  return parseResponse(text);
 }
 
 function buildUserPrompt(transcript: TranscriptResult): string {

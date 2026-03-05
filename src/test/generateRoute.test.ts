@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../worker/src/services/youtube', () => ({
   extractVideoId: vi.fn(),
   extractTranscript: vi.fn(),
+  fetchVideoMetadata: vi.fn(),
 }));
 
 vi.mock('../../worker/src/llm', () => ({
@@ -15,12 +16,13 @@ vi.mock('../../worker/src/llm', () => ({
 
 vi.mock('../../worker/src/services/chordChartGenerator', () => ({
   generateChordChart: vi.fn(),
+  generateChordChartFromVideo: vi.fn(),
 }));
 
 import { handleGenerate } from '../../worker/src/routes/generate';
-import { extractVideoId, extractTranscript } from '../../worker/src/services/youtube';
+import { extractVideoId, extractTranscript, fetchVideoMetadata } from '../../worker/src/services/youtube';
 import { createLLMProvider } from '../../worker/src/llm';
-import { generateChordChart } from '../../worker/src/services/chordChartGenerator';
+import { generateChordChart, generateChordChartFromVideo } from '../../worker/src/services/chordChartGenerator';
 import type { Env } from '../../worker/src/types';
 
 function createRequest(method: string, body?: Record<string, unknown>): Request {
@@ -36,6 +38,11 @@ const mockEnv = {
   ENVIRONMENT: 'development' as const,
   LLM_PROVIDER: 'openai',
   OPENAI_API_KEY: 'sk-test',
+} as Env;
+
+const mockEnvWithGoogle = {
+  ...mockEnv,
+  GOOGLE_AI_API_KEY: 'test-google-key',
 } as Env;
 
 describe('handleGenerate - POST /api/generate/from-youtube', () => {
@@ -60,7 +67,7 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     expect(body.error).toContain('Invalid YouTube URL');
   });
 
-  it('returns 422 when transcript extraction fails', async () => {
+  it('returns 422 when transcript fails and no GOOGLE_AI_API_KEY', async () => {
     vi.mocked(extractVideoId).mockReturnValue('abc12345678');
     vi.mocked(extractTranscript).mockRejectedValue(new Error('No captions available'));
 
@@ -69,6 +76,28 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     expect(res.status).toBe(422);
     const body = await res.json() as Record<string, unknown>;
     expect(body.error).toContain('No captions available');
+    expect(body.error).toContain('GOOGLE_AI_API_KEY');
+  });
+
+  it('falls back to Gemini video analysis when no captions but GOOGLE_AI_API_KEY set', async () => {
+    vi.mocked(extractVideoId).mockReturnValue('abc12345678');
+    vi.mocked(extractTranscript).mockRejectedValue(new Error('No captions available'));
+    vi.mocked(fetchVideoMetadata).mockResolvedValue({
+      videoId: 'abc12345678', title: 'Test Video', author: 'Author', description: '',
+    });
+    vi.mocked(generateChordChartFromVideo).mockResolvedValue({
+      title: 'Test Video',
+      sections: [{ name: 'Verse', type: 'verse', chords: ['G', 'D'] }],
+    });
+
+    const req = createRequest('POST', { url: 'https://youtube.com/watch?v=abc12345678' });
+    const res = await handleGenerate(req, mockEnvWithGoogle, ['api', 'generate', 'from-youtube']);
+    expect(res.status).toBe(200);
+
+    const body = await res.json() as { chart: { title: string }; provider: string; analysisMethod: string };
+    expect(body.chart.title).toBe('Test Video');
+    expect(body.provider).toBe('google');
+    expect(body.analysisMethod).toBe('video');
   });
 
   it('returns 500 when LLM provider fails to initialize', async () => {

@@ -195,3 +195,35 @@ export async function extractTranscript(youtubeUrl: string): Promise<TranscriptR
 
   return { metadata, segments, fullText };
 }
+
+/**
+ * Fetch just the video metadata (without requiring captions).
+ * Used when we need metadata for the Gemini video fallback.
+ */
+export async function fetchVideoMetadata(videoId: string): Promise<YouTubeMetadata> {
+  const response = await fetch('https://www.youtube.com/youtubei/v1/player', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    },
+    body: JSON.stringify({
+      videoId,
+      context: { client: INNERTUBE_CLIENT },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`YouTube innertube API returned ${response.status}`);
+  }
+
+  const data: InnertubeResponse = await response.json();
+  const videoDetails = data.videoDetails || {};
+
+  return {
+    videoId,
+    title: videoDetails.title || '',
+    author: videoDetails.author || '',
+    description: (videoDetails.shortDescription || '').slice(0, 2000),
+  };
+}
