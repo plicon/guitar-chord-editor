@@ -146,7 +146,7 @@ describe('loadFromYouTubeResult - preset enrichment', () => {
     });
 
     const [state] = result.current;
-    expect(state.title).toBe('Test Song');
+    expect(state.title).toBe('Test Song - Test Artist');
     expect(state.artist).toBe('Test Artist');
     expect(state.key).toBe('Am');
     expect(state.tempo).toBe(120);
@@ -199,6 +199,6 @@ describe('loadFromYouTubeResult - preset enrichment', () => {
     });
 
     const [state] = result.current;
-    expect(state.title).toBe('Imported Song');
+    expect(state.title).toBe('Imported Song - Test Artist');
   });
 });
