@@ -47,43 +47,70 @@ export function extractVideoId(url: string): string | null {
   return null;
 }
 
+// Innertube API client context
+const INNERTUBE_CLIENT = {
+  clientName: 'WEB',
+  clientVersion: '2.20240313.00.00',
+  hl: 'en',
+  gl: 'US',
+};
+
+interface CaptionTrack {
+  baseUrl: string;
+  languageCode?: string;
+}
+
+interface InnertubeResponse {
+  videoDetails?: {
+    videoId?: string;
+    title?: string;
+    author?: string;
+    shortDescription?: string;
+  };
+  captions?: {
+    playerCaptionsTracklistRenderer?: {
+      captionTracks?: CaptionTrack[];
+    };
+  };
+  playabilityStatus?: {
+    status?: string;
+    reason?: string;
+  };
+}
+
 /**
- * Fetch the YouTube video page and extract player data
+ * Fetch video data using YouTube's innertube player API (more reliable than HTML scraping)
  */
-async function fetchVideoPage(videoId: string): Promise<{
+async function fetchVideoData(videoId: string): Promise<{
   metadata: YouTubeMetadata;
   captionsUrl: string;
 }> {
-  const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+  const response = await fetch('https://www.youtube.com/youtubei/v1/player', {
+    method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
     },
+    body: JSON.stringify({
+      videoId,
+      context: {
+        client: INNERTUBE_CLIENT,
+      },
+    }),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch YouTube page: ${response.status}`);
+    throw new Error(`YouTube innertube API returned ${response.status}`);
   }
 
-  const html = await response.text();
+  const data: InnertubeResponse = await response.json();
 
-  // Extract ytInitialPlayerResponse
-  const playerMatch = html.match(
-    /ytInitialPlayerResponse\s*=\s*(\{.+?\});/s
-  );
-  if (!playerMatch) {
-    throw new Error('Could not extract player data from YouTube page');
+  // Check playability
+  if (data.playabilityStatus?.status === 'ERROR') {
+    throw new Error(data.playabilityStatus.reason || 'Video is unavailable');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let playerData: Record<string, any>;
-  try {
-    playerData = JSON.parse(playerMatch[1]);
-  } catch {
-    throw new Error('Failed to parse YouTube player data');
-  }
-
-  const videoDetails = playerData.videoDetails || {};
+  const videoDetails = data.videoDetails || {};
   const metadata: YouTubeMetadata = {
     videoId,
     title: videoDetails.title || '',
@@ -92,8 +119,7 @@ async function fetchVideoPage(videoId: string): Promise<{
   };
 
   // Find caption tracks
-  const captions =
-    playerData.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+  const captions = data.captions?.playerCaptionsTracklistRenderer?.captionTracks;
   if (!captions || captions.length === 0) {
     throw new Error(
       'No captions available for this video. The video needs auto-generated or manual captions.'
@@ -102,7 +128,7 @@ async function fetchVideoPage(videoId: string): Promise<{
 
   // Prefer English, fall back to first available
   const englishTrack = captions.find(
-    (t: { languageCode?: string }) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
+    (t) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
   );
   const track = englishTrack || captions[0];
 
@@ -158,7 +184,7 @@ export async function extractTranscript(youtubeUrl: string): Promise<TranscriptR
     throw new Error(`Invalid YouTube URL: ${youtubeUrl}`);
   }
 
-  const { metadata, captionsUrl } = await fetchVideoPage(videoId);
+  const { metadata, captionsUrl } = await fetchVideoData(videoId);
   const segments = await fetchCaptions(captionsUrl);
 
   if (segments.length === 0) {
