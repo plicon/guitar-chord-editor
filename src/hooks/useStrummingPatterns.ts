@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { getStrummingPatterns, createStrummingPattern, updateStrummingPattern, deleteStrummingPattern } from "../services/presets/strummingApi";
 import { getBeatLabel } from "../types/strumming";
+import type { TimeSignature, Subdivision, StrokeType } from "../types/strumming";
 
 // Backend preset structure from API
-interface BackendPresetPattern {
+export interface BackendPresetPattern {
   bars: number;
   timeSignature: string;
   subdivision: number;
   pattern: (string | null)[];
 }
 
-interface BackendPreset {
+export interface BackendPreset {
   id: string;
   name: string;
   description?: string;
@@ -18,50 +19,50 @@ interface BackendPreset {
 }
 
 // Convert backend StrummingPreset format to frontend StrummingPattern format
-function transformPresetToPattern(preset: BackendPreset) {
+export function transformPresetToPattern(preset: BackendPreset) {
   const { pattern } = preset;
   const beatsPerBar = pattern.timeSignature === "6/8" ? 6 : parseInt(pattern.timeSignature.split("/")[0]);
   
   return {
     bars: pattern.bars,
     beatsPerBar,
-    timeSignature: pattern.timeSignature as import("../types/strumming").TimeSignature,
-    subdivision: pattern.subdivision as import("../types/strumming").Subdivision,
+    timeSignature: pattern.timeSignature as TimeSignature,
+    subdivision: pattern.subdivision as Subdivision,
     beats: pattern.pattern.map((stroke: string | null, index: number) => ({
-      stroke: stroke as import("../types/strumming").StrokeType,
+      stroke: stroke as StrokeType,
       noteValue: "full" as const,
-      beatType: getBeatLabel(index, pattern.subdivision as import("../types/strumming").Subdivision),
+      beatType: getBeatLabel(index, pattern.subdivision as Subdivision),
     })),
   };
 }
 
-export function useStrummingPatterns({ admin = false } = {}) {
-  const [patterns, setPatterns] = useState([]);
+export function useStrummingPatterns() {
+  const [patterns, setPatterns] = useState<BackendPreset[]>([]);
 
   useEffect(() => {
-    getStrummingPatterns({ admin })
-      .then((response) => {
+    getStrummingPatterns()
+      .then((response: { data?: BackendPreset[] } | BackendPreset[]) => {
         // Extract data array from paginated response
-        const data = response.data || response;
+        const data = (response as { data?: BackendPreset[] }).data || response;
         setPatterns(Array.isArray(data) ? data : []);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         console.error("Failed to fetch patterns:", err);
         setPatterns([]);
       });
-  }, [admin]);
+  }, []);
 
-  async function createPattern(data) {
+  async function createPattern(data: Record<string, unknown>) {
     const newPattern = await createStrummingPattern(data);
     setPatterns((prev) => [...prev, newPattern]);
   }
 
-  async function updatePattern(id, data) {
+  async function updatePattern(id: string, data: Record<string, unknown>) {
     const updated = await updateStrummingPattern(id, data);
     setPatterns((prev) => prev.map((p) => (p.id === id ? updated : p)));
   }
 
-  async function deletePattern(id) {
+  async function deletePattern(id: string) {
     await deleteStrummingPattern(id);
     setPatterns((prev) => prev.filter((p) => p.id !== id));
   }

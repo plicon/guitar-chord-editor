@@ -82,7 +82,7 @@ function transformPatternToPreset(pattern: StrummingPattern) {
 // It reuses display/editor components and toggles CRUD controls
 
 export default function AdminStrummingPatternsPage() {
-  const { patterns, createPattern, updatePattern, deletePattern } = useStrummingPatterns({ admin: true });
+  const { patterns, createPattern, updatePattern, deletePattern } = useStrummingPatterns();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [presetName, setPresetName] = useState("");
