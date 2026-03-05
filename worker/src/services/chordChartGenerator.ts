@@ -39,7 +39,7 @@ export async function generateChordChart(
       { role: 'user', content: userPrompt },
     ],
     temperature: 0.2,
-    maxTokens: 4096,
+    maxTokens: 8192,
   });
 
   return parseResponse(response.content);
@@ -90,7 +90,7 @@ export async function generateChordChartFromVideo(
           },
         ],
         generationConfig: {
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192,
           temperature: 0.2,
         },
       }),
@@ -164,29 +164,79 @@ function parseResponse(content: string): GeneratedChordChart {
 
   try {
     const parsed = JSON.parse(cleaned);
-
-    // Validate minimum structure
-    if (!parsed.sections || !Array.isArray(parsed.sections)) {
-      throw new Error('Response missing "sections" array');
+    return validateParsed(parsed, content);
+  } catch (e) {
+    // Attempt to repair truncated JSON by closing open structures
+    const repaired = tryRepairTruncatedJson(cleaned);
+    if (repaired) {
+      try {
+        const parsed = JSON.parse(repaired);
+        return validateParsed(parsed, content);
+      } catch {
+        // Fall through to original error
+      }
     }
 
-    return {
-      title: parsed.title || 'Untitled',
-      artist: parsed.artist,
-      key: parsed.key,
-      tempo: parsed.tempo ? Number(parsed.tempo) : undefined,
-      timeSignature: parsed.timeSignature,
-      sections: parsed.sections.map((s: { name?: string; type?: string; chords?: unknown }) => ({
-        name: s.name || 'Section',
-        type: s.type || 'custom',
-        chords: Array.isArray(s.chords) ? s.chords.map(String) : [],
-      })),
-      strummingPattern: parsed.strummingPattern,
-      notes: parsed.notes,
-    };
-  } catch (e) {
     throw new Error(
       `Failed to parse LLM response as JSON: ${e instanceof Error ? e.message : e}\n\nRaw response:\n${content.slice(0, 500)}`
     );
   }
+}
+
+function validateParsed(parsed: Record<string, unknown>, rawContent: string): GeneratedChordChart {
+  if (!parsed.sections || !Array.isArray(parsed.sections)) {
+    throw new Error('Response missing "sections" array');
+  }
+
+  return {
+    title: (parsed.title as string) || 'Untitled',
+    artist: parsed.artist as string | undefined,
+    key: parsed.key as string | undefined,
+    tempo: parsed.tempo ? Number(parsed.tempo) : undefined,
+    timeSignature: parsed.timeSignature as string | undefined,
+    sections: (parsed.sections as Array<{ name?: string; type?: string; chords?: unknown }>).map(s => ({
+      name: s.name || 'Section',
+      type: s.type || 'custom',
+      chords: Array.isArray(s.chords) ? s.chords.map(String) : [],
+    })),
+    strummingPattern: parsed.strummingPattern as string | undefined,
+    notes: parsed.notes as string | undefined,
+  };
+}
+
+/**
+ * Try to repair truncated JSON by closing open brackets/braces and strings.
+ */
+function tryRepairTruncatedJson(json: string): string | null {
+  // Only attempt repair if it looks like truncated JSON
+  if (!json.startsWith('{') && !json.startsWith('[')) return null;
+
+  let repaired = json;
+
+  // Close any unterminated string (odd number of unescaped quotes)
+  const quoteCount = (repaired.match(/(?<!\\)"/g) || []).length;
+  if (quoteCount % 2 !== 0) {
+    repaired += '"';
+  }
+
+  // Build closing sequence based on open brackets
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of repaired) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') stack.push('}');
+    else if (ch === '[') stack.push(']');
+    else if (ch === '}' || ch === ']') stack.pop();
+  }
+
+  // Close all open structures
+  while (stack.length > 0) {
+    repaired += stack.pop();
+  }
+
+  return repaired;
 }

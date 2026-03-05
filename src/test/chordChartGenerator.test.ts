@@ -120,7 +120,7 @@ describe('generateChordChart', () => {
           expect.objectContaining({ role: 'user' }),
         ]),
         temperature: 0.2,
-        maxTokens: 4096,
+        maxTokens: 8192,
       })
     );
   });
@@ -182,5 +182,26 @@ describe('generateChordChart', () => {
     // Should have multiple timestamp markers due to >30s gaps
     expect(userContent).toContain('[0:00]');
     expect(userContent).toContain('[0:45]');
+  });
+
+  it('repairs truncated JSON with missing closing brackets', async () => {
+    // Simulate the exact truncation from the user's error
+    const truncated = '{"title":"Sky Full of Stars","artist":"Coldplay","sections":[{"name":"Intro","type":"intro","chords":["Am","Fmaj7","C","Em"]},{"name":"Verse","type":"verse","chords":["Am","Fmaj7","C","Em"]},{"name":"Pre-Chorus","type":"pre-chorus","chords":["Am","Fmaj7","C';
+    const llm = createMockLLM(truncated);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Sky Full of Stars');
+    expect(result.artist).toBe('Coldplay');
+    expect(result.sections.length).toBeGreaterThanOrEqual(2);
+    expect(result.sections[0].chords).toEqual(['Am', 'Fmaj7', 'C', 'Em']);
+  });
+
+  it('repairs truncated JSON wrapped in code fences', async () => {
+    const truncated = '```json\n{"title":"Test","sections":[{"name":"Verse","type":"verse","chords":["Am","C"';
+    const llm = createMockLLM(truncated);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Test');
+    expect(result.sections).toHaveLength(1);
   });
 });
