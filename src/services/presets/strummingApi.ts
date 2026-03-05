@@ -1,9 +1,9 @@
 // API client for strumming pattern CRUD
 
-const API_BASE = import.meta.env.VITE_API_URL;
-const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL;
-const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID;
-const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET;
+const API_BASE = import.meta.env.VITE_API_URL || 'https://production.api.fretkit.io/api';
+const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL || API_BASE;
+const CF_ACCESS_CLIENT_ID = import.meta.env.VITE_CF_ACCESS_CLIENT_ID || '';
+const CF_ACCESS_CLIENT_SECRET = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET || '';
 
 // Helper to get Cloudflare Access headers for admin endpoints
 function getAdminHeaders(extraHeaders = {}) {
