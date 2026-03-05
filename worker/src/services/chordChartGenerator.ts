@@ -171,6 +171,9 @@ function parseResponse(content: string): GeneratedChordChart {
     }
   }
 
+  // Fix structural issues (e.g., key-value pairs placed inside arrays by the LLM)
+  cleaned = fixKeyValuePairsInArrays(cleaned);
+
   try {
     const parsed = JSON.parse(cleaned);
     return validateParsed(parsed, content);
@@ -212,6 +215,95 @@ function validateParsed(parsed: Record<string, unknown>, rawContent: string): Ge
     strummingPattern: parsed.strummingPattern as string | undefined,
     notes: parsed.notes as string | undefined,
   };
+}
+
+/**
+ * Fix key-value pairs accidentally placed inside JSON arrays.
+ * LLMs sometimes output: "tab": ["e|---", "notes": "text"]
+ * which should be: "tab": ["e|---"], "notes": "text"
+ */
+function fixKeyValuePairsInArrays(json: string): string {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+  const contextStack: string[] = [];
+  let pendingSkips = 0;
+
+  let i = 0;
+  while (i < json.length) {
+    const ch = json[i];
+
+    if (escaped) {
+      escaped = false;
+      result += ch;
+      i++;
+      continue;
+    }
+
+    if (ch === '\\' && inString) {
+      escaped = true;
+      result += ch;
+      i++;
+      continue;
+    }
+
+    if (ch === '"') {
+      if (!inString) {
+        inString = true;
+        // Check if we're inside an array and this starts a key-value pair
+        if (contextStack.length > 0 && contextStack[contextStack.length - 1] === '[') {
+          // Look ahead: find end of this string, then check for ':'
+          let j = i + 1;
+          while (j < json.length) {
+            if (json[j] === '\\') { j += 2; continue; }
+            if (json[j] === '"') break;
+            j++;
+          }
+          let k = j + 1;
+          while (k < json.length && /[\s\n\r\t]/.test(json[k])) k++;
+          if (k < json.length && json[k] === ':') {
+            // Close the array before this key-value pair
+            result = result.replace(/,\s*$/, '');
+            result += '], ';
+            contextStack.pop();
+            pendingSkips++;
+          }
+        }
+      } else {
+        inString = false;
+      }
+      result += ch;
+      i++;
+      continue;
+    }
+
+    if (inString) {
+      result += ch;
+      i++;
+      continue;
+    }
+
+    if (ch === '{') {
+      contextStack.push('{');
+    } else if (ch === '[') {
+      contextStack.push('[');
+    } else if (ch === ']') {
+      if (pendingSkips > 0 &&
+          (contextStack.length === 0 || contextStack[contextStack.length - 1] !== '[')) {
+        pendingSkips--;
+        i++;
+        continue; // skip orphaned ]
+      }
+      if (contextStack.length > 0) contextStack.pop();
+    } else if (ch === '}') {
+      if (contextStack.length > 0) contextStack.pop();
+    }
+
+    result += ch;
+    i++;
+  }
+
+  return result;
 }
 
 /**
