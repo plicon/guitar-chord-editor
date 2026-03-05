@@ -106,7 +106,7 @@ function parseResponse(content: string): GeneratedChordChart {
       key: parsed.key,
       tempo: parsed.tempo ? Number(parsed.tempo) : undefined,
       timeSignature: parsed.timeSignature,
-      sections: parsed.sections.map((s: any) => ({
+      sections: parsed.sections.map((s: { name?: string; type?: string; chords?: unknown }) => ({
         name: s.name || 'Section',
         type: s.type || 'custom',
         chords: Array.isArray(s.chords) ? s.chords.map(String) : [],

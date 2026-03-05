@@ -75,7 +75,8 @@ async function fetchVideoPage(videoId: string): Promise<{
     throw new Error('Could not extract player data from YouTube page');
   }
 
-  let playerData: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let playerData: Record<string, any>;
   try {
     playerData = JSON.parse(playerMatch[1]);
   } catch {
@@ -101,7 +102,7 @@ async function fetchVideoPage(videoId: string): Promise<{
 
   // Prefer English, fall back to first available
   const englishTrack = captions.find(
-    (t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
+    (t: { languageCode?: string }) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
   );
   const track = englishTrack || captions[0];
 

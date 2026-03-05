@@ -55,7 +55,7 @@ export function createGoogleProvider(apiKey: string, modelOverride?: string): LL
         throw new Error(`Google AI API error (${response.status}): ${error}`);
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>; usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number } };
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
       return {

@@ -29,7 +29,8 @@ interface LLMEnv {
   OPENAI_API_KEY?: string;
   GOOGLE_AI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
-  AI?: any; // Cloudflare Workers AI binding
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AI?: { run: (...args: any[]) => Promise<unknown> };
 }
 
 export function createLLMProvider(env: LLMEnv): LLMProvider {

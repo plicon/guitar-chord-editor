@@ -21,8 +21,9 @@ import { handleGenerate } from '../../worker/src/routes/generate';
 import { extractVideoId, extractTranscript } from '../../worker/src/services/youtube';
 import { createLLMProvider } from '../../worker/src/llm';
 import { generateChordChart } from '../../worker/src/services/chordChartGenerator';
+import type { Env } from '../../worker/src/types';
 
-function createRequest(method: string, body?: any): Request {
+function createRequest(method: string, body?: Record<string, unknown>): Request {
   return new Request('https://test.com/api/generate/from-youtube', {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -31,11 +32,11 @@ function createRequest(method: string, body?: any): Request {
 }
 
 const mockEnv = {
-  DB: {} as any,
+  DB: {} as unknown,
   ENVIRONMENT: 'development' as const,
   LLM_PROVIDER: 'openai',
   OPENAI_API_KEY: 'sk-test',
-};
+} as Env;
 
 describe('handleGenerate - POST /api/generate/from-youtube', () => {
   beforeEach(() => {
@@ -46,7 +47,7 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     const req = createRequest('POST', {});
     const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
     expect(res.status).toBe(400);
-    const body = await res.json() as any;
+    const body = await res.json() as Record<string, unknown>;
     expect(body.error).toContain('url');
   });
 
@@ -55,7 +56,7 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     const req = createRequest('POST', { url: 'not-a-url' });
     const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
     expect(res.status).toBe(400);
-    const body = await res.json() as any;
+    const body = await res.json() as Record<string, unknown>;
     expect(body.error).toContain('Invalid YouTube URL');
   });
 
@@ -66,7 +67,7 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     const req = createRequest('POST', { url: 'https://youtube.com/watch?v=abc12345678' });
     const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
     expect(res.status).toBe(422);
-    const body = await res.json() as any;
+    const body = await res.json() as Record<string, unknown>;
     expect(body.error).toContain('No captions available');
   });
 
@@ -104,7 +105,7 @@ describe('handleGenerate - POST /api/generate/from-youtube', () => {
     const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'from-youtube']);
     expect(res.status).toBe(200);
 
-    const body = await res.json() as any;
+    const body = await res.json() as { chart: { title: string; sections: Array<{ chords: string[] }> }; provider: string; model: string };
     expect(body.chart.title).toBe('Test Song');
     expect(body.chart.sections[0].chords).toEqual(['Am', 'C']);
     expect(body.provider).toBe('openai');
@@ -118,10 +119,10 @@ describe('handleGenerate - GET /api/generate/providers', () => {
     const res = await handleGenerate(req, mockEnv, ['api', 'generate', 'providers']);
     expect(res.status).toBe(200);
 
-    const body = await res.json() as any;
+    const body = await res.json() as { current: { provider: string }; available: Array<{ id: string }> };
     expect(body.current.provider).toBe('openai');
     expect(body.available).toHaveLength(4);
-    expect(body.available.map((p: any) => p.id)).toEqual([
+    expect(body.available.map((p) => p.id)).toEqual([
       'cloudflare', 'openai', 'google', 'anthropic',
     ]);
   });
