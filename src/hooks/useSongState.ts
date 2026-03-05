@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import type { YouTubeGenerateResult } from "@/services/youtubeImport";
 import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern, getSlotsPerBar } from "@/types/strumming";
 import { sanitizeFilename } from "@/lib/utils";
@@ -112,6 +113,7 @@ export interface SongActions {
   handleLoadSong: (id: string) => Promise<void>;
   handleExportJson: () => void;
   handleImportJson: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  loadFromYouTubeResult: (result: YouTubeGenerateResult) => void;
   
   getCurrentSong: () => Song;
   hasEditedContent: boolean;
@@ -417,6 +419,36 @@ export function useSongState(): [SongState, SongActions] {
     }));
   }, []);
 
+  const loadFromYouTubeResult = useCallback((result: YouTubeGenerateResult) => {
+    const chart = result.chart;
+    const songSections: SongSection[] = chart.sections.map((s) => {
+      const validType = ['intro', 'verse', 'chorus', 'bridge', 'solo', 'outro', 'custom'].includes(s.type)
+        ? s.type as SectionType
+        : 'custom' as SectionType;
+      const section = createSection(validType, s.name);
+      // Convert chord names to ChordDiagram objects
+      const chords = s.chords.map((name) => {
+        const chord = createEmptyChord(`chord-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`);
+        chord.name = name;
+        return chord;
+      });
+      if (chords.length > 0) {
+        section.rows = [createChordRow(chords)];
+      }
+      return section;
+    });
+
+    const song = createSong(chart.title || 'Imported Song');
+    song.artist = chart.artist;
+    song.key = chart.key;
+    song.tempo = chart.tempo;
+    song.timeSignature = chart.timeSignature;
+    song.sections = songSections;
+    song.notes = chart.notes;
+
+    loadSongIntoEditor(song);
+  }, [loadSongIntoEditor]);
+
   const hasEditedContent = sections.some(section =>
     section.rows.some(row => {
       if (row.kind === 'chord-row') {
@@ -470,6 +502,7 @@ export function useSongState(): [SongState, SongActions] {
     handleExportJson,
     handleImportJson,
     getCurrentSong,
+    loadFromYouTubeResult,
     hasEditedContent,
   };
 
