@@ -5,15 +5,16 @@ import { describe, it, expect, vi } from 'vitest';
 import { createLLMProvider } from '../../worker/src/llm';
 
 describe('createLLMProvider', () => {
-  it('defaults to cloudflare provider', () => {
-    const mockAI = { run: vi.fn() };
-    const provider = createLLMProvider({ AI: mockAI });
-    expect(provider.name).toBe('cloudflare');
+  it('defaults to google provider', () => {
+    const provider = createLLMProvider({
+      GOOGLE_AI_API_KEY: 'test-key',
+    });
+    expect(provider.name).toBe('google');
   });
 
-  it('throws when cloudflare AI binding is missing', () => {
-    expect(() => createLLMProvider({ LLM_PROVIDER: 'cloudflare' }))
-      .toThrow('Cloudflare Workers AI binding not found');
+  it('throws when google API key is missing for default provider', () => {
+    expect(() => createLLMProvider({}))
+      .toThrow('GOOGLE_AI_API_KEY secret not configured');
   });
 
   it('creates openai provider with API key', () => {
@@ -63,13 +64,12 @@ describe('createLLMProvider', () => {
       .toThrow('Unknown LLM_PROVIDER: "unknown"');
   });
 
-  it('respects LLM_MODEL override for cloudflare', () => {
-    const mockAI = { run: vi.fn() };
+  it('respects LLM_MODEL override for google', () => {
     const provider = createLLMProvider({
-      AI: mockAI,
-      LLM_MODEL: '@cf/mistral/mistral-7b-instruct',
+      GOOGLE_AI_API_KEY: 'test-key',
+      LLM_MODEL: 'gemini-2.0-pro',
     });
-    expect(provider.defaultModel).toBe('@cf/mistral/mistral-7b-instruct');
+    expect(provider.defaultModel).toBe('gemini-2.0-pro');
   });
 
   it('respects LLM_MODEL override for openai', () => {
@@ -79,31 +79,5 @@ describe('createLLMProvider', () => {
       LLM_MODEL: 'gpt-4o',
     });
     expect(provider.defaultModel).toBe('gpt-4o');
-  });
-});
-
-describe('Cloudflare provider complete()', () => {
-  it('calls AI.run with correct parameters', async () => {
-    const mockAI = {
-      run: vi.fn().mockResolvedValue({ response: 'Hello world' }),
-    };
-    const provider = createLLMProvider({ AI: mockAI });
-
-    const result = await provider.complete({
-      messages: [{ role: 'user', content: 'Hi' }],
-      temperature: 0.5,
-      maxTokens: 100,
-    });
-
-    expect(mockAI.run).toHaveBeenCalledWith(
-      '@cf/meta/llama-3.1-8b-instruct',
-      {
-        messages: [{ role: 'user', content: 'Hi' }],
-        temperature: 0.5,
-        max_tokens: 100,
-      }
-    );
-    expect(result.content).toBe('Hello world');
-    expect(result.model).toBe('@cf/meta/llama-3.1-8b-instruct');
   });
 });

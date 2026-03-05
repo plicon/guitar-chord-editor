@@ -3,14 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Cloudflare Workers AI binding (used when LLM_PROVIDER=cloudflare)
-[ai]
-binding = "AI"
+# LLM provider: set LLM_PROVIDER and corresponding API key secret
+# Supported: google (GOOGLE_AI_API_KEY), openai (OPENAI_API_KEY), anthropic (ANTHROPIC_API_KEY)
 
 # Development environment (default)
 [env.development]
 name = "fretkit-worker-development"
-vars = { ENVIRONMENT = "development", LLM_PROVIDER = "cloudflare" }
+vars = { ENVIRONMENT = "development", LLM_PROVIDER = "google" }
 [[env.development.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db"
@@ -20,7 +19,7 @@ migrations_dir = "migrations"
 # Production environment
 [env.production]
 name = "fretkit-worker-production"
-vars = { ENVIRONMENT = "production", LLM_PROVIDER = "cloudflare" }
+vars = { ENVIRONMENT = "production", LLM_PROVIDER = "google" }
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-production"
@@ -30,7 +29,7 @@ migrations_dir = "migrations"
 # Staging environment
 [env.staging]
 name = "fretkit-worker-staging"
-vars = { ENVIRONMENT = "staging", LLM_PROVIDER = "cloudflare" }
+vars = { ENVIRONMENT = "staging", LLM_PROVIDER = "google" }
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-staging"
