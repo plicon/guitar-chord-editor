@@ -10,7 +10,8 @@
 import type { LLMProvider, LLMCompletionRequest, LLMCompletionResponse } from '../types';
 import { DEFAULT_MODELS } from '../types';
 
-export function createCloudflareProvider(ai: any, modelOverride?: string): LLMProvider {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createCloudflareProvider(ai: { run: (...args: any[]) => Promise<unknown> }, modelOverride?: string): LLMProvider {
   const defaultModel = modelOverride || DEFAULT_MODELS.cloudflare;
 
   return {
@@ -24,7 +25,7 @@ export function createCloudflareProvider(ai: any, modelOverride?: string): LLMPr
         messages: request.messages,
         max_tokens: request.maxTokens || 4096,
         temperature: request.temperature ?? 0.3,
-      });
+      }) as { response?: string };
 
       return {
         content: result.response || '',

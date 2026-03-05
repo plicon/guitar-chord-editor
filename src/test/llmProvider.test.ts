@@ -59,7 +59,7 @@ describe('createLLMProvider', () => {
   });
 
   it('throws for unknown provider', () => {
-    expect(() => createLLMProvider({ LLM_PROVIDER: 'unknown' } as any))
+    expect(() => createLLMProvider({ LLM_PROVIDER: 'unknown' } as Parameters<typeof createLLMProvider>[0]))
       .toThrow('Unknown LLM_PROVIDER: "unknown"');
   });
 

@@ -37,7 +37,7 @@ export function createOpenAIProvider(apiKey: string, modelOverride?: string): LL
         throw new Error(`OpenAI API error (${response.status}): ${error}`);
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as { choices: Array<{ message?: { content?: string } }>; model?: string; usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } };
       return {
         content: data.choices[0]?.message?.content || '',
         model: data.model,

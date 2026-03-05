@@ -322,7 +322,8 @@ export interface Env {
   // LLM provider configuration
   LLM_PROVIDER?: string;  // 'cloudflare' | 'openai' | 'google' | 'anthropic'
   LLM_MODEL?: string;     // Override default model for the selected provider
-  AI?: any;               // Cloudflare Workers AI binding (when LLM_PROVIDER=cloudflare)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AI?: { run: (...args: any[]) => Promise<unknown> };
   OPENAI_API_KEY?: string;
   GOOGLE_AI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;

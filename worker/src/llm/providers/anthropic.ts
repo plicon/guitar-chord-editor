@@ -50,7 +50,7 @@ export function createAnthropicProvider(apiKey: string, modelOverride?: string):
         throw new Error(`Anthropic API error (${response.status}): ${error}`);
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as { content?: Array<{ text?: string }>; model?: string; usage?: { input_tokens?: number; output_tokens?: number } };
       const text = data.content?.[0]?.text || '';
 
       return {

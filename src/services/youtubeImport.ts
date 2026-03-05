@@ -66,7 +66,8 @@ export async function generateFromYouTube(url: string): Promise<YouTubeGenerateR
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error((error as any).error || `Request failed (${response.status})`);
+    const errorBody = error as Record<string, unknown>;
+    throw new Error((errorBody.error as string) || `Request failed (${response.status})`);
   }
 
   return response.json();

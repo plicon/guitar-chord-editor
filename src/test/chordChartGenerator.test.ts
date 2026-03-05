@@ -133,8 +133,8 @@ describe('generateChordChart', () => {
 
     await generateChordChart(llm, createMockTranscript());
 
-    const call = (llm.complete as any).mock.calls[0][0];
-    const userMessage = call.messages.find((m: any) => m.role === 'user');
+    const call = vi.mocked(llm.complete).mock.calls[0][0];
+    const userMessage = call.messages.find((m: { role: string }) => m.role === 'user');
     expect(userMessage.content).toContain('Wonderwall');
     expect(userMessage.content).toContain('Guitar Teacher');
   });
@@ -177,8 +177,8 @@ describe('generateChordChart', () => {
 
     await generateChordChart(llm, transcript);
 
-    const call = (llm.complete as any).mock.calls[0][0];
-    const userContent = call.messages.find((m: any) => m.role === 'user').content;
+    const call = vi.mocked(llm.complete).mock.calls[0][0];
+    const userContent = call.messages.find((m: { role: string }) => m.role === 'user')!.content;
     // Should have multiple timestamp markers due to >30s gaps
     expect(userContent).toContain('[0:00]');
     expect(userContent).toContain('[0:45]');
