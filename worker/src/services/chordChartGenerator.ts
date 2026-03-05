@@ -40,7 +40,7 @@ export async function generateChordChart(
       { role: 'user', content: userPrompt },
     ],
     temperature: 0.2,
-    maxTokens: 8192,
+    maxTokens: 16384,
   });
 
   return parseResponse(response.content);

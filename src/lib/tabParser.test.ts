@@ -2,9 +2,39 @@ import { describe, it, expect } from "vitest";
 import { parseAsciiTab } from "./tabParser";
 
 describe("parseAsciiTab", () => {
-  it("returns empty array for non-6-line input", () => {
+  it("returns empty array for insufficient lines", () => {
     expect(parseAsciiTab([])).toEqual([]);
     expect(parseAsciiTab(["e|---"])).toEqual([]);
+    expect(parseAsciiTab(["e|---", "B|---", "G|---"])).toEqual([]); // 3 lines too few
+  });
+
+  it("pads 4-line tab to 6 lines", () => {
+    const lines = [
+      "e|---0---|",
+      "B|---1---|",
+      "G|---0---|",
+      "D|---2---|",
+    ];
+    const measures = parseAsciiTab(lines);
+    expect(measures.length).toBeGreaterThanOrEqual(1);
+    const allColumns = measures.flatMap(m => m.columns);
+    expect(allColumns.some(col => col.strings[0].fret === 0)).toBe(true);
+    // Padded strings should have no fret data
+    expect(allColumns.every(col => col.strings[4].fret === null && col.strings[5].fret === null)).toBe(true);
+  });
+
+  it("pads 5-line tab to 6 lines", () => {
+    const lines = [
+      "e|---3---|",
+      "B|-------|",
+      "G|-------|",
+      "D|-------|",
+      "A|---0---|",
+    ];
+    const measures = parseAsciiTab(lines);
+    expect(measures.length).toBeGreaterThanOrEqual(1);
+    const allColumns = measures.flatMap(m => m.columns);
+    expect(allColumns.some(col => col.strings[0].fret === 3)).toBe(true);
   });
 
   it("parses simple single-note tab", () => {

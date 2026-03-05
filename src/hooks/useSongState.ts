@@ -451,8 +451,8 @@ export function useSongState(): [SongState, SongActions] {
       if (chords.length > 0) {
         rows.push(createChordRow(chords));
       }
-      // Parse tab notation if present
-      if (s.tab && Array.isArray(s.tab) && s.tab.length === 6) {
+      // Parse tab notation if present (4-6 lines accepted)
+      if (s.tab && Array.isArray(s.tab) && s.tab.length >= 4 && s.tab.length <= 6) {
         const tabMeasures = parseAsciiTab(s.tab);
         if (tabMeasures.length > 0) {
           rows.push(createTabRow(tabMeasures));
