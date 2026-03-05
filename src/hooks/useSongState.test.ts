@@ -488,7 +488,7 @@ describe("useSongState", () => {
       }
     });
 
-    it("should do nothing when row is at max capacity with all edited chords", () => {
+    it("should allow duplicating beyond 5 chords since there is no limit", () => {
       const { result } = renderHook(() => useSongState());
 
       act(() => { result.current[1].addSection("verse"); });
@@ -506,8 +506,9 @@ describe("useSongState", () => {
 
       const row = result.current[0].sections[0].rows[0];
       if (row.kind === "chord-row") {
-        expect(row.chords).toHaveLength(5);
+        expect(row.chords).toHaveLength(6);
         expect(row.chords[0].name).toBe("G");
+        expect(row.chords[1].name).toBe("G"); // duplicate inserted after source
       }
     });
 
