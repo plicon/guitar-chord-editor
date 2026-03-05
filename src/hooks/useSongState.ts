@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import type { YouTubeGenerateResult } from "@/services/youtubeImport";
 import { ChordDiagram, ChordPreset, createEmptyChord, isChordEdited } from "@/types/chord";
-import { StrummingPattern, getSlotsPerBar } from "@/types/strumming";
+import { StrummingPattern, getSlotsPerBar, type TimeSignature } from "@/types/strumming";
+import { parseStrummingPatternString } from "@/lib/strummingPatternParser";
 import { sanitizeFilename } from "@/lib/utils";
 import { 
   Song, 
@@ -462,6 +463,15 @@ export function useSongState(): [SongState, SongActions] {
     song.timeSignature = chart.timeSignature;
     song.sections = songSections;
     song.notes = chart.notes;
+
+    // Parse strumming pattern string into a StrummingPattern object
+    if (chart.strummingPattern) {
+      const timeSignature = (chart.timeSignature as TimeSignature) || '4/4';
+      const parsed = parseStrummingPatternString(chart.strummingPattern, timeSignature);
+      if (parsed) {
+        song.strummingPattern = parsed;
+      }
+    }
 
     // Include YouTube source URL in description
     if (result.sourceUrl) {
