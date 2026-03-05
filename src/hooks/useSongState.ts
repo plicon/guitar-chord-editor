@@ -348,7 +348,6 @@ export function useSongState(): [SongState, SongActions] {
         ...section,
         rows: section.rows.map(row => {
           if (row.id !== rowId || row.kind !== 'chord-row') return row;
-          if (row.chords.length >= 5) return row; // Max 5 chords
           
           const newChord = createEmptyChord(`chord-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`);
           return { ...row, chords: [...row.chords, newChord] };
@@ -408,10 +407,9 @@ export function useSongState(): [SongState, SongActions] {
 
           if (emptyIndex !== -1) {
             newChords[emptyIndex] = duplicate;
-          } else if (newChords.length < 5) {
+          } else {
             newChords.splice(chordIndex + 1, 0, duplicate);
           }
-          // else: row is full with all edited chords — button should not be visible
 
           return { ...row, chords: newChords };
         }),

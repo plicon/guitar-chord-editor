@@ -40,15 +40,15 @@ export const ChordRow = ({
   const isTouch = useIsTouchDevice();
   const isTabletDevice = useIsTablet();
   const showTouchControls = isTouch || isTabletDevice;
-  const shouldScroll = isMobile && chords.length > 3;
+  const shouldScroll = isMobile && chords.length > 4;
 
-  const gridCols = {
+  // Always use max 4 columns; extra chords wrap to next line
+  const gridColsMap: Record<number, string> = {
     1: "grid-cols-1",
     2: "grid-cols-2",
     3: "grid-cols-3",
-    4: "grid-cols-4",
-    5: "grid-cols-5",
-  }[chords.length] || "grid-cols-4";
+  };
+  const gridCols = gridColsMap[chords.length] || "grid-cols-4";
 
   const { setNodeRef } = useDroppable({
     id: `row-${rowIndex}`,
@@ -86,7 +86,7 @@ export const ChordRow = ({
               <SortableChord
                 chord={chord}
                 onClick={() => onChordClick(index)}
-                onDuplicate={onDuplicateChord && (chords.length < 5 || chords.some(c => !isChordEdited(c))) ? () => onDuplicateChord(index) : undefined}
+                onDuplicate={onDuplicateChord ? () => onDuplicateChord(index) : undefined}
               />
             </div>
           ))}
@@ -98,7 +98,7 @@ export const ChordRow = ({
               key={chord.id}
               chord={chord}
               onClick={() => onChordClick(index)}
-              onDuplicate={onDuplicateChord && (chords.length < 5 || chords.some(c => !isChordEdited(c))) ? () => onDuplicateChord(index) : undefined}
+              onDuplicate={onDuplicateChord ? () => onDuplicateChord(index) : undefined}
             />
           ))}
         </div>
@@ -152,8 +152,7 @@ export const ChordRow = ({
             size="sm"
             className={cn(showTouchControls ? "h-9 px-3" : "h-7 px-2")}
             onClick={onAddChord}
-            disabled={chords.length >= 5}
-            title={chords.length >= 5 ? "Maximum 5 chords per row" : "Add chord"}
+            title="Add chord"
           >
             <Plus className="w-3 h-3 mr-1" />
             Add Chord
