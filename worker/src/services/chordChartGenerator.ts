@@ -59,17 +59,17 @@ export async function generateChordChartFromVideo(
   const geminiModel = model || 'gemini-2.5-flash';
 
   const userPrompt = [
-    `Analyze this YouTube guitar tutorial video and extract all chord information.`,
+    `Analyze this YouTube guitar tutorial video and extract the chord chart.`,
     `Video: "${metadata.title}" by ${metadata.author}`,
     metadata.description ? `\nDescription:\n${metadata.description.slice(0, 500)}` : '',
-    `\nWatch and listen carefully. Identify:`,
-    `- All chords mentioned or played (with correct chord names)`,
-    `- Song sections (intro, verse, chorus, bridge, etc.)`,
+    `\nYour #1 priority is to identify ALL song sections (intro, verse, pre-chorus, chorus, bridge, solo, outro) and the chords used in each. Do NOT skip any section.`,
+    `\nAdditional extraction:`,
     `- Strumming patterns if demonstrated`,
     `- Key, tempo, and time signature if apparent`,
-    `- Picking/fingerpicking patterns — when the instructor describes a chord shape and then says which strings to pick, derive the exact fret numbers from the chord voicing and write accurate tab`,
-    `- Riffs, licks, or melodic lines — transcribe as tab with correct fret numbers`,
-    `\nCRITICAL: When generating tab, always cross-reference the chord shape being held with the strings being picked to produce the correct fret numbers. Do not guess.`,
+    `- Riffs or picking patterns as tab (only when single notes are played, not strummed chords)`,
+    `\nIMPORTANT:`,
+    `- When the instructor offers a chord variation/alternative, pick ONE version only — do not include both`,
+    `- When generating tab, cross-reference the chord shape being held with the strings being picked to produce correct fret numbers`,
   ].filter(Boolean).join('\n');
 
   const response = await fetch(
