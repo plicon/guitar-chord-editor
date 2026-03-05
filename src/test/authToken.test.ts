@@ -13,10 +13,9 @@ async function getKey(secret: string) {
   );
 }
 
-function toB64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
+function toB64(data: Uint8Array): string {
   let s = '';
-  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  for (let i = 0; i < data.length; i++) s += String.fromCharCode(data[i]);
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
@@ -37,7 +36,7 @@ async function createToken(username: string, secret: string): Promise<string> {
   const data = new TextEncoder().encode(payloadStr);
   const k = await getKey(secret);
   const sig = await crypto.subtle.sign('HMAC', k, data);
-  return `${toB64(data.buffer as ArrayBuffer)}.${toB64(sig)}`;
+  return `${toB64(data)}.${toB64(new Uint8Array(sig))}`;
 }
 
 async function verifyToken(token: string, secret: string): Promise<TokenPayload | null> {
@@ -84,7 +83,7 @@ describe('auth token', () => {
     const data = new TextEncoder().encode(payloadStr);
     const k = await getKey(SECRET);
     const sig = await crypto.subtle.sign('HMAC', k, data);
-    const token = `${toB64(data.buffer as ArrayBuffer)}.${toB64(sig)}`;
+    const token = `${toB64(data)}.${toB64(new Uint8Array(sig))}`;
     expect(await verifyToken(token, SECRET)).toBeNull();
   });
 
