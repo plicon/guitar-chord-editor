@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppHeaderProps {
   onNew: () => void;
@@ -103,36 +110,72 @@ export const AppHeader = ({
 
   return (
     <header className="border-b border-border bg-card">
-      <div className="container mx-auto px-4 py-4 md:py-6">
+      <div className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-2">
           {/* Logo and title */}
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <img
               src="/ms-icon-310x310.png"
               alt="Fretkit Logo"
-              className="w-12 h-12 md:w-24 md:h-24 flex-shrink-0"
+              className="w-10 h-10 md:w-14 md:h-14 flex-shrink-0"
             />
             <div className="min-w-0">
-              <h1 className="text-lg md:text-4xl font-bold text-foreground truncate">
+              <h1 className="text-lg md:text-2xl font-bold text-foreground truncate">
                 Fretkit
+                <span className="hidden md:inline text-base font-normal text-muted-foreground ml-2">
+                  Guitar Chord Creator
+                </span>
               </h1>
-              <span className="hidden md:inline text-lg font-bold text-foreground">
-                {" "}- Guitar Chord Creator
-              </span>
             </div>
           </div>
 
           {/* Desktop actions */}
           {!isMobile && (
-            <div className="flex items-center gap-2">
-              <ActionButton onClick={onNew} icon={Plus} label="New" />
-              <ActionButton onClick={onNewAI} icon={Sparkles} label="New AI" />
+            <div className="flex items-center gap-1.5">
+              {/* Create actions */}
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={onNew}>
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  New
+                </Button>
+                <Button variant="outline" size="sm" onClick={onNewAI}>
+                  <Sparkles className="w-4 h-4 mr-1.5" />
+                  AI
+                </Button>
+              </div>
+
+              {/* File operations dropdown (only when authenticated) */}
               {isAuthenticated && (
                 <>
-                  <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
-                  <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
-                  <ActionButton onClick={onExport} icon={FileDown} label="Export" />
-                  <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
+                  <div className="w-px h-6 bg-border mx-1" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <FolderOpen className="w-4 h-4 mr-1.5" />
+                        File
+                        <ChevronDown className="w-3 h-3 ml-1 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={onOpen}>
+                        <FolderOpen className="w-4 h-4 mr-2" />
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onSave} disabled={isSaving}>
+                        <Save className="w-4 h-4 mr-2" />
+                        {isSaving ? "Saving..." : "Save"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={onExport}>
+                        <FileDown className="w-4 h-4 mr-2" />
+                        Export
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleImportClick}>
+                        <FileUp className="w-4 h-4 mr-2" />
+                        Import
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -142,20 +185,29 @@ export const AppHeader = ({
                   />
                 </>
               )}
+
+              <div className="w-px h-6 bg-border mx-1" />
+
+              {/* Auth & settings */}
               {isAuthenticated ? (
-                <div className="flex items-center gap-2 ml-2">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    {username}
-                  </span>
-                  <Button variant="ghost" size="sm" onClick={onLogout}>
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Logout
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1.5">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm">{username}</span>
+                      <ChevronDown className="w-3 h-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={onLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <Button variant="outline" size="sm" onClick={() => setLoginDialogOpen(true)}>
-                  <LogIn className="w-4 h-4 mr-2" />
+                <Button variant="ghost" size="sm" onClick={() => setLoginDialogOpen(true)}>
+                  <LogIn className="w-4 h-4 mr-1.5" />
                   Login
                 </Button>
               )}
@@ -179,7 +231,7 @@ export const AppHeader = ({
           )}
         </div>
 
-        <p className="text-muted-foreground mt-1 text-sm md:text-base">
+        <p className="text-muted-foreground mt-0.5 text-xs md:text-sm">
           Create and print beautiful chord diagrams
         </p>
       </div>
