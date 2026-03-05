@@ -4,8 +4,31 @@
  * These types match the D1 database schema and define the API response formats.
  */
 
-// Import Cloudflare Workers types
-import type { D1Database } from '@cloudflare/workers-types';
+// D1Database type — provided by Cloudflare Workers runtime
+// Declared locally to avoid requiring @cloudflare/workers-types in the root project
+declare global {
+  interface D1Database {
+    prepare(query: string): D1PreparedStatement;
+    batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
+    exec(query: string): Promise<D1ExecResult>;
+  }
+  interface D1PreparedStatement {
+    bind(...values: unknown[]): D1PreparedStatement;
+    first<T = unknown>(colName?: string): Promise<T | null>;
+    run<T = unknown>(): Promise<D1Result<T>>;
+    all<T = unknown>(): Promise<D1Result<T>>;
+    raw<T = unknown>(): Promise<T[]>;
+  }
+  interface D1Result<T = unknown> {
+    results: T[];
+    success: boolean;
+    meta: { changes: number; duration: number; last_row_id: number; served_by: string };
+  }
+  interface D1ExecResult {
+    count: number;
+    duration: number;
+  }
+}
 
 // ============================================================================
 // Database Types (D1 schema)
