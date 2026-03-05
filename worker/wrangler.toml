@@ -3,10 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Cloudflare Workers AI binding (used when LLM_PROVIDER=cloudflare)
+[ai]
+binding = "AI"
+
 # Development environment (default)
 [env.development]
 name = "fretkit-worker-development"
-vars = { ENVIRONMENT = "development" }
+vars = { ENVIRONMENT = "development", LLM_PROVIDER = "cloudflare" }
 [[env.development.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db"
@@ -16,7 +20,7 @@ migrations_dir = "migrations"
 # Production environment
 [env.production]
 name = "fretkit-worker-production"
-vars = { ENVIRONMENT = "production" }
+vars = { ENVIRONMENT = "production", LLM_PROVIDER = "cloudflare" }
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-production"
@@ -26,7 +30,7 @@ migrations_dir = "migrations"
 # Staging environment
 [env.staging]
 name = "fretkit-worker-staging"
-vars = { ENVIRONMENT = "staging" }
+vars = { ENVIRONMENT = "staging", LLM_PROVIDER = "cloudflare" }
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-staging"
