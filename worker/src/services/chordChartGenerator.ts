@@ -62,11 +62,14 @@ export async function generateChordChartFromVideo(
     `Analyze this YouTube guitar tutorial video and extract all chord information.`,
     `Video: "${metadata.title}" by ${metadata.author}`,
     metadata.description ? `\nDescription:\n${metadata.description.slice(0, 500)}` : '',
-    `\nListen to the audio carefully. Identify:`,
-    `- All chords mentioned or played`,
+    `\nWatch and listen carefully. Identify:`,
+    `- All chords mentioned or played (with correct chord names)`,
     `- Song sections (intro, verse, chorus, bridge, etc.)`,
     `- Strumming patterns if demonstrated`,
     `- Key, tempo, and time signature if apparent`,
+    `- Picking/fingerpicking patterns — when the instructor describes a chord shape and then says which strings to pick, derive the exact fret numbers from the chord voicing and write accurate tab`,
+    `- Riffs, licks, or melodic lines — transcribe as tab with correct fret numbers`,
+    `\nCRITICAL: When generating tab, always cross-reference the chord shape being held with the strings being picked to produce the correct fret numbers. Do not guess.`,
   ].filter(Boolean).join('\n');
 
   const response = await fetch(
