@@ -453,13 +453,22 @@ export function useSongState(): [SongState, SongActions] {
       return section;
     });
 
-    const song = createSong(chart.title || 'Imported Song');
+    // Format title as "Song - Artist" if artist is available
+    const titlePart = chart.title || 'Imported Song';
+    const formattedTitle = chart.artist ? `${titlePart} - ${chart.artist}` : titlePart;
+
+    const song = createSong(formattedTitle);
     song.artist = chart.artist;
     song.key = chart.key;
     song.tempo = chart.tempo;
     song.timeSignature = chart.timeSignature;
     song.sections = songSections;
     song.notes = chart.notes;
+
+    // Include YouTube source URL in description
+    if (result.sourceUrl) {
+      song.description = `Source: ${result.sourceUrl}`;
+    }
 
     loadSongIntoEditor(song);
   }, [loadSongIntoEditor]);
