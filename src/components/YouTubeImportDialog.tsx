@@ -42,6 +42,7 @@ export function YouTubeImportDialog({ open, onOpenChange, onImport }: YouTubeImp
 
     try {
       const result = await generateFromYouTube(url);
+      result.sourceUrl = url.trim();
       toast.success(`Imported "${result.chart.title}" — ${result.chart.sections.length} sections found`);
       onImport(result);
       onOpenChange(false);
