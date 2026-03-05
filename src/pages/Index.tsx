@@ -12,7 +12,8 @@ import { PreviewDialog } from "@/components/PreviewDialog";
 import { PreviewSongDialog } from "@/components/PreviewSongDialog";
 import { AppFooter } from "@/components/AppFooter";
 import { SongSectionView } from "@/components/SongSectionView";
-import { Download, Eye, Plus } from "lucide-react";
+import { YouTubeImportDialog } from "@/components/YouTubeImportDialog";
+import { Download, Eye, Plus, Youtube } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { usePdfExport } from "@/hooks/usePdfExport";
 import { SectionType, SectionTypeLabels, Song, SongSection, SectionRow } from "@/types/song";
@@ -118,7 +119,7 @@ const Index = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [strummingEditorOpen, setStrummingEditorOpen] = useState(false);
   const [savedChartsOpen, setSavedChartsOpen] = useState(false);
-
+  const [youtubeImportOpen, setYoutubeImportOpen] = useState(false);
   // dnd-kit sensors — distance:8 ensures a tap/click is never mistaken for a drag
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -225,39 +226,23 @@ const Index = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Sections</h2>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Section
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {(Object.keys(SectionTypeLabels) as SectionType[]).map((type) => (
-                    <DropdownMenuItem
-                      key={type}
-                      onClick={() => actions.addSection(type)}
-                    >
-                      {SectionTypeLabels[type]}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {state.sections.length === 0 ? (
-              <div className="text-center py-12 border rounded-lg bg-muted/30">
-                <p className="text-muted-foreground mb-4">
-                  No sections yet. Add a section to get started.
-                </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setYoutubeImportOpen(true)}
+                >
+                  <Youtube className="w-4 h-4 mr-2" />
+                  YouTube
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
+                    <Button variant="outline" size="sm">
                       <Plus className="w-4 h-4 mr-2" />
-                      Add First Section
+                      Add Section
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent align="end">
                     {(Object.keys(SectionTypeLabels) as SectionType[]).map((type) => (
                       <DropdownMenuItem
                         key={type}
@@ -268,6 +253,41 @@ const Index = () => {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </div>
+            </div>
+
+            {state.sections.length === 0 ? (
+              <div className="text-center py-12 border rounded-lg bg-muted/30">
+                <p className="text-muted-foreground mb-4">
+                  No sections yet. Add a section or import from YouTube.
+                </p>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add First Section
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {(Object.keys(SectionTypeLabels) as SectionType[]).map((type) => (
+                        <DropdownMenuItem
+                          key={type}
+                          onClick={() => actions.addSection(type)}
+                        >
+                          {SectionTypeLabels[type]}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    onClick={() => setYoutubeImportOpen(true)}
+                  >
+                    <Youtube className="w-4 h-4 mr-2" />
+                    Import from YouTube
+                  </Button>
+                </div>
               </div>
             ) : (
               <DndContext
@@ -376,6 +396,13 @@ const Index = () => {
           song={currentSong}
         />
       </div>
+
+      {/* YouTube Import Dialog */}
+      <YouTubeImportDialog
+        open={youtubeImportOpen}
+        onOpenChange={setYoutubeImportOpen}
+        onImport={actions.loadFromYouTubeResult}
+      />
 
       <AppFooter />
     </div>
