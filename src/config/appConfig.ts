@@ -82,7 +82,7 @@ export const APP_CONFIG = {
   presets: {
     backend: 'cloudflare-d1' as const,
     cloudflareD1: {
-      apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8787/api',
+      apiUrl: import.meta.env.VITE_API_URL || 'https://production.api.fretkit.io/api',
       enabled: true,
     },
   },
