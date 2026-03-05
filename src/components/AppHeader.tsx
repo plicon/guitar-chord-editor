@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp, Menu } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Drawer,
@@ -13,6 +13,7 @@ import {
 
 interface AppHeaderProps {
   onNew: () => void;
+  onNewAI: () => void;
   onOpen: () => void;
   onSave: () => void;
   onExport: () => void;
@@ -42,6 +43,7 @@ const ActionButton = ({ onClick, icon: Icon, label, disabled = false }: ActionBu
 
 export const AppHeader = ({
   onNew,
+  onNewAI,
   onOpen,
   onSave,
   onExport,
@@ -91,7 +93,7 @@ export const AppHeader = ({
           {!isMobile && (
             <div className="flex items-center gap-2">
               <ActionButton onClick={onNew} icon={Plus} label="New" />
-              <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
+              <ActionButton onClick={onNewAI} icon={Sparkles} label="New AI" />
               <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
               <ActionButton onClick={onExport} icon={FileDown} label="Export" />
               <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
@@ -138,7 +140,7 @@ export const AppHeader = ({
           </DrawerHeader>
           <div className="flex flex-col gap-2 p-4">
             <ActionButton onClick={() => handleMobileAction(onNew)} icon={Plus} label="New" />
-            <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
+            <ActionButton onClick={() => handleMobileAction(onNewAI)} icon={Sparkles} label="New AI" />
             <ActionButton onClick={() => handleMobileAction(onSave)} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
             <ActionButton onClick={() => handleMobileAction(onExport)} icon={FileDown} label="Export" />
             <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
