@@ -296,4 +296,11 @@ export interface ErrorResponse {
 export interface Env {
   DB: D1Database;
   ENVIRONMENT: 'production' | 'staging' | 'development';
+  // LLM provider configuration
+  LLM_PROVIDER?: string;  // 'cloudflare' | 'openai' | 'google' | 'anthropic'
+  LLM_MODEL?: string;     // Override default model for the selected provider
+  AI?: any;               // Cloudflare Workers AI binding (when LLM_PROVIDER=cloudflare)
+  OPENAI_API_KEY?: string;
+  GOOGLE_AI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
 }

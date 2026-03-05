@@ -9,6 +9,7 @@ import type { Env } from './types';
 import { openApiSpec } from './openapi';
 import { handleCharts, handleAdminCharts } from './routes/charts';
 import { handleSongs, handleAdminSongs } from './routes/songs';
+import { handleGenerate } from './routes/generate';
 import {
   handleChordPresets,
   handleStrummingPresets,
@@ -152,6 +153,10 @@ export default {
           pathParts[3] === 'strumming'
         ) {
           response = await handleAdminStrummingPresets(request, env, pathParts);
+        }
+        // /api/generate/*
+        else if (pathParts[1] === 'generate') {
+          response = await handleGenerate(request, env, pathParts);
         }
         // Unknown API route
         else {
