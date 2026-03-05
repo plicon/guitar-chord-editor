@@ -34,14 +34,25 @@ export class CachedPresetProvider implements PresetProvider {
     const cacheKey = `${this.config.storageKey}_chord_presets_list`;
     const cached = this.getFromCache<ChordPreset[]>(cacheKey);
 
-    if (cached) {
+    // Only use cache when it contains actual data.
+    // This prevents getting stuck with previously cached empty arrays after transient API failures.
+    if (cached && cached.length > 0) {
       console.log('Using cached chord presets');
       return cached;
     }
 
+    if (cached && cached.length === 0) {
+      localStorage.removeItem(cacheKey);
+    }
+
     console.log('Fetching chord presets from API');
     const presets = await this.provider.listChordPresets();
-    this.saveToCache(cacheKey, presets);
+
+    // Avoid caching empty results so the app can recover automatically once API connectivity is restored.
+    if (presets.length > 0) {
+      this.saveToCache(cacheKey, presets);
+    }
+
     return presets;
   }
 

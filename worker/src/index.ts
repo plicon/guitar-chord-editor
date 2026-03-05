@@ -33,7 +33,12 @@ import {
 function getCorsConfig(env: Env) {
   const allowedOrigins =
     env.ENVIRONMENT === 'production'
-      ? ['https://fretkit.io', 'https://www.fretkit.io']
+      ? [
+          'https://fretkit.io',
+          'https://www.fretkit.io',
+          '.lovableproject.com',
+          '.lovable.app',
+        ]
       : ['http://localhost:5173', 'http://localhost:3000', '*'];
 
   return {
