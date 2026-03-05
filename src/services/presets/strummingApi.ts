@@ -22,7 +22,7 @@ export async function getStrummingPatterns({ admin = false } = {}) {
   }
 }
 
-export async function createStrummingPattern(data: any) {
+export async function createStrummingPattern(data: Record<string, unknown>) {
   const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming`, {
     method: "POST",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
@@ -32,7 +32,7 @@ export async function createStrummingPattern(data: any) {
   return await res.json();
 }
 
-export async function updateStrummingPattern(id: string, data: any) {
+export async function updateStrummingPattern(id: string, data: Record<string, unknown>) {
   const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming/${id}`, {
     method: "PUT",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),

@@ -97,7 +97,7 @@ export async function verifyToken(token: string, secret: string): Promise<TokenP
  * Returns null if authorized, or an error Response if not.
  */
 export async function requireAdminAuth(request: Request, env: Env): Promise<Response | null> {
-  const secret = (env as any).ADMIN_PASSWORD;
+  const secret = (env as Record<string, unknown>).ADMIN_PASSWORD as string | undefined;
   if (!secret) {
     return new Response(JSON.stringify({ error: 'Admin auth not configured' }), {
       status: 500,
