@@ -34,7 +34,7 @@ export interface YouTubeGenerateResult {
   model: string;
 }
 
-const YOUTUBE_URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+const YOUTUBE_URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}([?&].*)?$/;
 
 export function isValidYouTubeUrl(url: string): boolean {
   return YOUTUBE_URL_REGEX.test(url.trim());

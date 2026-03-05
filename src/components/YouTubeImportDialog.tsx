@@ -71,8 +71,8 @@ export function YouTubeImportDialog({ open, onOpenChange, onImport }: YouTubeImp
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Input
-              type="url"
-              placeholder="https://www.youtube.com/watch?v=..."
+              type="text"
+              placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);
