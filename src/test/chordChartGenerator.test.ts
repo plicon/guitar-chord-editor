@@ -71,6 +71,30 @@ describe('generateChordChart', () => {
     expect(result.sections).toHaveLength(1);
   });
 
+  it('extracts JSON from prose text with code fences', async () => {
+    const json = JSON.stringify({
+      title: 'Tennessee Whiskey',
+      artist: 'Chris Stapleton',
+      sections: [{ name: 'Verse', type: 'verse', chords: ['A', 'Bm'] }],
+    });
+    const llm = createMockLLM('. The following is a detailed chord chart for the song.\n```json\n' + json + '\n```');
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Tennessee Whiskey');
+    expect(result.sections).toHaveLength(1);
+  });
+
+  it('extracts JSON when LLM returns prose before raw JSON', async () => {
+    const json = JSON.stringify({
+      title: 'Test',
+      sections: [{ name: 'Verse', type: 'verse', chords: ['C'] }],
+    });
+    const llm = createMockLLM('Here is the chord chart:\n' + json);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.title).toBe('Test');
+  });
+
   it('defaults title to Untitled when missing', async () => {
     const llm = createMockLLM(JSON.stringify({
       sections: [{ name: 'Verse', type: 'verse', chords: ['C'] }],
