@@ -4,6 +4,7 @@ import { ChordDiagram, ChordPreset, createEmptyChord, isChordEdited } from "@/ty
 import { StrummingPattern, getSlotsPerBar, TimeSignature } from "@/types/strumming";
 import { parseStrummingPatternString } from "@/lib/strummingPatternParser";
 import { sanitizeFilename } from "@/lib/utils";
+import { parseAsciiTab } from "@/lib/tabParser";
 import { 
   Song, 
   SongSection, 
@@ -446,8 +447,19 @@ export function useSongState(): [SongState, SongActions] {
         
         return chord;
       });
+      const rows: SectionRow[] = [];
       if (chords.length > 0) {
-        section.rows = [createChordRow(chords)];
+        rows.push(createChordRow(chords));
+      }
+      // Parse tab notation if present
+      if (s.tab && Array.isArray(s.tab) && s.tab.length === 6) {
+        const tabMeasures = parseAsciiTab(s.tab);
+        if (tabMeasures.length > 0) {
+          rows.push(createTabRow(tabMeasures));
+        }
+      }
+      if (rows.length > 0) {
+        section.rows = rows;
       }
       return section;
     });
