@@ -16,12 +16,10 @@ import {
   type StrummingPattern,
   type StrokeType,
   type TimeSignature,
-  type Subdivision,
   createEmptyPattern,
   getDefaultSubdivision,
   getSlotsPerBar,
   getBeatLabel,
-  getBeatsPerBar,
 } from '@/types/strumming';
 
 /**
@@ -54,7 +52,6 @@ export function parseStrummingPatternString(
   });
 
   const subdivision = getDefaultSubdivision(timeSignature);
-  const beatsPerBar = getBeatsPerBar(timeSignature);
   const slotsPerBar = getSlotsPerBar(timeSignature, subdivision);
 
   // Determine number of bars needed

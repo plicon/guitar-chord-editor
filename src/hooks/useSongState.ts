@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import type { YouTubeGenerateResult } from "@/services/youtubeImport";
 import { ChordDiagram, ChordPreset, createEmptyChord, isChordEdited } from "@/types/chord";
-import { StrummingPattern, getSlotsPerBar, type TimeSignature } from "@/types/strumming";
+import { StrummingPattern, getSlotsPerBar, TimeSignature } from "@/types/strumming";
 import { parseStrummingPatternString } from "@/lib/strummingPatternParser";
 import { sanitizeFilename } from "@/lib/utils";
 import { 
