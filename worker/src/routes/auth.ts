@@ -20,8 +20,8 @@ export async function handleAuthLogin(
     });
   }
 
-  const expectedUsername = (env as any).ADMIN_USERNAME;
-  const expectedPassword = (env as any).ADMIN_PASSWORD;
+  const expectedUsername = (env as Record<string, unknown>).ADMIN_USERNAME as string | undefined;
+  const expectedPassword = (env as Record<string, unknown>).ADMIN_PASSWORD as string | undefined;
 
   if (!expectedUsername || !expectedPassword) {
     return errorResponse('Admin auth not configured on server', 500);
