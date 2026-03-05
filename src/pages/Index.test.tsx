@@ -214,8 +214,16 @@ describe("Index Page Integration", () => {
     it("should have New button", () => {
       renderIndex();
 
-      const newButton = screen.getByRole("button", { name: /new/i });
-      expect(newButton).toBeInTheDocument();
+      const newButtons = screen.getAllByRole("button", { name: /new/i });
+      const plainNewButton = newButtons.find(btn => btn.textContent?.trim() === "New");
+      expect(plainNewButton).toBeInTheDocument();
+    });
+
+    it("should have New AI button", () => {
+      renderIndex();
+
+      const newAIButton = screen.getByRole("button", { name: /new ai/i });
+      expect(newAIButton).toBeInTheDocument();
     });
 
     it("should have Open button", () => {
