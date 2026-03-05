@@ -19,6 +19,7 @@ export interface GeneratedChordChart {
     name: string;
     type: string;
     chords: string[];
+    tab?: string[];
   }[];
   strummingPattern?: string;
   notes?: string;
@@ -194,10 +195,11 @@ function validateParsed(parsed: Record<string, unknown>, rawContent: string): Ge
     key: parsed.key as string | undefined,
     tempo: parsed.tempo ? Number(parsed.tempo) : undefined,
     timeSignature: parsed.timeSignature as string | undefined,
-    sections: (parsed.sections as Array<{ name?: string; type?: string; chords?: unknown }>).map(s => ({
+    sections: (parsed.sections as Array<{ name?: string; type?: string; chords?: unknown; tab?: unknown }>).map(s => ({
       name: s.name || 'Section',
       type: s.type || 'custom',
       chords: Array.isArray(s.chords) ? s.chords.map(String) : [],
+      ...(Array.isArray(s.tab) ? { tab: s.tab.map(String) } : {}),
     })),
     strummingPattern: parsed.strummingPattern as string | undefined,
     notes: parsed.notes as string | undefined,

@@ -10,6 +10,7 @@ export interface GeneratedSection {
   name: string;
   type: string;
   chords: string[];
+  tab?: string[];
 }
 
 export interface YouTubeGenerateResult {
