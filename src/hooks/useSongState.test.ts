@@ -649,4 +649,124 @@ describe("useSongState", () => {
       expect(state.sections[0].type).toBe("verse");
     });
   });
+
+  describe("loadFromYouTubeResult with tab data", () => {
+    it("should create tab rows from ASCII tab in YouTube result", () => {
+      const { result } = renderHook(() => useSongState());
+      const [, actions] = result.current;
+
+      const youtubeResult = {
+        metadata: { videoId: "test123", title: "Test", author: "Author", description: "" },
+        transcriptLength: 100,
+        chart: {
+          title: "Test Song",
+          artist: "Test Artist",
+          sections: [
+            {
+              name: "Intro Riff",
+              type: "intro",
+              chords: [] as string[],
+              tab: [
+                "e|---0---|",
+                "B|---1---|",
+                "G|---0---|",
+                "D|---2---|",
+                "A|---3---|",
+                "E|-------|",
+              ],
+            },
+          ],
+        },
+        provider: "test",
+        model: "test",
+        sourceUrl: "https://youtube.com/watch?v=test123",
+      };
+
+      act(() => {
+        actions.loadFromYouTubeResult(youtubeResult);
+      });
+
+      const [state] = result.current;
+      expect(state.sections).toHaveLength(1);
+      expect(state.sections[0].name).toBe("Intro Riff");
+      // Should have a tab row
+      const tabRows = state.sections[0].rows.filter(r => r.kind === "tab-row");
+      expect(tabRows.length).toBe(1);
+      if (tabRows[0].kind === "tab-row") {
+        expect(tabRows[0].measures.length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it("should create both chord and tab rows when section has both", () => {
+      const { result } = renderHook(() => useSongState());
+      const [, actions] = result.current;
+
+      const youtubeResult = {
+        metadata: { videoId: "test123", title: "Test", author: "Author", description: "" },
+        transcriptLength: 100,
+        chart: {
+          title: "Test Song",
+          sections: [
+            {
+              name: "Verse",
+              type: "verse",
+              chords: ["Am", "C"],
+              tab: [
+                "e|--0--|",
+                "B|--1--|",
+                "G|--0--|",
+                "D|--2--|",
+                "A|--3--|",
+                "E|-----|",
+              ],
+            },
+          ],
+        },
+        provider: "test",
+        model: "test",
+      };
+
+      act(() => {
+        actions.loadFromYouTubeResult(youtubeResult);
+      });
+
+      const [state] = result.current;
+      expect(state.sections).toHaveLength(1);
+      const chordRows = state.sections[0].rows.filter(r => r.kind === "chord-row");
+      const tabRows = state.sections[0].rows.filter(r => r.kind === "tab-row");
+      expect(chordRows.length).toBe(1);
+      expect(tabRows.length).toBe(1);
+    });
+
+    it("should skip tab row when tab data has wrong number of lines", () => {
+      const { result } = renderHook(() => useSongState());
+      const [, actions] = result.current;
+
+      const youtubeResult = {
+        metadata: { videoId: "test123", title: "Test", author: "Author", description: "" },
+        transcriptLength: 100,
+        chart: {
+          title: "Test Song",
+          sections: [
+            {
+              name: "Bad Tab",
+              type: "verse",
+              chords: ["Am"],
+              tab: ["e|--0--|", "B|--1--|"], // Only 2 lines, not 6
+            },
+          ],
+        },
+        provider: "test",
+        model: "test",
+      };
+
+      act(() => {
+        actions.loadFromYouTubeResult(youtubeResult);
+      });
+
+      const [state] = result.current;
+      const tabRows = state.sections[0].rows.filter(r => r.kind === "tab-row");
+      expect(tabRows.length).toBe(0);
+    });
+  });
 });
