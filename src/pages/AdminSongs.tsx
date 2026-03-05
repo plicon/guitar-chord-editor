@@ -5,6 +5,7 @@ import { Trash2, ArrowLeft, Home, Loader2, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppFooter } from "../components/AppFooter";
 import { APP_CONFIG } from "../config/appConfig";
+import { getAdminAuthHeaders } from "@/services/adminAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -16,20 +17,6 @@ interface SongListItem {
 }
 
 const apiUrl = APP_CONFIG.presets.cloudflareD1.apiUrl;
-
-function getHeaders(includeContentType = false): Record<string, string> {
-  const headers: Record<string, string> = {};
-  if (includeContentType) {
-    headers["Content-Type"] = "application/json";
-  }
-  const clientId = import.meta.env.VITE_CF_ACCESS_CLIENT_ID;
-  const clientSecret = import.meta.env.VITE_CF_ACCESS_CLIENT_SECRET;
-  if (clientId && clientSecret) {
-    headers["CF-Access-Client-Id"] = clientId;
-    headers["CF-Access-Client-Secret"] = clientSecret;
-  }
-  return headers;
-}
 
 export default function AdminSongsPage() {
   const [songs, setSongs] = useState<SongListItem[]>([]);
@@ -43,8 +30,8 @@ export default function AdminSongsPage() {
   const loadSongs = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/songs?limit=200`, {
-        headers: getHeaders(),
+      const response = await fetch(`${apiUrl}/admin/songs?limit=200`, {
+        headers: getAdminAuthHeaders(),
       });
       if (!response.ok) throw new Error(response.statusText);
       const result = await response.json();
@@ -62,7 +49,7 @@ export default function AdminSongsPage() {
     try {
       const response = await fetch(`${apiUrl}/admin/songs/${id}`, {
         method: "DELETE",
-        headers: getHeaders(),
+        headers: getAdminAuthHeaders(),
       });
       if (!response.ok && response.status !== 404) {
         throw new Error(response.statusText);

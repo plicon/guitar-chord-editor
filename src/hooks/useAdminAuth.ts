@@ -1,34 +1,50 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { APP_CONFIG } from "@/config/appConfig";
+import { getAdminToken, setAdminToken, clearAdminToken } from "@/services/adminAuth";
 
-const SESSION_KEY = "fretkit_admin_auth";
+const apiUrl = APP_CONFIG.presets.cloudflareD1.apiUrl;
 
 export function useAdminAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem(SESSION_KEY) === "true";
+    return !!getAdminToken();
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const login = useCallback((username: string, password: string): boolean => {
-    const envUser = import.meta.env.VITE_ADMIN_USERNAME;
-    const envPass = import.meta.env.VITE_ADMIN_PASSWORD;
+  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError("");
 
-    if (!envUser || !envPass) {
-      console.warn("Admin credentials not configured (VITE_ADMIN_USERNAME / VITE_ADMIN_PASSWORD)");
+    try {
+      const res = await fetch(`${apiUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Login failed" }));
+        setError(data.error || "Invalid credentials");
+        setIsLoading(false);
+        return false;
+      }
+
+      const { token } = await res.json();
+      setAdminToken(token);
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      setError("Could not connect to server");
+      setIsLoading(false);
       return false;
     }
-
-    if (username === envUser && password === envPass) {
-      sessionStorage.setItem(SESSION_KEY, "true");
-      setIsAuthenticated(true);
-      return true;
-    }
-
-    return false;
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAdminToken();
     setIsAuthenticated(false);
   }, []);
 
-  return { isAuthenticated, login, logout };
+  return { isAuthenticated, isLoading, error, login, logout };
 }

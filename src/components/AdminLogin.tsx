@@ -3,30 +3,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { Lock } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 
 interface AdminLoginProps {
-  onLogin: (username: string, password: string) => boolean;
+  onLogin: (username: string, password: string) => Promise<boolean>;
+  isLoading?: boolean;
+  error?: string;
 }
 
-export function AdminLogin({ onLogin }: AdminLoginProps) {
+export function AdminLogin({ onLogin, isLoading, error }: AdminLoginProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const displayError = error || localError;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
 
     if (!username || !password) {
-      setError("Please enter both username and password.");
+      setLocalError("Please enter both username and password.");
       return;
     }
 
-    const success = onLogin(username, password);
-    if (!success) {
-      setError("Invalid credentials.");
-    }
+    await onLogin(username, password);
   };
 
   return (
@@ -48,6 +49,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -58,10 +60,14 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
+                disabled={isLoading}
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">Sign In</Button>
+            {displayError && <p className="text-sm text-destructive">{displayError}</p>}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Sign In
+            </Button>
           </form>
         </CardContent>
       </Card>
