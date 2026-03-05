@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { Buffer } from 'node:buffer';
 
 // Inline auth logic with type casts for Node/Vitest compatibility
 const TOKEN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -14,21 +15,19 @@ async function getKey(secret: string) {
 }
 
 function toB64(data: Uint8Array): string {
-  let s = '';
-  for (let i = 0; i < data.length; i++) s += String.fromCharCode(data[i]);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return Buffer.from(data).toString('base64url');
 }
 
 function fromB64(str: string): ArrayBuffer {
-  const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
-  const bin = atob(padded);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return arr.buffer as ArrayBuffer;
+  const buf = Buffer.from(str, 'base64url');
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
 }
 
-interface TokenPayload { sub: string; iat: number; exp: number }
+interface TokenPayload {
+  sub: string;
+  iat: number;
+  exp: number;
+}
 
 async function createToken(username: string, secret: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -42,12 +41,15 @@ async function createToken(username: string, secret: string): Promise<string> {
 async function verifyToken(token: string, secret: string): Promise<TokenPayload | null> {
   const parts = token.split('.');
   if (parts.length !== 2) return null;
+
   try {
-    const payloadBuf = fromB64(parts[0]);
-    const sigBuf = fromB64(parts[1]);
+    const payloadBuffer = fromB64(parts[0]);
+    const sigBuffer = fromB64(parts[1]);
     const k = await getKey(secret);
-    if (!await crypto.subtle.verify('HMAC', k, sigBuf, payloadBuf)) return null;
-    const payload: TokenPayload = JSON.parse(new TextDecoder().decode(payloadBuf));
+
+    if (!(await crypto.subtle.verify('HMAC', k, sigBuffer, payloadBuffer))) return null;
+
+    const payload: TokenPayload = JSON.parse(new TextDecoder().decode(payloadBuffer));
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     return payload;
   } catch {
