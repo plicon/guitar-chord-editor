@@ -14,10 +14,8 @@ export async function searchChordPresetsApi(query: string) {
 }
 
 export async function getChordPresetApi(id: string) {
-  const url = `${ADMIN_BASE}/presets/chords/${id}`;
-  const res = await fetch(url, {
-    headers: getAdminAuthHeaders(),
-  });
+  const url = `${API_BASE}/presets/chords/${id}`;
+  const res = await fetch(url);
   if (!res.ok) {
     if (res.status === 404) return null;
     throw new Error("Failed to fetch chord preset");
@@ -34,7 +32,7 @@ export async function createChordPresetApi(data: {
   openStrings?: number[];
   fingerLabels?: FingerLabel[];
 }) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/chords`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/chords`, {
     method: "POST",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
@@ -55,7 +53,7 @@ export async function updateChordPresetApi(
     fingerLabels?: FingerLabel[];
   }
 ) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/chords/${id}`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/chords/${id}`, {
     method: "PUT",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
@@ -65,7 +63,7 @@ export async function updateChordPresetApi(
 }
 
 export async function deleteChordPresetApi(id: string) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/chords/${id}`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/chords/${id}`, {
     method: "DELETE",
     headers: getAdminAuthHeaders(),
   });

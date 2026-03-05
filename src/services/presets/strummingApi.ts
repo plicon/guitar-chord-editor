@@ -23,7 +23,7 @@ export async function getStrummingPatterns() {
 }
 
 export async function createStrummingPattern(data: Record<string, unknown>) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/strumming`, {
     method: "POST",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
@@ -33,7 +33,7 @@ export async function createStrummingPattern(data: Record<string, unknown>) {
 }
 
 export async function updateStrummingPattern(id: string, data: Record<string, unknown>) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming/${id}`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
     method: "PUT",
     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
@@ -43,7 +43,7 @@ export async function updateStrummingPattern(id: string, data: Record<string, un
 }
 
 export async function deleteStrummingPattern(id: string) {
-  const res = await fetch(`${ADMIN_BASE}/admin/presets/strumming/${id}`, {
+  const res = await fetch(`${ADMIN_BASE}/presets/strumming/${id}`, {
     method: "DELETE",
     headers: getAdminAuthHeaders(),
   });
