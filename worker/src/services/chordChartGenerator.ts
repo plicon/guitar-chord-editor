@@ -157,10 +157,18 @@ function formatTime(seconds: number): string {
 }
 
 function parseResponse(content: string): GeneratedChordChart {
-  // Strip markdown code fences if the LLM wrapped them anyway
   let cleaned = content.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+
+  // Extract JSON from within markdown code fences (even with surrounding prose)
+  const fenceMatch = cleaned.match(/```(?:json)?\s*\n?([\s\S]*?)(?:\n?```|$)/);
+  if (fenceMatch) {
+    cleaned = fenceMatch[1].trim();
+  } else if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    // No code fences — try to find the first { and extract from there
+    const jsonStart = cleaned.indexOf('{');
+    if (jsonStart !== -1) {
+      cleaned = cleaned.slice(jsonStart);
+    }
   }
 
   try {
