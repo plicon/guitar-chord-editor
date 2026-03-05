@@ -15,6 +15,7 @@ import { SongSectionView } from "@/components/SongSectionView";
 import { YouTubeImportDialog } from "@/components/YouTubeImportDialog";
 import { Download, Eye, Plus, Youtube } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
+import { useChordPresetCache } from "@/hooks/useChordPresetCache";
 import { usePdfExport } from "@/hooks/usePdfExport";
 import { SectionType, SectionTypeLabels, Song, SongSection, SectionRow } from "@/types/song";
 import { StrummingPattern } from "@/types/strumming";
@@ -111,6 +112,7 @@ function SortableSection({ section, sectionIndex, dragHandleProps, ...props }: S
 
 const Index = () => {
   const [state, actions] = useSongState();
+  const { getPreset } = useChordPresetCache();
   const [editingChord, setEditingChord] = useState<{
     sectionId: string;
     rowId: string;
@@ -401,7 +403,7 @@ const Index = () => {
       <YouTubeImportDialog
         open={youtubeImportOpen}
         onOpenChange={setYoutubeImportOpen}
-        onImport={actions.loadFromYouTubeResult}
+        onImport={(result) => actions.loadFromYouTubeResult(result, getPreset)}
       />
 
       <AppFooter />

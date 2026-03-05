@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import type { YouTubeGenerateResult } from "@/services/youtubeImport";
-import { ChordDiagram, createEmptyChord, isChordEdited } from "@/types/chord";
+import { ChordDiagram, ChordPreset, createEmptyChord, isChordEdited } from "@/types/chord";
 import { StrummingPattern, getSlotsPerBar } from "@/types/strumming";
 import { sanitizeFilename } from "@/lib/utils";
 import { 
@@ -113,7 +113,7 @@ export interface SongActions {
   handleLoadSong: (id: string) => Promise<void>;
   handleExportJson: () => void;
   handleImportJson: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  loadFromYouTubeResult: (result: YouTubeGenerateResult) => void;
+  loadFromYouTubeResult: (result: YouTubeGenerateResult, getPreset?: (name: string) => ChordPreset | null) => void;
   
   getCurrentSong: () => Song;
   hasEditedContent: boolean;
@@ -419,17 +419,32 @@ export function useSongState(): [SongState, SongActions] {
     }));
   }, []);
 
-  const loadFromYouTubeResult = useCallback((result: YouTubeGenerateResult) => {
+  const loadFromYouTubeResult = useCallback((result: YouTubeGenerateResult, getPreset?: (name: string) => ChordPreset | null) => {
     const chart = result.chart;
     const songSections: SongSection[] = chart.sections.map((s) => {
       const validType = ['intro', 'verse', 'chorus', 'bridge', 'solo', 'outro', 'custom'].includes(s.type)
         ? s.type as SectionType
         : 'custom' as SectionType;
       const section = createSection(validType, s.name);
-      // Convert chord names to ChordDiagram objects
+      // Convert chord names to ChordDiagram objects, enriched with preset data
       const chords = s.chords.map((name) => {
         const chord = createEmptyChord(`chord-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`);
         chord.name = name;
+        
+        // Look up preset fingering data
+        if (getPreset) {
+          const preset = getPreset(name);
+          if (preset) {
+            chord.frets = preset.frets;
+            chord.startFret = preset.startFret;
+            chord.fingers = preset.fingers;
+            chord.barres = preset.barres;
+            chord.mutedStrings = preset.mutedStrings;
+            chord.openStrings = preset.openStrings;
+            chord.fingerLabels = preset.fingerLabels;
+          }
+        }
+        
         return chord;
       });
       if (chords.length > 0) {
