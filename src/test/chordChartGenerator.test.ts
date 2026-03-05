@@ -204,4 +204,39 @@ describe('generateChordChart', () => {
     expect(result.title).toBe('Test');
     expect(result.sections).toHaveLength(1);
   });
+
+  it('parses tab data in sections', async () => {
+    const response = JSON.stringify({
+      title: 'Tab Song',
+      sections: [
+        {
+          name: 'Intro Riff',
+          type: 'intro',
+          chords: [],
+          tab: [
+            'e|---0---|',
+            'B|---1---|',
+            'G|---0---|',
+            'D|---2---|',
+            'A|---3---|',
+            'E|-------|',
+          ],
+        },
+        {
+          name: 'Verse',
+          type: 'verse',
+          chords: ['Am', 'C'],
+        },
+      ],
+    });
+    const llm = createMockLLM(response);
+
+    const result = await generateChordChart(llm, createMockTranscript());
+    expect(result.sections).toHaveLength(2);
+    expect(result.sections[0].tab).toBeDefined();
+    expect(result.sections[0].tab).toHaveLength(6);
+    expect(result.sections[0].chords).toEqual([]);
+    expect(result.sections[1].tab).toBeUndefined();
+    expect(result.sections[1].chords).toEqual(['Am', 'C']);
+  });
 });
