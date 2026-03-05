@@ -43,11 +43,26 @@ export function isValidYouTubeUrl(url: string): boolean {
 export async function generateFromYouTube(url: string): Promise<YouTubeGenerateResult> {
   const apiUrl = APP_CONFIG.presets.cloudflareD1.apiUrl.replace(/\/api$/, '');
 
-  const response = await fetch(`${apiUrl}/api/generate/from-youtube`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: url.trim() }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2 min timeout
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}/api/generate/from-youtube`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.trim() }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('Request timed out — the AI analysis took too long. Try again or use a shorter video.');
+    }
+    throw new Error('Network error — the connection was lost. The server may have timed out processing the video.');
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Request failed' }));
