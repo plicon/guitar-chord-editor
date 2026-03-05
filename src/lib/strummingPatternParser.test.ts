@@ -4,8 +4,8 @@ import { parseStrummingPatternString } from './strummingPatternParser';
 describe('parseStrummingPatternString', () => {
   it('returns null for empty or falsy input', () => {
     expect(parseStrummingPatternString('')).toBeNull();
-    expect(parseStrummingPatternString(null as any)).toBeNull();
-    expect(parseStrummingPatternString(undefined as any)).toBeNull();
+    expect(parseStrummingPatternString(null as unknown as string)).toBeNull();
+    expect(parseStrummingPatternString(undefined as unknown as string)).toBeNull();
   });
 
   it('parses a simple down-up pattern', () => {

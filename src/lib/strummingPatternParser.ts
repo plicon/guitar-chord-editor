@@ -35,7 +35,7 @@ export function parseStrummingPatternString(
   // Extract stroke tokens: D, U, X, -
   const tokens = pattern
     .toUpperCase()
-    .replace(/[^DUXR\-]/g, '') // keep only valid chars (R = rest alias)
+    .replace(/[^DUXR-]/g, '') // keep only valid chars (R = rest alias)
     .split('');
 
   if (tokens.length === 0) return null;
