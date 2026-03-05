@@ -13,7 +13,7 @@ import { PreviewSongDialog } from "@/components/PreviewSongDialog";
 import { AppFooter } from "@/components/AppFooter";
 import { SongSectionView } from "@/components/SongSectionView";
 import { YouTubeImportDialog } from "@/components/YouTubeImportDialog";
-import { Download, Eye, Plus, Youtube } from "lucide-react";
+import { Download, Eye, Plus } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { useChordPresetCache } from "@/hooks/useChordPresetCache";
 import { usePdfExport } from "@/hooks/usePdfExport";
@@ -206,6 +206,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <AppHeader
         onNew={actions.handleNewSong}
+        onNewAI={() => setYoutubeImportOpen(true)}
         onOpen={() => setSavedChartsOpen(true)}
         onSave={actions.handleSave}
         onExport={actions.handleExportJson}
@@ -228,16 +229,7 @@ const Index = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Sections</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setYoutubeImportOpen(true)}
-                >
-                  <Youtube className="w-4 h-4 mr-2" />
-                  YouTube
-                </Button>
-                <DropdownMenu>
+              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Plus className="w-4 h-4 mr-2" />
@@ -254,14 +246,13 @@ const Index = () => {
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              </DropdownMenu>
             </div>
 
             {state.sections.length === 0 ? (
               <div className="text-center py-12 border rounded-lg bg-muted/30">
                 <p className="text-muted-foreground mb-4">
-                  No sections yet. Add a section or import from YouTube.
+                  No sections yet. Add a section to get started.
                 </p>
                 <div className="flex gap-3 justify-center flex-wrap">
                   <DropdownMenu>
@@ -282,13 +273,6 @@ const Index = () => {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    variant="outline"
-                    onClick={() => setYoutubeImportOpen(true)}
-                  >
-                    <Youtube className="w-4 h-4 mr-2" />
-                    Import from YouTube
-                  </Button>
                 </div>
               </div>
             ) : (
