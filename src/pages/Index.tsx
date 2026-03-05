@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { ChordDiagram } from "@/types/chord";
 import { ChordEditor } from "@/components/ChordEditor";
 import { PrintableSheet } from "@/components/PrintableSheet";
@@ -17,6 +18,7 @@ import { Download, Eye, Plus } from "lucide-react";
 import { useSongState } from "@/hooks/useSongState";
 import { useChordPresetCache } from "@/hooks/useChordPresetCache";
 import { usePdfExport } from "@/hooks/usePdfExport";
+import { setStorageAuthHeaders } from "@/services/storage";
 import { SectionType, SectionTypeLabels, Song, SongSection, SectionRow } from "@/types/song";
 import { StrummingPattern } from "@/types/strumming";
 import {
@@ -113,6 +115,12 @@ function SortableSection({ section, sectionIndex, dragHandleProps, ...props }: S
 const Index = () => {
   const [state, actions] = useSongState();
   const { getPreset } = useChordPresetCache();
+  const auth = useAuth();
+
+  // Wire auth headers into storage provider
+  useEffect(() => {
+    setStorageAuthHeaders(auth.getAuthHeaders);
+  }, [auth.getAuthHeaders]);
   const [editingChord, setEditingChord] = useState<{
     sectionId: string;
     rowId: string;
@@ -212,6 +220,12 @@ const Index = () => {
         onExport={actions.handleExportJson}
         onImport={actions.handleImportJson}
         isSaving={state.isSaving}
+        isAuthenticated={auth.isAuthenticated}
+        username={auth.username}
+        onLogin={auth.login}
+        onLogout={auth.logout}
+        loginError={auth.error}
+        loginLoading={auth.isLoading}
       />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
