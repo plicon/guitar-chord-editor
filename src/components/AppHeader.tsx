@@ -94,6 +94,7 @@ export const AppHeader = ({
             <div className="flex items-center gap-2">
               <ActionButton onClick={onNew} icon={Plus} label="New" />
               <ActionButton onClick={onNewAI} icon={Sparkles} label="New AI" />
+              <ActionButton onClick={onOpen} icon={FolderOpen} label="Open" />
               <ActionButton onClick={onSave} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
               <ActionButton onClick={onExport} icon={FileDown} label="Export" />
               <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
@@ -141,6 +142,7 @@ export const AppHeader = ({
           <div className="flex flex-col gap-2 p-4">
             <ActionButton onClick={() => handleMobileAction(onNew)} icon={Plus} label="New" />
             <ActionButton onClick={() => handleMobileAction(onNewAI)} icon={Sparkles} label="New AI" />
+            <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
             <ActionButton onClick={() => handleMobileAction(onSave)} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
             <ActionButton onClick={() => handleMobileAction(onExport)} icon={FileDown} label="Export" />
             <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
