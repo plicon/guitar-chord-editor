@@ -9,7 +9,7 @@ compatibility_flags = ["nodejs_compat"]
 # Development environment (default)
 [env.development]
 name = "fretkit-worker-development"
-vars = { ENVIRONMENT = "development", LLM_PROVIDER = "google" }
+vars = { ENVIRONMENT = "development", LLM_PROVIDER = "google", ADMIN_USERNAME = "admin" }
 [[env.development.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db"
@@ -19,7 +19,7 @@ migrations_dir = "migrations"
 # Production environment
 [env.production]
 name = "fretkit-worker-production"
-vars = { ENVIRONMENT = "production", LLM_PROVIDER = "google" }
+vars = { ENVIRONMENT = "production", LLM_PROVIDER = "google", ADMIN_USERNAME = "admin" }
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-production"
@@ -29,7 +29,7 @@ migrations_dir = "migrations"
 # Staging environment
 [env.staging]
 name = "fretkit-worker-staging"
-vars = { ENVIRONMENT = "staging", LLM_PROVIDER = "google" }
+vars = { ENVIRONMENT = "staging", LLM_PROVIDER = "google", ADMIN_USERNAME = "admin" }
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "fretkit-db-staging"
