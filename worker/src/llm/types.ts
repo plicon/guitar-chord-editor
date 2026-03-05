@@ -2,21 +2,20 @@
  * LLM Provider Abstraction Types
  * 
  * Supports multiple LLM backends:
- * - cloudflare: Cloudflare Workers AI (no API key needed, uses env.AI binding)
+ * - google: Google Gemini API (requires GOOGLE_AI_API_KEY secret) — default
  * - openai: OpenAI API (requires OPENAI_API_KEY secret)
- * - google: Google Gemini API (requires GOOGLE_AI_API_KEY secret)
  * - anthropic: Anthropic API (requires ANTHROPIC_API_KEY secret)
  * 
  * To configure:
- * 1. Set LLM_PROVIDER env var in wrangler.toml (default: "cloudflare")
+ * 1. Set LLM_PROVIDER env var in wrangler.toml (default: "google")
  * 2. Set LLM_MODEL env var to override the default model for that provider
- * 3. For non-Cloudflare providers, add the API key as a secret:
- *    - wrangler secret put OPENAI_API_KEY
+ * 3. Add the API key as a secret:
  *    - wrangler secret put GOOGLE_AI_API_KEY
+ *    - wrangler secret put OPENAI_API_KEY
  *    - wrangler secret put ANTHROPIC_API_KEY
  */
 
-export type LLMProviderType = 'cloudflare' | 'openai' | 'google' | 'anthropic';
+export type LLMProviderType = 'openai' | 'google' | 'anthropic';
 
 export interface LLMMessage {
   role: 'system' | 'user' | 'assistant';
@@ -53,8 +52,7 @@ export interface LLMProvider {
  * Default models per provider
  */
 export const DEFAULT_MODELS: Record<LLMProviderType, string> = {
-  cloudflare: '@cf/meta/llama-3.1-8b-instruct',
-  openai: 'gpt-4o-mini',
   google: 'gemini-2.5-flash',
+  openai: 'gpt-4o-mini',
   anthropic: 'claude-sonnet-4-20250514',
 };
