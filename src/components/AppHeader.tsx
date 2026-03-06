@@ -144,23 +144,24 @@ export const AppHeader = ({
                 </Button>
               </div>
 
+              <div className="w-px h-6 bg-border mx-1" />
+              <Button variant="outline" size="sm" onClick={onOpen}>
+                <FolderOpen className="w-4 h-4 mr-1.5" />
+                Open
+              </Button>
+
               {/* File operations dropdown (only when authenticated) */}
               {isAuthenticated && (
                 <>
-                  <div className="w-px h-6 bg-border mx-1" />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
-                        <FolderOpen className="w-4 h-4 mr-1.5" />
+                        <Save className="w-4 h-4 mr-1.5" />
                         File
                         <ChevronDown className="w-3 h-3 ml-1 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={onOpen}>
-                        <FolderOpen className="w-4 h-4 mr-2" />
-                        Open
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={onSave} disabled={isSaving}>
                         <Save className="w-4 h-4 mr-2" />
                         {isSaving ? "Saving..." : "Save"}
@@ -248,9 +249,9 @@ export const AppHeader = ({
           <div className="flex flex-col gap-2 p-4">
             <ActionButton onClick={() => handleMobileAction(onNew)} icon={Plus} label="New" />
             <ActionButton onClick={() => handleMobileAction(onNewAI)} icon={Sparkles} label="New AI" />
+            <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
             {isAuthenticated && (
               <>
-                <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
                 <ActionButton onClick={() => handleMobileAction(onSave)} icon={Save} label={isSaving ? "Saving..." : "Save"} disabled={isSaving} />
                 <ActionButton onClick={() => handleMobileAction(onExport)} icon={FileDown} label="Export" />
                 <ActionButton onClick={handleImportClick} icon={FileUp} label="Import" />
