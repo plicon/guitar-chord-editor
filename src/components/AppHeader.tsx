@@ -138,10 +138,12 @@ export const AppHeader = ({
                   <Plus className="w-4 h-4 mr-1.5" />
                   New
                 </Button>
-                <Button variant="outline" size="sm" onClick={onNewAI}>
-                  <Sparkles className="w-4 h-4 mr-1.5" />
-                  AI
-                </Button>
+                {isAuthenticated && (
+                  <Button variant="outline" size="sm" onClick={onNewAI}>
+                    <Sparkles className="w-4 h-4 mr-1.5" />
+                    AI
+                  </Button>
+                )}
               </div>
 
               <div className="w-px h-6 bg-border mx-1" />
@@ -248,7 +250,9 @@ export const AppHeader = ({
           </DrawerHeader>
           <div className="flex flex-col gap-2 p-4">
             <ActionButton onClick={() => handleMobileAction(onNew)} icon={Plus} label="New" />
-            <ActionButton onClick={() => handleMobileAction(onNewAI)} icon={Sparkles} label="New AI" />
+            {isAuthenticated && (
+              <ActionButton onClick={() => handleMobileAction(onNewAI)} icon={Sparkles} label="New AI" />
+            )}
             <ActionButton onClick={() => handleMobileAction(onOpen)} icon={FolderOpen} label="Open" />
             {isAuthenticated && (
               <>

@@ -237,11 +237,10 @@ describe("Index Page Integration", () => {
       expect(plainNewButton).toBeInTheDocument();
     });
 
-    it("should have AI button", () => {
+    it("should not show AI button when not authenticated", () => {
       renderIndex();
 
-      const aiButton = screen.getByRole("button", { name: /^ai$/i });
-      expect(aiButton).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^ai$/i })).not.toBeInTheDocument();
     });
 
     it("should have Login button when not authenticated", () => {
@@ -251,11 +250,18 @@ describe("Index Page Integration", () => {
       expect(loginButton).toBeInTheDocument();
     });
 
-    it("should not show Save/Open/Export/Import when not authenticated", () => {
+    it("should show Open button when not authenticated", () => {
+      renderIndex();
+
+      const openButton = screen.getByRole("button", { name: /open/i });
+      expect(openButton).toBeInTheDocument();
+    });
+
+    it("should not show Save/Export/Import/AI when not authenticated", () => {
       renderIndex();
 
       expect(screen.queryByRole("button", { name: /^save$/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /^open$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^ai$/i })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^export$/i })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^import$/i })).not.toBeInTheDocument();
     });
