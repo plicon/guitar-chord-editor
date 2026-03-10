@@ -3,7 +3,6 @@ import { ChordDiagram, isChordEdited } from "@/types/chord";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
 import { ChordDiagramComponent } from "./ChordDiagram";
 import { APP_CONFIG } from "@/config/appConfig";
-import { APP_VERSION } from "@/config/version";
 
 
 interface PrintableSheetProps {
