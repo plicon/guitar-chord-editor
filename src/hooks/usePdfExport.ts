@@ -2,6 +2,7 @@ import { useCallback, RefObject } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { sanitizeFilename } from "@/lib/utils";
+import { APP_VERSION } from "@/config/version";
 
 /**
  * Pre-rasterizes all SVG elements inside a container to PNG images.
@@ -260,7 +261,7 @@ export function insertPageBreakSpacers(container: HTMLElement): () => void {
   };
 }
 
-export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>) {
+export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>, artist?: string) {
 
   const handleDownloadPDF = useCallback(async () => {
     if (!printRef.current) return;
@@ -294,7 +295,8 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
       const PAGE_HEIGHT_MM = 297;
       const MARGIN_MM = 4; // Match the p-4 padding
       const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - (MARGIN_MM * 2);
-      const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
+      const FOOTER_HEIGHT_MM = 8; // Reserved space for footer
+      const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - (MARGIN_MM * 2) - FOOTER_HEIGHT_MM;
       const SECTION_GAP_MM = 3;
 
       const html2canvasOptions = {
@@ -309,6 +311,36 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         printRef.current.querySelectorAll('[data-pdf-section]')
       ) as HTMLElement[];
 
+      // Helper to draw page footer
+      const drawPageFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
+        const footerY = PAGE_HEIGHT_MM - MARGIN_MM - 2;
+        const lineY = footerY - 3;
+
+        // Thin separator line
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.3);
+        pdf.line(MARGIN_MM, lineY, PAGE_WIDTH_MM - MARGIN_MM, lineY);
+
+        // Left side: Song title + artist
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(130, 130, 130);
+        const songLabel = artist ? `${title || "Chord Chart"} — ${artist}` : (title || "Chord Chart");
+        pdf.text(songLabel, MARGIN_MM, footerY);
+
+        // Center: URL
+        pdf.setFontSize(7);
+        pdf.setTextColor(160, 160, 160);
+        const url = "fretkit.io";
+        const urlWidth = pdf.getTextWidth(url);
+        pdf.text(url, (PAGE_WIDTH_MM - urlWidth) / 2, footerY);
+
+        // Right side: version + page number
+        const rightText = `v${APP_VERSION}  ·  ${pageNum} / ${totalPages}`;
+        const rightWidth = pdf.getTextWidth(rightText);
+        pdf.text(rightText, PAGE_WIDTH_MM - MARGIN_MM - rightWidth, footerY);
+      };
+
       // Fallback: if no sections found, use old single-capture method
       if (sections.length === 0) {
         const canvas = await html2canvas(printRef.current, html2canvasOptions);
@@ -317,6 +349,7 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         const imgWidth = PAGE_WIDTH_MM;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        drawPageFooter(pdf, 1, 1);
         pdf.save(`${sanitizeFilename(title || "chord-chart")}.pdf`);
         return;
       }
@@ -324,6 +357,7 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       let currentY = MARGIN_MM;
       let isFirstSection = true;
+      let pageCount = 1;
 
       for (const section of sections) {
         const canvas = await html2canvas(section, html2canvasOptions);
@@ -334,11 +368,12 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         const scaleFactor = CONTENT_WIDTH_MM / widthPx;
         const heightMM = heightPx * scaleFactor;
 
-        const remainingSpace = PAGE_HEIGHT_MM - MARGIN_MM - currentY;
+        const remainingSpace = PAGE_HEIGHT_MM - MARGIN_MM - FOOTER_HEIGHT_MM - currentY;
 
         // If the section won't fit and we're not at the top of the page, add a new page
         if (heightMM > remainingSpace && !isFirstSection && currentY > MARGIN_MM) {
           pdf.addPage();
+          pageCount++;
           currentY = MARGIN_MM;
         }
 
@@ -349,13 +384,20 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         isFirstSection = false;
       }
 
+      // Draw footers on all pages
+      const totalPages = pageCount;
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        drawPageFooter(pdf, i, totalPages);
+      }
+
       pdf.save(`${sanitizeFilename(title || "chord-chart")}.pdf`);
     } finally {
       // Always restore original SVGs and remove spacers so the UI isn't broken
       restoreSvgs();
       restoreSpacers();
     }
-  }, [title]);
+  }, [title, artist]);
 
   return {
     handleDownloadPDF,
