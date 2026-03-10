@@ -209,8 +209,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                 )}
 
                 {/* Section Rows */}
-                <div className="p-2" style={{ textAlign: 'center' }}>
-                <div className="space-y-2" style={{ display: 'inline-block', textAlign: 'left', verticalAlign: 'top' }}>
+                <div className="p-2 space-y-2">
                   {visibleRows.map((row, rowIndex) => (
                     <div key={row.id} data-pdf-avoid-break="true" data-pdf-first-row={section.name && rowIndex === 0 ? "true" : undefined}>
                       {/* Row Subtitle */}
@@ -245,7 +244,6 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                       )}
                     </div>
                   ))}
-                </div>
                 </div>
               </div>
             );
