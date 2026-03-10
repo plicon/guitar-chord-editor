@@ -17,7 +17,7 @@ vi.mock("jspdf", () => ({
 
 describe("usePdfExport", () => {
   let mockCanvas: HTMLCanvasElement;
-  let mockPdf: { addImage: Mock; save: Mock; addPage: Mock };
+  let mockPdf: { addImage: Mock; save: Mock; addPage: Mock; setDrawColor: Mock; setLineWidth: Mock; line: Mock; setFont: Mock; setFontSize: Mock; setTextColor: Mock; text: Mock; getTextWidth: Mock; setPage: Mock };
   let mockRef: { current: HTMLDivElement | null };
   let mockElement: HTMLDivElement;
 
@@ -46,6 +46,15 @@ describe("usePdfExport", () => {
       addImage: vi.fn(),
       save: vi.fn(),
       addPage: vi.fn(),
+      setDrawColor: vi.fn(),
+      setLineWidth: vi.fn(),
+      line: vi.fn(),
+      setFont: vi.fn(),
+      setFontSize: vi.fn(),
+      setTextColor: vi.fn(),
+      text: vi.fn(),
+      getTextWidth: vi.fn().mockReturnValue(20),
+      setPage: vi.fn(),
     };
     (jsPDF as unknown as Mock).mockImplementation(() => mockPdf);
   });
