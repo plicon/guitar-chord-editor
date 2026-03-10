@@ -260,7 +260,7 @@ export function insertPageBreakSpacers(container: HTMLElement): () => void {
   };
 }
 
-export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>) {
+export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement | null>, artist?: string) {
 
   const handleDownloadPDF = useCallback(async () => {
     if (!printRef.current) return;

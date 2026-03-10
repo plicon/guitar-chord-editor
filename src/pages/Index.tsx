@@ -174,7 +174,7 @@ const Index = () => {
 
   // Use a dedicated ref for the always-mounted hidden PrintableSheet
   const hiddenPrintRef = useRef<HTMLDivElement>(null);
-  const { handleDownloadPDF } = usePdfExport(state.title, hiddenPrintRef);
+  const { handleDownloadPDF } = usePdfExport(state.title, hiddenPrintRef, state.artist);
 
   const handleChordClick = useCallback((sectionId: string, rowId: string, chordIndex: number) => {
     setEditingChord({ sectionId, rowId, chordIndex });
