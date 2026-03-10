@@ -3,7 +3,7 @@
 import { getAdminAuthHeaders } from "@/services/adminAuth";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://production.api.fretkit.io/api';
-const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL || API_BASE;
+const ADMIN_BASE = import.meta.env.VITE_ADMIN_API_URL || `${API_BASE}/admin`;
 
 /**
  * Fetch all strumming patterns.
