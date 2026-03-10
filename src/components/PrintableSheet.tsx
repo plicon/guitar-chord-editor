@@ -221,7 +221,7 @@ export const PrintableSheet = forwardRef<HTMLDivElement, PrintableSheetProps>(
                               </p>
                             </div>
                           )}
-                          <div className="flex justify-center gap-3 flex-wrap">
+                          <div className="flex justify-start gap-3 flex-wrap">
                             {chords.map((chord) => (
                               <ChordDiagramComponent
                                 key={chord.id}
