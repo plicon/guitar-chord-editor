@@ -74,7 +74,12 @@
   },
   "overrides": {
     "serialize-javascript": "^7.0.4",
-    "ajv": "^8.18.0"
+    "@redocly/cli": {
+      "ajv": "^8.18.0"
+    },
+    "@redocly/respect-core": {
+      "ajv": "^8.18.0"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

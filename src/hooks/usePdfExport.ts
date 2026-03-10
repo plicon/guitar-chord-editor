@@ -397,7 +397,7 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
       restoreSvgs();
       restoreSpacers();
     }
-  }, [title, artist]);
+  }, [title, artist, printRef]);
 
   return {
     handleDownloadPDF,
