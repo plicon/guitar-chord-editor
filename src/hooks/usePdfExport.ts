@@ -358,7 +358,8 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
       let isFirstSection = true;
       let pageCount = 1;
 
-      for (const section of sections) {
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
         const canvas = await html2canvas(section, html2canvasOptions);
 
         // Calculate dimensions of the captured section in mm
@@ -379,7 +380,11 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         const imgData = canvas.toDataURL("image/png");
         pdf.addImage(imgData, "PNG", MARGIN_MM, currentY, CONTENT_WIDTH_MM, heightMM);
 
-        currentY += heightMM + SECTION_GAP_MM;
+        currentY += heightMM;
+        // Only add gap between sections, not after the last one
+        if (i < sections.length - 1) {
+          currentY += SECTION_GAP_MM;
+        }
         isFirstSection = false;
       }
 
