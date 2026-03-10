@@ -2,6 +2,7 @@ import { useCallback, RefObject } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { sanitizeFilename } from "@/lib/utils";
+import { APP_VERSION } from "@/config/version";
 
 /**
  * Pre-rasterizes all SVG elements inside a container to PNG images.
