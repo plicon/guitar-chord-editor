@@ -224,7 +224,7 @@ export const PrintableSongSheet = forwardRef<HTMLDivElement, PrintableSongSheetP
                       
                       {/* Chord Row */}
                       {row.kind === 'chord-row' && (
-                        <div className="flex justify-center gap-2 flex-wrap">
+                        <div className="flex justify-start gap-2 flex-wrap">
                           {row.chords
                             .filter(isChordEdited)
                             .map((chord) => (
