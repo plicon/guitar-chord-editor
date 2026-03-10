@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { StrummingPatternEditor } from "./StrummingPatternEditor";
 import { createEmptyPattern } from "@/types/strumming";
 
@@ -21,21 +21,25 @@ describe("StrummingPatternEditor", () => {
     vi.clearAllMocks();
   });
 
-  const renderEditor = (pattern = createEmptyPattern(1, "4/4")) => {
-    return render(
-      <StrummingPatternEditor
-        pattern={pattern}
-        open={true}
-        onClose={mockOnClose}
-        onSave={mockOnSave}
-        onDelete={mockOnDelete}
-      />
-    );
+  const renderEditor = async (pattern = createEmptyPattern(1, "4/4")) => {
+    let result!: ReturnType<typeof render>;
+    await act(async () => {
+      result = render(
+        <StrummingPatternEditor
+          pattern={pattern}
+          open={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          onDelete={mockOnDelete}
+        />
+      );
+    });
+    return result;
   };
 
   describe("Dialog Rendering", () => {
-    it("should render the dialog when open is true", () => {
-      renderEditor();
+    it("should render the dialog when open is true", async () => {
+      await renderEditor();
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Strumming Pattern Editor")).toBeInTheDocument();
@@ -57,8 +61,8 @@ describe("StrummingPatternEditor", () => {
   });
 
   describe("Time Signature Selection", () => {
-    it("should render time signature selector with default 4/4", () => {
-      renderEditor();
+    it("should render time signature selector with default 4/4", async () => {
+      await renderEditor();
 
       expect(screen.getByText("Time:")).toBeInTheDocument();
       // The first select combobox is for time signature
@@ -66,8 +70,8 @@ describe("StrummingPatternEditor", () => {
       expect(comboboxes.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should display time signature label", () => {
-      renderEditor();
+    it("should display time signature label", async () => {
+      await renderEditor();
 
       // Verify that the time signature label is shown
       expect(screen.getByText("Time:")).toBeInTheDocument();
@@ -75,7 +79,7 @@ describe("StrummingPatternEditor", () => {
 
     it("should disable bars selector when time signature is 6/8", async () => {
       const pattern = createEmptyPattern(1, "6/8");
-      renderEditor(pattern);
+      await renderEditor(pattern);
 
       const comboboxes = screen.getAllByRole("combobox");
       // Second combobox is the bars selector (index 1)
@@ -83,18 +87,18 @@ describe("StrummingPatternEditor", () => {
       expect(barsButton).toBeDisabled();
     });
 
-    it("should enable bars selector for 4/4 time signature", () => {
+    it("should enable bars selector for 4/4 time signature", async () => {
       const pattern = createEmptyPattern(1, "4/4");
-      renderEditor(pattern);
+      await renderEditor(pattern);
 
       const comboboxes = screen.getAllByRole("combobox");
       const barsButton = comboboxes[1];
       expect(barsButton).not.toBeDisabled();
     });
 
-    it("should enable bars selector for 3/4 time signature", () => {
+    it("should enable bars selector for 3/4 time signature", async () => {
       const pattern = createEmptyPattern(1, "3/4");
-      renderEditor(pattern);
+      await renderEditor(pattern);
 
       const comboboxes = screen.getAllByRole("combobox");
       const barsButton = comboboxes[1];
@@ -103,8 +107,8 @@ describe("StrummingPatternEditor", () => {
   });
 
   describe("Bars Selection", () => {
-    it("should render bars selector", () => {
-      renderEditor();
+    it("should render bars selector", async () => {
+      await renderEditor();
 
       expect(screen.getByText("Bars:")).toBeInTheDocument();
       const comboboxes = screen.getAllByRole("combobox");
@@ -130,7 +134,7 @@ describe("StrummingPatternEditor", () => {
   describe("Clear Button", () => {
     it("should reset pattern to default 4/4 with 1 bar when cleared", async () => {
       const pattern = createEmptyPattern(2, "3/4");
-      renderEditor(pattern);
+      await renderEditor(pattern);
 
       const clearButton = screen.getByRole("button", { name: /clear all/i });
       fireEvent.click(clearButton);
@@ -148,7 +152,7 @@ describe("StrummingPatternEditor", () => {
       const pattern = createEmptyPattern(1, "4/4");
       pattern.beats[0].stroke = "down";
       pattern.beats[1].stroke = "up";
-      renderEditor(pattern);
+      await renderEditor(pattern);
 
       const clearButton = screen.getByRole("button", { name: /clear all/i });
       fireEvent.click(clearButton);
@@ -161,8 +165,8 @@ describe("StrummingPatternEditor", () => {
   });
 
   describe("Preset Selection", () => {
-    it("should have preset selector in the UI", () => {
-      renderEditor();
+    it("should have preset selector in the UI", async () => {
+      await renderEditor();
 
       // Verify all four comboboxes are rendered (time, division, bars, preset)
       const comboboxes = screen.queryAllByRole("combobox");
@@ -172,7 +176,7 @@ describe("StrummingPatternEditor", () => {
 
   describe("Save and Cancel", () => {
     it("should call onSave when save button is clicked", async () => {
-      renderEditor();
+      await renderEditor();
 
       const saveButton = screen.getByRole("button", { name: /save pattern/i });
       fireEvent.click(saveButton);
@@ -190,7 +194,7 @@ describe("StrummingPatternEditor", () => {
     });
 
     it("should call onClose when cancel button is clicked", async () => {
-      renderEditor();
+      await renderEditor();
 
       const cancelButton = screen.getByRole("button", { name: /cancel/i });
       fireEvent.click(cancelButton);
@@ -201,7 +205,7 @@ describe("StrummingPatternEditor", () => {
     });
 
     it("should call onDelete when delete button is clicked", async () => {
-      renderEditor();
+      await renderEditor();
 
       const deleteButton = screen.getByRole("button", { name: /remove pattern/i });
       fireEvent.click(deleteButton);
