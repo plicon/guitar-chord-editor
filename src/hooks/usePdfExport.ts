@@ -2,7 +2,6 @@ import { useCallback, RefObject } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { sanitizeFilename } from "@/lib/utils";
-import { APP_VERSION } from "@/config/version";
 
 /**
  * Pre-rasterizes all SVG elements inside a container to PNG images.
@@ -331,12 +330,12 @@ export function usePdfExport(title: string, printRef: RefObject<HTMLDivElement |
         // Center: URL
         pdf.setFontSize(7);
         pdf.setTextColor(160, 160, 160);
-        const url = "fretkit.io";
+        const url = "https://fretkit.io";
         const urlWidth = pdf.getTextWidth(url);
         pdf.text(url, (PAGE_WIDTH_MM - urlWidth) / 2, footerY);
 
-        // Right side: version + page number
-        const rightText = `v${APP_VERSION}  ·  ${pageNum} / ${totalPages}`;
+        // Right side: page number
+        const rightText = `${pageNum} / ${totalPages}`;
         const rightWidth = pdf.getTextWidth(rightText);
         pdf.text(rightText, PAGE_WIDTH_MM - MARGIN_MM - rightWidth, footerY);
       };
