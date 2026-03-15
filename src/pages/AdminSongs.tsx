@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Button } from "../components/ui/button";
-import { Trash2, ArrowLeft, Home, Loader2, FileText } from "lucide-react";
+import { Badge } from "../components/ui/badge";
+import { Trash2, ArrowLeft, Home, Loader2, FileText, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppFooter } from "../components/AppFooter";
 import { APP_CONFIG } from "../config/appConfig";
