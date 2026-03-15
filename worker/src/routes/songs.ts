@@ -87,11 +87,11 @@ export async function handleAdminSongs(
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
     if (query) {
-      const result = await searchSongs(env.DB, query, { limit, offset });
+      const result = await searchSongs(env.DB, query, { limit, offset }, { includePrivate: true });
       return jsonResponse(result);
     }
 
-    const result = await listSongs(env.DB, { limit, offset });
+    const result = await listSongs(env.DB, { limit, offset }, { includePrivate: true });
     return jsonResponse(result);
   }
 
