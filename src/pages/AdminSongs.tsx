@@ -132,13 +132,23 @@ export default function AdminSongsPage() {
           <ul className="space-y-2">
             {songs.map((song) => {
               const dateStr = song.createdAt || song.updatedAt;
+              const isPrivate = /^\[.*\]/.test(song.title || "");
+              const displayTitle = song.title || "(Untitled)";
               return (
                 <li
                   key={song.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-border bg-card"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{song.title || "(Untitled)"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{displayTitle}</p>
+                      {isPrivate && (
+                        <Badge variant="secondary" className="flex-shrink-0 gap-1">
+                          <Lock className="w-3 h-3" />
+                          Private
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {dateStr
                         ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
