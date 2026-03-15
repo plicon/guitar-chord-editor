@@ -96,6 +96,26 @@ export async function verifyToken(token: string, secret: string): Promise<TokenP
  * Middleware: verify the Bearer token on admin requests.
  * Returns null if authorized, or an error Response if not.
  */
+/**
+ * Check if the request has a valid admin Bearer token (non-blocking).
+ * Returns true if authenticated, false otherwise.
+ */
+export async function isAuthenticated(request: Request, env: Env): Promise<boolean> {
+  const secret = (env as Record<string, unknown>).ADMIN_PASSWORD as string | undefined;
+  if (!secret) return false;
+
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return false;
+
+  const token = authHeader.slice(7);
+  const payload = await verifyToken(token, secret);
+  return payload !== null;
+}
+
+/**
+ * Middleware: verify the Bearer token on admin requests.
+ * Returns null if authorized, or an error Response if not.
+ */
 export async function requireAdminAuth(request: Request, env: Env): Promise<Response | null> {
   const secret = (env as Record<string, unknown>).ADMIN_PASSWORD as string | undefined;
   if (!secret) {

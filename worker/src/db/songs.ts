@@ -37,23 +37,31 @@ function rowToSong(row: SongRow): Song {
 /**
  * List all songs with pagination
  */
+/**
+ * SQL condition to exclude songs whose title starts with [WORD]
+ * Pattern: titles starting with '[' followed by any chars then ']'
+ */
+const BRACKETED_TITLE_FILTER = "title NOT LIKE '[%]%'";
+
 export async function listSongs(
   db: D1Database,
-  params: PaginationParams = {}
+  params: PaginationParams = {},
+  options: { includePrivate?: boolean } = {}
 ): Promise<ListResponse<Song>> {
   const limit = params.limit || 50;
   const offset = params.offset || 0;
+  const whereClause = options.includePrivate ? '' : `WHERE ${BRACKETED_TITLE_FILTER}`;
 
   // Get total count
   const countResult = await db
-    .prepare('SELECT COUNT(*) as count FROM songs')
+    .prepare(`SELECT COUNT(*) as count FROM songs ${whereClause}`)
     .first<{ count: number }>();
   
   const total = countResult?.count || 0;
 
   // Get paginated results
   const results = await db
-    .prepare('SELECT * FROM songs ORDER BY updated_at DESC LIMIT ? OFFSET ?')
+    .prepare(`SELECT * FROM songs ${whereClause} ORDER BY updated_at DESC LIMIT ? OFFSET ?`)
     .bind(limit, offset)
     .all<SongRow>();
 
@@ -210,16 +218,18 @@ export async function deleteSong(
 export async function searchSongs(
   db: D1Database,
   query: string,
-  params: PaginationParams = {}
+  params: PaginationParams = {},
+  options: { includePrivate?: boolean } = {}
 ): Promise<ListResponse<Song>> {
   const limit = params.limit || 50;
   const offset = params.offset || 0;
   const searchPattern = `%${query}%`;
+  const privateFilter = options.includePrivate ? '' : `AND ${BRACKETED_TITLE_FILTER}`;
 
   // Get total count
   const countResult = await db
     .prepare(
-      'SELECT COUNT(*) as count FROM songs WHERE title LIKE ? OR artist LIKE ?'
+      `SELECT COUNT(*) as count FROM songs WHERE (title LIKE ? OR artist LIKE ?) ${privateFilter}`
     )
     .bind(searchPattern, searchPattern)
     .first<{ count: number }>();
@@ -229,7 +239,7 @@ export async function searchSongs(
   // Get paginated results
   const results = await db
     .prepare(
-      'SELECT * FROM songs WHERE title LIKE ? OR artist LIKE ? ORDER BY updated_at DESC LIMIT ? OFFSET ?'
+      `SELECT * FROM songs WHERE (title LIKE ? OR artist LIKE ?) ${privateFilter} ORDER BY updated_at DESC LIMIT ? OFFSET ?`
     )
     .bind(searchPattern, searchPattern, limit, offset)
     .all<SongRow>();

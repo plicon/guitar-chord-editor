@@ -17,6 +17,7 @@ import {
   notFoundResponse,
   methodNotAllowedResponse,
 } from '../utils/responses';
+import { isAuthenticated } from '../utils/auth';
 
 /**
  * Handle /api/songs routes (read-only)
@@ -27,6 +28,8 @@ export async function handleSongs(
   pathParts: string[]
 ): Promise<Response> {
   const method = request.method;
+  const authed = await isAuthenticated(request, env);
+  const privateOpts = { includePrivate: authed };
 
   // GET /api/songs/:id - Get single song
   if (pathParts.length === 3 && method === 'GET') {
@@ -34,6 +37,11 @@ export async function handleSongs(
     const song = await getSong(env.DB, id);
 
     if (!song) {
+      return notFoundResponse('Song');
+    }
+
+    // Block unauthenticated access to bracketed-title songs
+    if (!authed && /^\[.*\]/.test(song.title)) {
       return notFoundResponse('Song');
     }
 
@@ -49,12 +57,12 @@ export async function handleSongs(
 
     // Search
     if (query) {
-      const result = await searchSongs(env.DB, query, { limit, offset });
+      const result = await searchSongs(env.DB, query, { limit, offset }, privateOpts);
       return jsonResponse(result);
     }
 
     // List all
-    const result = await listSongs(env.DB, { limit, offset });
+    const result = await listSongs(env.DB, { limit, offset }, privateOpts);
     return jsonResponse(result);
   }
 
@@ -79,11 +87,11 @@ export async function handleAdminSongs(
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
     if (query) {
-      const result = await searchSongs(env.DB, query, { limit, offset });
+      const result = await searchSongs(env.DB, query, { limit, offset }, { includePrivate: true });
       return jsonResponse(result);
     }
 
-    const result = await listSongs(env.DB, { limit, offset });
+    const result = await listSongs(env.DB, { limit, offset }, { includePrivate: true });
     return jsonResponse(result);
   }
 
