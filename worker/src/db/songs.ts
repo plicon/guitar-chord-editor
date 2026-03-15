@@ -218,16 +218,18 @@ export async function deleteSong(
 export async function searchSongs(
   db: D1Database,
   query: string,
-  params: PaginationParams = {}
+  params: PaginationParams = {},
+  options: { includePrivate?: boolean } = {}
 ): Promise<ListResponse<Song>> {
   const limit = params.limit || 50;
   const offset = params.offset || 0;
   const searchPattern = `%${query}%`;
+  const privateFilter = options.includePrivate ? '' : `AND ${BRACKETED_TITLE_FILTER}`;
 
   // Get total count
   const countResult = await db
     .prepare(
-      'SELECT COUNT(*) as count FROM songs WHERE title LIKE ? OR artist LIKE ?'
+      `SELECT COUNT(*) as count FROM songs WHERE (title LIKE ? OR artist LIKE ?) ${privateFilter}`
     )
     .bind(searchPattern, searchPattern)
     .first<{ count: number }>();
@@ -237,7 +239,7 @@ export async function searchSongs(
   // Get paginated results
   const results = await db
     .prepare(
-      'SELECT * FROM songs WHERE title LIKE ? OR artist LIKE ? ORDER BY updated_at DESC LIMIT ? OFFSET ?'
+      `SELECT * FROM songs WHERE (title LIKE ? OR artist LIKE ?) ${privateFilter} ORDER BY updated_at DESC LIMIT ? OFFSET ?`
     )
     .bind(searchPattern, searchPattern, limit, offset)
     .all<SongRow>();
