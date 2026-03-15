@@ -17,6 +17,7 @@ import {
   notFoundResponse,
   methodNotAllowedResponse,
 } from '../utils/responses';
+import { isAuthenticated } from '../utils/auth';
 
 /**
  * Handle /api/songs routes (read-only)
