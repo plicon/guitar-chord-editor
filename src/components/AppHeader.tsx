@@ -278,15 +278,21 @@ export const AppHeader = ({
             <div className="border-t border-border pt-2 mt-2">
               {isAuthenticated ? (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    {username}
-                  </span>
-                  <Button variant="ghost" size="sm" onClick={() => handleMobileAction(onLogout)}>
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Logout
-                  </Button>
-                </div>
+                   <span className="text-sm text-muted-foreground flex items-center gap-1">
+                     <User className="w-3 h-3" />
+                     {username}
+                   </span>
+                   <div className="flex items-center gap-1">
+                     <Button variant="ghost" size="sm" onClick={() => handleMobileAction(() => navigate('/admin'))}>
+                       <Settings className="w-4 h-4 mr-1" />
+                       Admin
+                     </Button>
+                     <Button variant="ghost" size="sm" onClick={() => handleMobileAction(onLogout)}>
+                       <LogOut className="w-4 h-4 mr-1" />
+                       Logout
+                     </Button>
+                   </div>
+                 </div>
               ) : (
                 <Button
                   variant="outline"
