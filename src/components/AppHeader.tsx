@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown, Settings } from "lucide-react";
