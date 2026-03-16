@@ -202,12 +202,17 @@ export const AppHeader = ({
                       <ChevronDown className="w-3 h-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                   <DropdownMenuContent align="end">
+                     <DropdownMenuItem onClick={() => navigate('/admin')}>
+                       <Settings className="w-4 h-4 mr-2" />
+                       Admin
+                     </DropdownMenuItem>
+                     <DropdownMenuSeparator />
+                     <DropdownMenuItem onClick={onLogout}>
+                       <LogOut className="w-4 h-4 mr-2" />
+                       Logout
+                     </DropdownMenuItem>
+                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <Button variant="ghost" size="sm" onClick={() => setLoginDialogOpen(true)}>
