@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import {
