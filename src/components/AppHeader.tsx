@@ -79,6 +79,7 @@ export const AppHeader = ({
   loginLoading,
 }: AppHeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [loginUsername, setLoginUsername] = useState("");
