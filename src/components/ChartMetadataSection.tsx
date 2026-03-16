@@ -3,7 +3,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { StrummingPatternDisplay } from "@/components/StrummingPatternDisplay";
 import { StrummingPattern, hasStrummingContent } from "@/types/strumming";
-import { ListMusic, Pencil } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ListMusic, Pencil, Lock, Unlock } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChartMetadataSectionProps {
   title: string;
