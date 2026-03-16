@@ -24,6 +24,17 @@ export const ChartMetadataSection = ({
   onDescriptionChange,
   onStrummingEditorOpen,
 }: ChartMetadataSectionProps) => {
+  const { isAuthenticated } = useAuth();
+  const isPrivate = /^\[.*?\]/.test(title);
+
+  const togglePrivate = () => {
+    if (isPrivate) {
+      onTitleChange(title.replace(/^\[.*?\]\s*/, ""));
+    } else {
+      onTitleChange(`[PRIVATE] ${title}`);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-4">
@@ -31,12 +42,31 @@ export const ChartMetadataSection = ({
           <label className="text-sm font-medium text-foreground">
             Chart Title
           </label>
-          <Input
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Enter chart title..."
-            className="text-xl font-semibold"
-          />
+          <div className="flex gap-2">
+            <Input
+              value={title}
+              onChange={(e) => onTitleChange(e.target.value)}
+              placeholder="Enter chart title..."
+              className="text-xl font-semibold flex-1"
+            />
+            {isAuthenticated && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isPrivate ? "default" : "outline"}
+                    size="icon"
+                    onClick={togglePrivate}
+                    className="shrink-0"
+                  >
+                    {isPrivate ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isPrivate ? "Song is private — click to make public" : "Song is public — click to make private"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </div>
       </div>
       
