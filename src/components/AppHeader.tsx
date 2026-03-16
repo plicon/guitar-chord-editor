@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown } from "lucide-react";
+import { Plus, Save, FolderOpen, FileDown, FileUp, Menu, Sparkles, LogIn, LogOut, User, ChevronDown, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import {
@@ -78,6 +79,7 @@ export const AppHeader = ({
   loginLoading,
 }: AppHeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [loginUsername, setLoginUsername] = useState("");
@@ -201,12 +203,17 @@ export const AppHeader = ({
                       <ChevronDown className="w-3 h-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                   <DropdownMenuContent align="end">
+                     <DropdownMenuItem onClick={() => navigate('/admin')}>
+                       <Settings className="w-4 h-4 mr-2" />
+                       Admin
+                     </DropdownMenuItem>
+                     <DropdownMenuSeparator />
+                     <DropdownMenuItem onClick={onLogout}>
+                       <LogOut className="w-4 h-4 mr-2" />
+                       Logout
+                     </DropdownMenuItem>
+                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <Button variant="ghost" size="sm" onClick={() => setLoginDialogOpen(true)}>
@@ -271,15 +278,21 @@ export const AppHeader = ({
             <div className="border-t border-border pt-2 mt-2">
               {isAuthenticated ? (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    {username}
-                  </span>
-                  <Button variant="ghost" size="sm" onClick={() => handleMobileAction(onLogout)}>
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Logout
-                  </Button>
-                </div>
+                   <span className="text-sm text-muted-foreground flex items-center gap-1">
+                     <User className="w-3 h-3" />
+                     {username}
+                   </span>
+                   <div className="flex items-center gap-1">
+                     <Button variant="ghost" size="sm" onClick={() => handleMobileAction(() => navigate('/admin'))}>
+                       <Settings className="w-4 h-4 mr-1" />
+                       Admin
+                     </Button>
+                     <Button variant="ghost" size="sm" onClick={() => handleMobileAction(onLogout)}>
+                       <LogOut className="w-4 h-4 mr-1" />
+                       Logout
+                     </Button>
+                   </div>
+                 </div>
               ) : (
                 <Button
                   variant="outline"
