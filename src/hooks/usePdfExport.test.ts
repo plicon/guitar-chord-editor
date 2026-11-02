@@ -10,14 +10,30 @@ vi.mock("html2canvas", () => ({
   default: vi.fn(),
 }));
 
-// Mock jsPDF
+let mockPdf: {
+  addImage: Mock;
+  save: Mock;
+  addPage: Mock;
+  setDrawColor: Mock;
+  setLineWidth: Mock;
+  line: Mock;
+  setFont: Mock;
+  setFontSize: Mock;
+  setTextColor: Mock;
+  text: Mock;
+  getTextWidth: Mock;
+  setPage: Mock;
+};
+
+// Mock jsPDF with a constructor-compatible implementation.
 vi.mock("jspdf", () => ({
-  default: vi.fn(),
+  default: vi.fn(function (this: unknown) {
+    return mockPdf;
+  }),
 }));
 
 describe("usePdfExport", () => {
   let mockCanvas: HTMLCanvasElement;
-  let mockPdf: { addImage: Mock; save: Mock; addPage: Mock; setDrawColor: Mock; setLineWidth: Mock; line: Mock; setFont: Mock; setFontSize: Mock; setTextColor: Mock; text: Mock; getTextWidth: Mock; setPage: Mock };
   let mockRef: { current: HTMLDivElement | null };
   let mockElement: HTMLDivElement;
 
@@ -56,7 +72,9 @@ describe("usePdfExport", () => {
       getTextWidth: vi.fn().mockReturnValue(20),
       setPage: vi.fn(),
     };
-    (jsPDF as unknown as Mock).mockImplementation(() => mockPdf);
+    (jsPDF as unknown as Mock).mockImplementation(function (this: unknown) {
+      return mockPdf;
+    });
   });
 
   it("should return handleDownloadPDF function", () => {
